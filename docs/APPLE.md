@@ -18,6 +18,8 @@ The Apple clients use the same TLS protocol as Windows and Android. macOS hosts 
 
 Requirements: macOS 14 or newer; iOS / iPadOS 17 or newer. macOS packages are provided for Apple silicon and Intel.
 
+![Mac app connected to iPhone and iPad simulators](assets/apple-overview.png)
+
 ## Downloads and signing
 
 The macOS application is ad-hoc signed, without an Apple Developer ID or notarization. Download it from this repository's release, unzip it, and move CodeLink.app to Applications. If macOS blocks it, use System Settings → Privacy & Security → Open Anyway after checking the release checksum. Do not disable Gatekeeper globally.
@@ -25,6 +27,13 @@ The macOS application is ad-hoc signed, without an Apple Developer ID or notariz
 There is no signed iPhone IPA or TestFlight release. `CodeLink-iOS-Simulator` runs in Xcode's iOS Simulator on a Mac. `CodeLink-iOS-unsigned-archive` is an unsigned device archive for developers; it cannot be installed directly on an iPhone. `CodeLink-Apple-Source` contains an Xcode project for personal signing. Open `apple/CodeLink.xcodeproj`, select CodeLinkiOS, set **Build Settings → Code Signing Allowed** to **Yes**, enable automatic signing, select your own development team and bundle identifier, and run on a connected device. A free Apple Account can be used for personal device testing under Apple's provisioning limits. App Store / TestFlight distribution needs paid Apple Developer Program membership.
 
 ## First connection
+
+To run the simulator download, unzip it, open Xcode's Simulator and start an iPhone or iPad. Install and launch the app with:
+
+```sh
+xcrun simctl install booted /path/to/CodeLink.app
+xcrun simctl launch booted com.codelink.ios
+```
 
 1. Open the Mac app and create a terminal or Codex session. Codex requires a separately installed, authenticated Codex CLI.
 2. Open Pair devices, enable local network connections and check the displayed Mac IP address.

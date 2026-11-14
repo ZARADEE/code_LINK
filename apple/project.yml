@@ -39,6 +39,8 @@ targets:
       path: Generated/Mac-Info.plist
       properties:
         CFBundleDisplayName: Code Link
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSHighResolutionCapable: true
         LSApplicationCategoryType: public.app-category.developer-tools
         NSLocalNetworkUsageDescription: Code Link shares your terminal with devices you pair on your local network.
@@ -68,6 +70,8 @@ targets:
       path: Generated/iOS-Info.plist
       properties:
         CFBundleDisplayName: Code Link
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSCameraUsageDescription: Scan the pairing QR code displayed by Code Link on your computer.
         NSLocalNetworkUsageDescription: Connect securely to the Code Link host you pair on your local network.
         ITSAppUsesNonExemptEncryption: false

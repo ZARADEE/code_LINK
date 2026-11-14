@@ -18,6 +18,10 @@ The desktop app is a lightweight **WPF tray application**. The Android app uses 
 
 Native SwiftUI clients add managed zsh terminals and Codex sessions on macOS, with an iPhone/iPad companion using the same pinned TLS protocol. Download Apple silicon or Intel builds for macOS 14+, including the .NET runtime. The Mac apps are ad-hoc signed and not notarized.
 
+![macOS app and iPhone/iPad simulators connected to a real local terminal](docs/assets/apple-overview.png)
+
+Full-size captures: [macOS](docs/assets/macos.png), [iPhone Simulator](docs/assets/ios.png), [iPad Simulator](docs/assets/ipados.png). These show running applications connected to the native Mac host.
+
 iOS 17+ is provided as a simulator app, an unsigned device archive and an Xcode source project for personal signing. There is no directly installable signed IPA or TestFlight release. iOS connections pause in the background and resume on return. Read the [Apple guide](docs/APPLE.md) for installation and the platform capability matrix. The USB, Bluetooth, background service and external window scanning instructions below apply to Windows + Android.
 
 ## Get started

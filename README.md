@@ -43,6 +43,10 @@
 
 ## macOS 与 iOS
 
+![macOS、iPhone 与 iPad 通过真实本地连接同步终端](docs/assets/apple-overview.png)
+
+macOS 应用与 iPhone / iPad 模拟器的实际运行截图。可查看 [Mac](docs/assets/macos.png)、[iPhone](docs/assets/ios.png) 和 [iPad](docs/assets/ipados.png) 原尺寸图片。
+
 新增原生 SwiftUI 客户端。macOS 可以创建 zsh 终端和 Codex 会话，iPhone / iPad 通过同一局域网连接 Mac 或 Windows，查看输出、输入指令、处理审批和 A/B 提醒。Apple 端界面为英文，详见 [Apple 安装与功能说明](docs/APPLE.md)。
 
 macOS 提供 Apple silicon 和 Intel 包，内含 .NET 运行时，尚未进行 Developer ID 签名与公证。iOS 提供模拟器包、未签名真机归档和可自行签名的 Xcode 工程；当前没有可直接安装的签名 IPA 或 TestFlight。iOS 退到后台后会暂停连接，返回时重连。下文 USB、蓝牙、后台常驻与外部窗口扫描步骤适用于 Windows + Android。

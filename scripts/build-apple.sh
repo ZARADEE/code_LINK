@@ -53,3 +53,4 @@ import hashlib
 root=Path('dist/apple')
 (root/'APPLE-SHA256SUMS.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in sorted(root.glob('*.zip'))))
 PY
+python3 scripts/verify-apple-packages.py "$OUT"

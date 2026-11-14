@@ -1,0 +1,12 @@
+{
+  "modeToggle": true,
+  "rename": true,
+  "defaultB": true,
+  "individualCompletionAndRead": true,
+  "bWaitsForAll": true,
+  "bAggregateCompletion": true,
+  "unreadPersistsAfterRestart": true,
+  "batchReadAcknowledgement": true,
+  "renameAndGroupPersist": true,
+  "passed": true
+}

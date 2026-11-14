@@ -1,0 +1,75 @@
+{
+  "checkedAt": "2026-11-13T03:12:47.682Z",
+  "platform": "win32",
+  "osRelease": "10.0.26200",
+  "codexVersion": "codex-cli 0.166.0",
+  "schemaBundleSha256": "9b6d53647b00d68a04181b826599025a810cfa78acb3ec4d518c68b4120499c0",
+  "clientMethods": [
+    "thread/start",
+    "thread/resume",
+    "thread/list",
+    "thread/read",
+    "turn/start",
+    "turn/steer",
+    "turn/interrupt"
+  ],
+  "serverRequests": [
+    "item/commandExecution/requestApproval",
+    "item/fileChange/requestApproval",
+    "item/tool/requestUserInput",
+    "mcpServer/elicitation/request",
+    "item/permissions/requestApproval"
+  ],
+  "serverNotifications": [
+    "thread/status/changed",
+    "turn/started",
+    "turn/completed",
+    "item/agentMessage/delta",
+    "item/commandExecution/outputDelta",
+    "serverRequest/resolved"
+  ],
+  "questionParams": {
+    "description": "EXPERIMENTAL. Params sent with a request_user_input event.",
+    "required": [
+      "isBlocking",
+      "itemId",
+      "questions",
+      "threadId",
+      "turnId"
+    ],
+    "fields": [
+      "autoResolutionMs",
+      "isBlocking",
+      "itemId",
+      "questions",
+      "threadId",
+      "turnId"
+    ]
+  },
+  "probe": {
+    "sentMethods": [
+      "initialize",
+      "initialized"
+    ],
+    "initializeSucceeded": true,
+    "shutdown": "stdin-closed-after-initialize",
+    "resultFields": [
+      "userAgent",
+      "codexHome",
+      "platformFamily",
+      "platformOs"
+    ],
+    "exitCode": 0,
+    "signal": null,
+    "stderrBytes": 0
+  },
+  "coverage": {
+    "modelInference": false,
+    "realApprovalRoundTrip": false,
+    "androidAppConnection": false,
+    "usbConnection": false,
+    "rfcommConnection": false,
+    "wifiConnection": false,
+    "originalCodexTuiProxy": false
+  }
+}

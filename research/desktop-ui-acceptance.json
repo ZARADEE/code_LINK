@@ -1,0 +1,13 @@
+﻿{
+    "passed":  true,
+    "currentCodexVisible":  true,
+    "statusBottomRight":  true,
+    "automaticScanRetainsSelection":  true,
+    "externalMappingEnabled":  true,
+    "unifiedList":  true,
+    "realTerminalText":  true,
+    "trayRestoreContentVisible":  true,
+    "singleDesktopInstance":  true,
+    "obsoleteControlsAbsent":  true,
+    "statusText":  "代理在线 · 蓝牙 可连接"
+}

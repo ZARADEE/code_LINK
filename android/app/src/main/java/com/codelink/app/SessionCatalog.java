@@ -1,0 +1,10 @@
+package com.codelink.app;
+import org.json.*;
+import java.util.*;
+
+/** Shared catalogue identity for UI and background reminders. */
+public final class SessionCatalog {
+ public static JSONObject session(JSONObject lastState,String id){JSONArray all=lastState==null?null:lastState.optJSONArray("sessions");if(all!=null)for(int i=0;i<all.length();i++){JSONObject s=all.optJSONObject(i);if(s!=null&&s.optString("id").equals(id))return s;}return null;}
+ public static String reminderId(JSONObject s){return s.optString("kind").equals("observer")?"window:"+s.optInt("observedProcessId")+":"+s.optLong("observedWindowHandle"):s.optString("id");}
+ public static JSONArray visible(JSONObject lastState){JSONArray result=new JSONArray();Set<String> known=new HashSet<>();JSONArray all=lastState==null?null:lastState.optJSONArray("sessions"),commands=lastState==null?null:lastState.optJSONArray("commands");if(commands!=null)for(int i=0;i<commands.length();i++){JSONObject c=commands.optJSONObject(i);if(c==null)continue;JSONObject mapped=session(lastState,c.optString("sessionId"));if(mapped!=null){try{JSONObject view=new JSONObject(mapped.toString());if(c.optString("kind").equals("observer"))view.put("activityCycle",c.optLong("activityCycle")).put("status",c.optString("status","unknown"));result.put(view);}catch(Exception ignored){result.put(mapped);}known.add(mapped.optString("id"));}else try{result.put(new JSONObject().put("id",c.optString("kind").equals("observer")?"catalog:"+c.optString("key"):c.optString("sessionId")).put("catalogKey",c.optString("key")).put("name",c.optString("name")).put("kind",c.optString("kind")).put("status",c.optString("status","unknown")).put("activityCycle",c.optLong("activityCycle")).put("observedWindowHandle",c.optLong("windowHandle")).put("observedProcessId",c.optInt("processId")));}catch(Exception ignored){}}if(all!=null)for(int i=0;i<all.length();i++){JSONObject item=all.optJSONObject(i);if(item!=null&&!known.contains(item.optString("id")))result.put(item);}return result;}
+}

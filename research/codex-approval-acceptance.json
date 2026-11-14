@@ -1,0 +1,15 @@
+﻿{
+    "passed":  true,
+    "sessionId":  "cc25442218154bbfa92ce410945deb17",
+    "threadId":  "01a1d3f0-466c-7b60-9ffe-4126df2cb419",
+    "turnId":  "01a1d3f0-b130-7fe1-8a33-4cd9b4e5a4ab",
+    "status":  "completed",
+    "mobileApprovalSubmissions":  2,
+    "mcpResult":  {
+                      "action":  "accept",
+                      "content":  {
+                                      "confirmed":  true
+                                  }
+                  },
+    "completedAt":  "2026-11-13T16:08:36.3339323+08:00"
+}

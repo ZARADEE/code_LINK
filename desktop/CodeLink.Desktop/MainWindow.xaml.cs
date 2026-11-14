@@ -1,0 +1,375 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Text;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Automation;
+using System.Windows.Threading;
+using QRCoder;
+using Forms=System.Windows.Forms;
+
+namespace CodeLink.Desktop;
+public partial class MainWindow:Window
+{
+    private readonly LocalClient client=new();
+    private JsonNode? state;
+    private bool rendering,quitting,scanning;
+    private string selected="",deviceSignature="";
+    private string? externalSelection;
+    private readonly Dictionary<string,string> outputCache=new(),statuses=new();
+    private readonly HashSet<string> dispatchedInputs=new();
+    private readonly SemaphoreSlim externalInputGate=new(1);
+    private bool observing;
+    private readonly Dictionary<string,DateTime> observationSent=new();
+    private readonly Forms.NotifyIcon tray;
+    private readonly DispatcherTimer scanTimer=new(){Interval=TimeSpan.FromSeconds(5)};
+    private readonly DispatcherTimer usbTimer=new(){Interval=TimeSpan.FromSeconds(5)};
+    private readonly DispatcherTimer observeTimer=new(){Interval=TimeSpan.FromSeconds(1)};
+    private bool checkingUsb;
+    private string adbPort="5038";
+    private readonly HashSet<string> knownUsb=new();
+    private readonly ObservableCollection<ExternalItem> externalItems=new();
+    private record Item(string Id,string Label){public override string ToString()=>Label;}
+    private sealed class ExternalItem(CommandCandidate process):INotifyPropertyChanged
+    {
+        public CommandCandidate Process{get;private set;}=process;
+        public string? SessionId{get;set;}
+        public string Key=>SessionId??Process.Id;
+        public string Label=>SessionId is null?Process.Label:Process.WindowTitle;
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public string Snapshot{get;private set;}="";
+        public void Update(CommandCandidate next){if(Process==next)return;Process=next;PropertyChanged?.Invoke(this,new(nameof(Label)));}
+        public void UpdateSnapshot(string next){Snapshot=next;}
+        public override string ToString()=>Label;
+    }
+
+    public MainWindow()
+    {
+        InitializeComponent();Icon=new BitmapImage(new Uri(Path.Combine(AppContext.BaseDirectory,"assets/icon.png")));
+        ExternalProcessList.ItemsSource=externalItems;
+        tray=new Forms.NotifyIcon{Icon=new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory,"assets/app.ico")),Visible=true,Text="Code Link"};
+        tray.DoubleClick+=(_,_)=>Dispatcher.Invoke(RestorePanel);
+        var menu=new Forms.ContextMenuStrip();
+        menu.Items.Add("打开面板",null,(_,_)=>Dispatcher.Invoke(RestorePanel));
+        menu.Items.Add("退出面板，保留命令行",null,(_,_)=>Dispatcher.Invoke(()=>{quitting=true;Close();Application.Current.Shutdown();}));
+        tray.ContextMenuStrip=menu;
+        Closing+=(_,e)=>{if(!quitting){e.Cancel=true;Hide();}};
+        Closed+=(_,_)=>{scanTimer.Stop();usbTimer.Stop();observeTimer.Stop();tray.Dispose();client.Dispose();};
+        scanTimer.Tick+=async(_,_)=>await Scan();
+        usbTimer.Tick+=async(_,_)=>await RefreshUsbMappings();
+        observeTimer.Tick+=async(_,_)=>await RefreshSelectedExternalOutput();
+        Loaded+=async(_,_)=>{AnimateSplash();await Connect();await Scan();scanTimer.Start();usbTimer.Start();observeTimer.Start();};
+        DeviceList.SelectionChanged+=(_,_)=>{if(!rendering)UpdateMappingButton();};
+    }
+
+    public void RestorePanel(){Show();WindowState=WindowState.Normal;Activate();}
+
+    private async void AnimateSplash()
+    {
+        var timer=new DispatcherTimer{Interval=TimeSpan.FromMilliseconds(120)};
+        try
+        {
+            var gif=new GifBitmapDecoder(new Uri(Path.Combine(AppContext.BaseDirectory,"assets/startup.gif")),BitmapCreateOptions.PreservePixelFormat,BitmapCacheOption.OnLoad);
+            var frame=0;timer.Tick+=(_,_)=>SplashImage.Source=gif.Frames[frame++%gif.Frames.Count];SplashImage.Source=gif.Frames[0];timer.Start();await Task.Delay(1800);
+        }
+        catch(IOException){}
+        finally{timer.Stop();Splash.Visibility=Visibility.Collapsed;}
+    }
+    private async Task Connect()
+    {
+        client.State+=s=>Dispatcher.InvokeAsync(()=>Render(s));
+        client.Disconnected+=()=>Dispatcher.InvokeAsync(()=>{HostStatus.Text="代理连接中断";MapMobileButton.IsEnabled=false;});
+        try{await HostLauncher.Connect(client);}
+        catch(Exception e){HostStatus.Text="代理未启动";Footer.Text=e.Message;}
+    }
+    private static string Strip(string text)=>System.Text.RegularExpressions.Regex.Replace(text,@"\x1B(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1B\\))","").Replace("\r","");
+    private static string Status(string value)=>value switch{"running"=>"运行中","approval"=>"等待授权","input"=>"等待回答","completed"=>"本轮完成","failed"=>"失败","interrupted"=>"已中断","exited"=>"进程退出","disconnected"=>"等待恢复",_=>"就绪"};
+    private JsonNode? Current=>state?["sessions"]?.AsArray().FirstOrDefault(s=>s.S("id")==selected);
+    private void Render(JsonNode next)
+    {
+        state=next;
+        if(next["mobileInputs"] is JsonArray pendingInputs)
+            foreach(var input in pendingInputs)if(input is not null&&dispatchedInputs.Add(input.S("id")))_=DispatchExternalInput(input.DeepClone());
+        var streamId=next.S("selected");outputCache.TryGetValue(streamId,out var previous);
+        var value=(next.B("reset")?"":previous??"")+next.S("output");
+        outputCache[streamId]=value.Length>120000?value[^100000..]:value;
+        var sessions=next["sessions"]!.AsArray();var devices=next["devices"]!.AsArray();
+        rendering=true;
+        if(!sessions.Any(s=>s.S("id")==selected))selected=streamId;
+        var oldDevice=(DeviceList.SelectedItem as Item)?.Id;
+        var ds=devices.ToJsonString();
+        if(ds!=deviceSignature)
+        {
+            deviceSignature=ds;DeviceList.ItemsSource=devices.Select(d=>new Item(d!.S("id"),(d.B("online")?"● ":"○ ")+d.S("name")+"\n"+d.S("transport"))).ToArray();
+            DeviceList.SelectedItem=DeviceList.Items.Cast<Item>().FirstOrDefault(d=>d.Id==oldDevice)??DeviceList.Items.Cast<Item>().FirstOrDefault();
+        }
+        HostStatus.Text="代理在线 · 蓝牙 "+next.S("bluetooth");
+        if(externalSelection is null)RenderOutput();
+        foreach(var s in sessions)
+        {
+            var id=s!.S("id");var status=s.S("status");
+            if(statuses.TryGetValue(id,out var old)&&old!=status&&status is "approval" or "input" or "completed" or "failed")tray.ShowBalloonTip(4000,s.S("name"),Status(status),Forms.ToolTipIcon.Info);
+            statuses[id]=status;
+        }
+        Footer.Text=$"{devices.Count} 台移动设备 · {sessions.Count} 个受控命令行";
+        rendering=false;UpdateMappingButton();
+    }
+    private async Task DispatchExternalInput(JsonNode input)
+    {
+        await externalInputGate.WaitAsync();
+        try
+        {
+            try{await client.Action("claimObserverInput",new{sessionId=input.S("sessionId"),requestId=input.S("id")});}
+            catch{return;}
+            var error="";
+            try
+            {
+                var start=new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory,"CodeLink.ConsoleBridge.exe")){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true,StandardInputEncoding=new UTF8Encoding(false),StandardOutputEncoding=Encoding.UTF8};
+                using var process=Process.Start(start)??throw new IOException("无法启动终端输入连接器");
+                await process.StandardInput.WriteAsync(input.ToJsonString());process.StandardInput.Close();
+                var output=process.StandardOutput.ReadToEndAsync();
+                try{await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));}catch{process.Kill();throw;}
+                var result=JsonNode.Parse(await output);if(!result.B("ok"))throw new IOException(result.S("error","终端未确认输入"));
+            }
+            catch(Exception e){error=e.Message;}
+            await Run(()=>client.Action("observerInputResult",new{sessionId=input.S("sessionId"),requestId=input.S("id"),error}));
+            if(error.Length>0)Footer.Text=error;
+        }
+        finally{externalInputGate.Release();}
+    }
+    private void RenderOutput()
+    {
+        var current=Current;
+        SessionTitle.Text=current?.S("name")??"选择命令行";
+        SessionSubtitle.Text=current is null?"从终端运行 clink terminal 或 clink codex":Status(current.S("status"))+" · "+current.S("cwd");
+        var content=outputCache.TryGetValue(selected,out var output)?Strip(output):"";
+        if(Output.Text!=content){var follow=Output.VerticalOffset>=Output.ExtentHeight-Output.ViewportHeight-30;Output.Text=content;if(follow)Output.ScrollToEnd();}
+        PendingStatus.Text=current?["approvals"] is JsonArray requests&&requests.Count>0?$"{requests.Count} 项交互待处理，请在命令行或移动端处理。":"";
+    }
+    private void UpdateMappingButton()
+    {
+        var device=DeviceList.SelectedItem as Item;var session=Current;
+        var deviceOnline=state?["devices"]?.AsArray().Any(d=>d.S("id")==device?.Id&&d.B("online"))==true;
+        var external=externalItems.FirstOrDefault(item=>item.Process.Id==externalSelection);
+        if(external is not null)
+        {
+            var observer=state?["sessions"]?.AsArray().FirstOrDefault(s=>s.S("kind")=="observer"&&s.S("observedProcessId")==external.Process.ProcessId.ToString()&&s.S("observedWindowHandle")==external.Process.WindowHandle.ToString());
+            var mapped=observer?["devices"] is JsonArray observed&&observed.Any(id=>id?.ToString()==device?.Id);
+            MapMobileButton.IsEnabled=external.Process.Kind=="window"&&external.Process.WindowHandle!=0&&deviceOnline;
+            MapMobileButton.Content=!deviceOnline?"平板未连接":mapped?"取消映射":"映射到移动端";return;
+        }
+        var mappedSession=session?["devices"] is JsonArray ids&&ids.Any(id=>id?.ToString()==device?.Id);
+        MapMobileButton.IsEnabled=deviceOnline&&session is not null;
+        MapMobileButton.Content=mappedSession?"取消映射":"映射到移动端";
+    }
+    private async void SelectExternalProcess(object sender,SelectionChangedEventArgs e)
+    {
+        if(rendering||ExternalProcessList.SelectedItem is not ExternalItem item)return;
+        if(item.SessionId is {} sessionId){selected=sessionId;externalSelection=null;RenderOutput();UpdateMappingButton();await Run(()=>client.Watch(selected));return;}
+        externalSelection=item.Process.Id;
+        RenderExternal(item);
+        UpdateMappingButton();
+    }
+    private void RenderExternal(ExternalItem item)
+    {
+        SessionTitle.Text=string.IsNullOrWhiteSpace(item.Process.WindowTitle)?item.Process.DisplayName:item.Process.WindowTitle;
+        SessionSubtitle.Text=$"PID {item.Process.ProcessId} · "+(item.Process.Executable.Length>0?item.Process.Executable:"进程路径不可读取");
+        var content=item.Snapshot.Length==0?"正在读取终端窗口…\n\n窗口标题：\n"+item.Process.WindowTitle:item.Snapshot;
+        if(Output.Text!=content)Output.Text=content;
+        PendingStatus.Text=item.Process.Kind=="window"?"移动端可输入文字、按键并响应终端内的授权提示。映射跟随该窗口当前活动的终端标签页。":"请选择该进程所在的终端窗口进行映射。";
+    }
+    private async Task Scan()
+    {
+        if(scanning)return;scanning=true;
+        try
+        {
+            var excluded=state?["sessions"]?.AsArray().SelectMany(s=>new[]{s.S("processId"),s.S("frontendPid")}).Select(value=>int.TryParse(value,out var id)?id:0).Where(id=>id>0).ToHashSet()??new HashSet<int>();
+            var processes=await Task.Run(()=>CommandCatalog.Scan(excluded));
+            var entries=processes.Where(p=>p.Kind=="window").Select(p=>new ExternalItem(p)).ToList();
+            var managed=state?["sessions"]?.AsArray().Where(s=>s.S("kind")!="observer"&&s.S("status")!="disconnected"&&s.S("status")!="exited").ToArray()??[];
+            foreach(var session in managed)entries.Add(new ExternalItem(new CommandCandidate(0,session.S("kind"),"",session.S("name")+"\n"+Status(session.S("status")),Kind:"managed")){SessionId=session.S("id")});
+            if(entries.Count==0)entries.AddRange(processes.Select(p=>new ExternalItem(p)));
+            rendering=true;
+            var ids=entries.Select(p=>p.Key).ToHashSet();
+            for(var i=externalItems.Count-1;i>=0;i--)if(!ids.Contains(externalItems[i].Key))externalItems.RemoveAt(i);
+            for(var i=0;i<entries.Count;i++)
+            {
+                var entry=entries[i];var existing=externalItems.FirstOrDefault(item=>item.Key==entry.Key);
+                if(existing is null)externalItems.Insert(i,entry);
+                else{existing.Update(entry.Process);var index=externalItems.IndexOf(existing);if(index!=i)externalItems.Move(index,i);}
+            }
+            ExternalProcessList.SelectedItem=externalItems.FirstOrDefault(p=>externalSelection is null?p.SessionId==selected:p.Process.Id==externalSelection);
+            if(externalSelection is not null&&ExternalProcessList.SelectedItem is null){externalSelection=null;RenderOutput();}
+            else if(ExternalProcessList.SelectedItem is ExternalItem item){if(item.SessionId is null)RenderExternal(item);else RenderOutput();}
+            rendering=false;UpdateMappingButton();
+        }
+        catch(Exception e){Footer.Text="扫描失败："+e.Message;}
+        finally{rendering=false;scanning=false;}
+    }
+    private static string ReadTerminalWindow(long handle)
+    {
+        try
+        {
+            var window=AutomationElement.FromHandle(new IntPtr(handle));
+            if(window is null)return "[终端窗口已关闭]";
+            var found=window.FindAll(TreeScope.Descendants,System.Windows.Automation.Condition.TrueCondition);
+            var best="";
+            for(var i=0;i<found.Count;i++)
+                if(found[i].TryGetCurrentPattern(TextPattern.Pattern,out var pattern)&&pattern is TextPattern text)
+                {
+                    var value=text.DocumentRange.GetText(-1).TrimEnd('\0');
+                    if(value.Length>120000)value=value[^120000..];
+                    if(value.Length>best.Length)best=value;
+                }
+            return best.Length==0?"[此终端未公开可读取的文本缓冲]":best;
+        }
+        catch(ElementNotAvailableException){return "[终端窗口已关闭]";}
+        catch(InvalidOperationException){return "[终端文本暂不可读取]";}
+    }
+    private async Task RefreshSelectedExternalOutput()
+    {
+        if(observing||state is null)return;observing=true;
+        try
+        {
+            var targets=state["sessions"]!.AsArray().Where(s=>s is not null&&s.S("kind")=="observer"&&s["devices"]!.AsArray().Count>0)
+                .Select(s=>(Id:s.S("id"),Pid:int.Parse(s.S("observedProcessId")),Handle:long.Parse(s.S("observedWindowHandle")))).ToList();
+            var chosen=externalItems.FirstOrDefault(item=>item.Process.Id==externalSelection);
+            foreach(var item in externalItems.Where(i=>i.Process.Kind=="window"))
+                if(!targets.Any(t=>t.Handle==item.Process.WindowHandle))targets.Add(("",item.Process.ProcessId,item.Process.WindowHandle));
+            if(IsVisible&&chosen is not null&&chosen.Process.WindowHandle!=0&&!targets.Any(t=>t.Handle==chosen.Process.WindowHandle))targets.Add(("",chosen.Process.ProcessId,chosen.Process.WindowHandle));
+            foreach(var target in targets)
+            {
+                var snapshot=await Task.Run(()=>ReadTerminalWindow(target.Handle));
+                var item=externalItems.FirstOrDefault(candidate=>candidate.Process.WindowHandle==target.Handle&&candidate.Process.ProcessId==target.Pid);
+                var changed=item is null||snapshot!=item.Snapshot;
+                item?.UpdateSnapshot(snapshot);
+                if(IsVisible&&item is not null&&item.Process.Id==externalSelection)RenderExternal(item);
+                var catalogKey=target.Pid+":"+target.Handle;
+                if(changed||!observationSent.TryGetValue(catalogKey,out var last)||DateTime.UtcNow-last>TimeSpan.FromSeconds(2))
+                {await Run(()=>client.Action("observeCatalog",new{key=catalogKey,text=snapshot}));observationSent[catalogKey]=DateTime.UtcNow;}
+                if(target.Id.Length>0&&(changed||!observationSent.TryGetValue(target.Id,out var sent)||DateTime.UtcNow-sent>TimeSpan.FromSeconds(2)))
+                {await Run(()=>client.Action("observeOutput",new{sessionId=target.Id,processId=target.Pid,windowHandle=target.Handle,text=snapshot}));observationSent[target.Id]=DateTime.UtcNow;}
+            }
+        }
+        catch(Exception e){Footer.Text="读取终端失败："+e.Message;}
+        finally{observing=false;}
+    }
+    private async void ScanProcesses(object sender,RoutedEventArgs e)=>await Scan();
+    private async void MapControl(object sender,RoutedEventArgs e)
+    {
+        if(DeviceList.SelectedItem is not Item device)return;
+        if(externalSelection is not null)
+        {
+            var external=externalItems.FirstOrDefault(item=>item.Process.Id==externalSelection);if(external is null)return;
+            var observer=state?["sessions"]?.AsArray().FirstOrDefault(s=>s.S("kind")=="observer"&&s.S("observedProcessId")==external.Process.ProcessId.ToString()&&s.S("observedWindowHandle")==external.Process.WindowHandle.ToString());
+            if(observer is null)
+            {
+                try
+                {
+                    var result=await client.Action("observe",new{processId=external.Process.ProcessId,windowHandle=external.Process.WindowHandle,name=external.Process.WindowTitle,cwd=external.Process.Executable});
+                    var id=result.S("sessionId");await client.Action("map",new{sessionId=id,deviceId=device.Id,enabled=true,control=true});
+                    await client.Watch(id);await Task.Delay(200);
+                    var snapshot=external.Snapshot.Length==0?await Task.Run(()=>ReadTerminalWindow(external.Process.WindowHandle)):external.Snapshot;
+                    external.UpdateSnapshot(snapshot);
+                    await client.Action("observeOutput",new{sessionId=id,processId=external.Process.ProcessId,windowHandle=external.Process.WindowHandle,text=snapshot});RenderExternal(external);
+                }
+                catch(Exception error){Footer.Text=error.Message;}
+            }
+            else
+            {
+                var mapped=observer["devices"] is JsonArray devices&&devices.Any(id=>id?.ToString()==device.Id);
+                await Run(()=>client.Action("map",new{sessionId=observer.S("id"),deviceId=device.Id,enabled=!mapped,control=!mapped}));
+            }
+            return;
+        }
+        if(Current is not {} current)return;
+        var enabled=!(current["devices"] is JsonArray ids&&ids.Any(id=>id?.ToString()==device.Id));
+        await Run(()=>client.Action("map",new{sessionId=selected,deviceId=device.Id,enabled,control=enabled}));
+    }
+    private async Task Run(Func<Task> action){try{await action();}catch(Exception e){Footer.Text=e.Message;}}
+
+    private string Invite(string address)
+    {
+        var p=state?["pairing"]??throw new IOException("代理尚未就绪");
+        return "codelink:"+Convert.ToBase64String(Encoding.UTF8.GetBytes(J.Stringify(new{host=address,port=int.Parse(p.S("port")),pin=p.S("fingerprint"),code=p.S("code")}))).TrimEnd('=').Replace('+','-').Replace('/','_');
+    }
+    private async void PairDevice(object sender,RoutedEventArgs e)
+    {
+        if(state is null)return;
+        await Run(()=>client.Action("rotatePairing"));await Task.Delay(250);
+        var dialog=new Window{Title="连接移动设备",Width=530,Height=660,Owner=this,WindowStartupLocation=WindowStartupLocation.CenterOwner,Background=Background};
+        var panel=new StackPanel{Margin=new Thickness(24)};dialog.Content=panel;
+        var addresses=NetworkInterface.GetAllNetworkInterfaces().Where(n=>n.OperationalStatus==OperationalStatus.Up&&n.NetworkInterfaceType!=NetworkInterfaceType.Loopback).SelectMany(n=>n.GetIPProperties().UnicastAddresses).Where(a=>a.Address.AddressFamily==AddressFamily.InterNetwork&&!a.Address.ToString().StartsWith("169.254")).Select(a=>a.Address.ToString()).Distinct().ToArray();
+        var combo=new ComboBox{ItemsSource=new[]{"USB / 蓝牙初次配对"}.Concat(addresses).ToArray(),SelectedIndex=0,Margin=new Thickness(0,0,0,12)};panel.Children.Add(combo);
+        var qr=new Image{Width=225,Height=225};panel.Children.Add(qr);
+        var invite=new TextBox{IsReadOnly=true,TextWrapping=TextWrapping.Wrap,Height=90,FontSize=11,Margin=new Thickness(0,10,0,10)};panel.Children.Add(invite);
+        var hint=new TextBlock{Text="USB 连接会自动填写。无线连接请在移动端扫码；蓝牙随后选择已配对的电脑。",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,15)};panel.Children.Add(hint);
+        void Refresh()
+        {
+            invite.Text=Invite(combo.SelectedIndex==0?"127.0.0.1":(string)combo.SelectedItem);
+            using var generator=new QRCodeGenerator();using var data=generator.CreateQrCode(invite.Text,QRCodeGenerator.ECCLevel.M);using var png=new PngByteQRCode(data);
+            var bitmap=new BitmapImage();bitmap.BeginInit();bitmap.StreamSource=new MemoryStream(png.GetGraphic(5));bitmap.CacheOption=BitmapCacheOption.OnLoad;bitmap.EndInit();qr.Source=bitmap;
+        }
+        combo.SelectionChanged+=async(_,_)=>await Run(async()=>{await client.Action("settings",new{lan=combo.SelectedIndex>0||state.B("lan")});Refresh();});
+        var usb=new Button{Content="USB 一键连接",Background=new SolidColorBrush(Color.FromRgb(233,187,69))};panel.Children.Add(usb);
+        usb.Click+=async(_,_)=>{usb.IsEnabled=false;await Run(async()=>hint.Text=await UsbConnect(Invite("127.0.0.1")));usb.IsEnabled=true;};
+        var copy=new Button{Content="复制配对信息"};copy.Click+=(_,_)=>Clipboard.SetText(invite.Text);panel.Children.Add(copy);
+        Refresh();dialog.ShowDialog();
+    }
+    private string AdbPath=>new[]{Path.Combine(AppContext.BaseDirectory,"tools/adb.exe"),Path.Combine(Environment.CurrentDirectory,".tools/platform-tools/adb.exe")}.FirstOrDefault(File.Exists)??throw new IOException("发布目录缺少 ADB");
+    private async Task<string> Adb(params string[] args)
+    {
+        var start=new ProcessStartInfo(AdbPath){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
+        foreach(var a in new[]{"-P",adbPort}.Concat(args))start.ArgumentList.Add(a);
+        using var process=Process.Start(start)!;var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();
+        try{await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));}catch{process.Kill();throw;}
+        if(process.ExitCode!=0)throw new IOException(await error);return await output;
+    }
+    private async Task<string[]> UsbDevices()=> (await Adb("devices","-l")).Split('\n').Where(s=>System.Text.RegularExpressions.Regex.IsMatch(s,@"^\S+\s+device\b")&&s.Contains("usb:",StringComparison.OrdinalIgnoreCase)).Select(s=>s.Split((char[]?)null,StringSplitOptions.RemoveEmptyEntries)[0]).ToArray();
+    private async Task<string> UsbSerial()
+    {
+        foreach(var port in new[]{adbPort,adbPort=="5038"?"5037":"5038"})
+        {
+            adbPort=port;
+            try{var serial=(await Adb("-d","get-serialno")).Trim();if(serial.Length>0&&serial!="unknown")return serial;}catch(IOException){}
+        }
+        throw new IOException("未发现已授权的 USB 设备，请连接平板并允许 USB 调试。");
+    }
+    private async Task RefreshUsbMappings()
+    {
+        if(checkingUsb||state is null)return;checkingUsb=true;
+        try
+        {
+            // ADB's Windows backend can omit usb:; -d selects a physical USB transport.
+            var serial=await UsbSerial();
+            if(serial.Length>0&&serial!="unknown")
+            {
+                var port=state["pairing"]!.S("port");
+                var listing=await Adb("-s",serial,"reverse","--list");
+                if(!listing.Contains("tcp:"+port))await Adb("-s",serial,"reverse","tcp:"+port,"tcp:"+port);
+                knownUsb.Add(serial);
+            }
+        }catch(IOException){}catch(TimeoutException){}finally{checkingUsb=false;}
+    }
+    private async Task<string> UsbConnect(string invite)
+    {
+        var serial=await UsbSerial();
+        var port=state!["pairing"]!.S("port");
+        await Adb("-s",serial,"reverse","tcp:"+port,"tcp:"+port);
+        var started=await Adb("-s",serial,"shell","am","start","-n","com.codelink.app/.MainActivity","--es","invite",invite,"--es","mode","USB");
+        if(started.Contains("Error"))throw new IOException(started);
+        return "已打开平板。返回面板选择命令行和设备，点击映射。";
+    }
+}

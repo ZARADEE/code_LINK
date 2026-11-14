@@ -1,0 +1,44 @@
+name: Build and checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check documentation and site metadata
+        run: python scripts/check-docs.py
+      - name: Fetch pinned build tools
+        run: python scripts/setup-tools.py
+      - name: Build Windows clients
+        run: ./scripts/build-desktop.ps1
+      - name: Build Android APK
+        run: ./scripts/build-android.ps1
+      - name: Test reminders and background output cache
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .local/java-tests | Out-Null
+          javac -encoding UTF-8 -d .local/java-tests android/app/src/main/java/com/codelink/app/ReminderState.java android/app/src/main/java/com/codelink/app/OutputCache.java android/tests/ReminderStateTest.java android/tests/OutputCacheTest.java
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          java -cp .local/java-tests com.codelink.app.ReminderStateTest
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          java -cp .local/java-tests com.codelink.app.OutputCacheTest
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Test terminal activity detection
+        run: dotnet run --project desktop/CodeLink.Smoke/CodeLink.Smoke.csproj --configuration Release -- --activity

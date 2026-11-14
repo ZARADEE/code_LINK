@@ -1,0 +1,87 @@
+{
+  "checked_at": "2026-11-14T04:51:35.372529+00:00",
+  "source": "GitHub REST API; counts are a snapshot, not evidence of what caused stars.",
+  "repositories": [
+    {
+      "full_name": "ZARADEE/code_LINK",
+      "html_url": "https://github.com/ZARADEE/code_LINK",
+      "description": null,
+      "stargazers_count": 0,
+      "forks_count": 0,
+      "created_at": "2026-11-13T02:40:43Z",
+      "pushed_at": "2026-11-13T02:40:44Z",
+      "topics": []
+    },
+    {
+      "full_name": "slopus/happy",
+      "html_url": "https://github.com/slopus/happy",
+      "description": "Orchestrate Claude, Codex and Grok in one app. Open-source (MIT), reuses the subscriptions you already pay for.",
+      "stargazers_count": 24634,
+      "forks_count": 2120,
+      "created_at": "2025-07-18T05:53:18Z",
+      "pushed_at": "2026-11-14T04:16:33Z",
+      "topics": [
+        "agent-orchestration",
+        "ai-agents",
+        "claude-code",
+        "claude-desktop",
+        "codex",
+        "codex-cli",
+        "coding-agents",
+        "grok",
+        "hacktoberfest"
+      ]
+    },
+    {
+      "full_name": "localsend/localsend",
+      "html_url": "https://github.com/localsend/localsend",
+      "description": "An open-source cross-platform alternative to AirDrop",
+      "stargazers_count": 98886,
+      "forks_count": 5655,
+      "created_at": "2022-12-16T00:46:07Z",
+      "pushed_at": "2026-11-11T03:19:56Z",
+      "topics": [
+        "dart",
+        "file-sharing",
+        "flutter",
+        "flutter-apps"
+      ]
+    },
+    {
+      "full_name": "Genymobile/scrcpy",
+      "html_url": "https://github.com/Genymobile/scrcpy",
+      "description": "Display and control your Android device",
+      "stargazers_count": 154766,
+      "forks_count": 14209,
+      "created_at": "2017-11-21T18:00:27Z",
+      "pushed_at": "2026-11-12T18:59:44Z",
+      "topics": [
+        "android",
+        "c",
+        "ffmpeg",
+        "genyteam-system",
+        "libav",
+        "mirroring",
+        "recording",
+        "screen",
+        "sdl2"
+      ]
+    },
+    {
+      "full_name": "BloopAI/vibe-kanban",
+      "html_url": "https://github.com/BloopAI/vibe-kanban",
+      "description": "Get 10X more out of Claude Code, Codex or any coding agent",
+      "stargazers_count": 28678,
+      "forks_count": 3062,
+      "created_at": "2025-06-14T19:10:21Z",
+      "pushed_at": "2026-11-12T14:00:45Z",
+      "topics": [
+        "agent",
+        "ai-agents",
+        "kanban",
+        "management",
+        "task-manager"
+      ]
+    }
+  ]
+}

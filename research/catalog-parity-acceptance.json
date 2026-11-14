@@ -1,0 +1,21 @@
+{
+  "desktopCount": 2,
+  "catalogCount": 2,
+  "desktopNames": [
+    "⠦ 撰写 Codex 终端状态提醒插件技术方案 | code_LINK\nWindows Terminal 窗口 · PID 4840",
+    "Code Link | Codex verification | 27b5c265\nWindows Terminal 窗口 · PID 4840"
+  ],
+  "catalogNames": [
+    "⠇ 撰写 Codex 终端状态提醒插件技术方案 | code_LINK",
+    "Code Link | Codex verification | 27b5c265"
+  ],
+  "passed": true,
+  "mobileCount": 2,
+  "mobileTitles": [
+    "⠇ 撰写 Codex 终端状态提醒插件技术方案 | code_LINK\n运行中",
+    "Code Link | Codex verification | 27b5c265\n任务状态待识别 · 点击打开"
+  ],
+  "defaultGroup": "B",
+  "currentCodexRunningDetected": true,
+  "backgroundWindowStatusIncluded": true
+}

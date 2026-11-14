@@ -1,0 +1,43 @@
+name: 问题反馈 / Bug report
+description: 连接、终端输入、显示或通知出现问题
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: 请勿附上配对码、二维码、设备密钥或私人终端内容。安全漏洞请按 SECURITY.md 私下报告。
+  - type: input
+    id: versions
+    attributes:
+      label: 系统与应用版本 / Versions
+      placeholder: Windows 11 x64; Lenovo Android 14 / ZUI 16; Code Link 1.2.0
+    validations:
+      required: true
+  - type: dropdown
+    id: transport
+    attributes:
+      label: 连接方式 / Transport
+      options: [USB, Bluetooth, LAN, 不涉及连接 / Not applicable]
+    validations:
+      required: true
+  - type: input
+    id: terminal
+    attributes:
+      label: 终端类型 / Terminal
+      placeholder: Windows Terminal + PowerShell + Codex; 或 clink terminal / clink codex
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      description: 写清操作顺序，以及终端是否最小化、App 是否在后台。
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 预期与实际结果 / Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 截图或已脱敏日志 / Screenshots or redacted logs

@@ -1,0 +1,5 @@
+const https=require('node:https'),http=require('node:http'),fs=require('node:fs'),path=require('node:path');
+const [url,dest]=process.argv.slice(2);
+if(!url||!dest) throw Error('Usage: node scripts/download.cjs URL DEST');
+fs.mkdirSync(path.dirname(dest),{recursive:true});
+function get(url,n=0){if(n>8)throw Error('Too many redirects');const client=url.startsWith('https:')?https:http;client.get(url,res=>{if([301,302,303,307,308].includes(res.statusCode)){res.resume();get(new URL(res.headers.location,url).href,n+1);return;}if(res.statusCode!==200){res.resume();process.stderr.write('HTTP '+res.statusCode+' '+url);process.exitCode=1;return;}const out=fs.createWriteStream(dest+'.part');res.pipe(out);out.on('finish',()=>out.close(()=>{fs.renameSync(dest+'.part',dest);console.log(path.basename(dest)+' '+fs.statSync(dest).size+' bytes');}));res.on('error',e=>{out.close();console.error(e.message);process.exitCode=1;});}).on('error',e=>{console.error(e.message);process.exitCode=1;}).setTimeout(45000,function(){this.destroy(Error('Download timeout'));});}get(url);

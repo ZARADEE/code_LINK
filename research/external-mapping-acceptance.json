@@ -1,0 +1,19 @@
+{
+  "device": "TB371FC / Android 14",
+  "externalCmdPid": 35848,
+  "externalWindowHandle": 52759758,
+  "usbInputMarker": "REPAIRED_PAD_USB_OK",
+  "bluetoothInputMarker": "REPAIRED_PAD_BT_OK",
+  "confirmationPrompt": "APPROVAL_TEST [Y,N]?Y",
+  "minimizedAndTrayInputMarker": "MINIMIZED_PAD_OK",
+  "bluetoothConnectionSecondsBeforeManualReconnect": 488.53,
+  "manualReconnectPreservedMapping": true,
+  "passed": true,
+  "usbReverseAutoRecovered": true,
+  "currentCodexMapped": true,
+  "padInputEnabled": true,
+  "noWaitingRestore": true,
+  "trayRestoredWithoutBlackScreen": true,
+  "validatedAt": "2026-11-13T17:20:13.259208+08:00",
+  "fullSnapshotTransmissionPassed": true
+}

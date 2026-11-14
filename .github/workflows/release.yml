@@ -1,0 +1,46 @@
+name: Build release packages
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check documentation
+        run: python scripts/check-docs.py
+      - name: Verify tag matches application version
+        shell: pwsh
+        run: |
+          [xml]$manifest = Get-Content android/app/src/main/AndroidManifest.xml
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$($manifest.manifest.versionName)") { throw 'Tag differs from Android version' }
+      - name: Fetch verified build tools
+        run: python scripts/setup-tools.py
+      - name: Build Windows clients
+        run: ./scripts/build-desktop.ps1
+      - name: Build Android test APK
+        run: ./scripts/build-android.ps1
+      - name: Assemble clean packages and checksums
+        run: python scripts/package-release.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CodeLink-test-packages
+          path: dist/releases/*/*
+          if-no-files-found: error
+          retention-days: 14
+# CI generates a new Android test key. The maintainer publishes upgrades with the
+# existing release key; a CI artifact must not silently replace that signed APK.

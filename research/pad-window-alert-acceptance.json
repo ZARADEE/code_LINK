@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "fullCatalogVisible": true,
+  "unopenedWindowPromptObserved": true,
+  "approvalDoesNotMarkBComplete": true,
+  "mobileOpensUnmappedWindow": true,
+  "promptCreatesRedDot": true,
+  "readDoesNotGrantApproval": true,
+  "readPersistsAcrossRefresh": true,
+  "mobilePromptAnswer": true
+}

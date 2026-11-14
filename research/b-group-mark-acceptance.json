@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "oneFinishedBStaysPlain": true,
+  "allFinishedBMarked": true,
+  "memberDotsAppearOnlyAfterAllComplete": true,
+  "firstReadClearsOnlyItsDot": true,
+  "partialReadPersistsAfterRestart": true,
+  "lastReadClearsBTabAndSummary": true,
+  "fullyReadStaysClearAfterRestart": true,
+  "appVersion": "1.1.1",
+  "originalGroupsRestored": true
+}

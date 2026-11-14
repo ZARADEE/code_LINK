@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-13T03:23:53.669Z",
+  "deviceAlias": "sha256:6ba1c89bdc4d",
+  "state": "device",
+  "model": "TB371FC",
+  "androidVersion": "14",
+  "buildDisplayId": "TB371FC_CN_OPEN_USER_Q00028.1_U_ZUI_16.0.474_ST_241129",
+  "transport": "usb",
+  "transportVerification": "adb -d selected the same device; -d selects a USB device",
+  "reverseCreated": true,
+  "androidToPcBytesVerified": 1024,
+  "pcToAndroidReplyVerified": true,
+  "reverseRemoved": true,
+  "apkInstalled": false,
+  "deviceSettingsChanged": false,
+  "pcAcceptedConnection": true,
+  "androidToPcBytesObserved": 1024,
+  "inputEqualsExpected": true,
+  "replyBytesObserved": 78
+}

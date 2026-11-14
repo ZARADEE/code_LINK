@@ -1,0 +1,7 @@
+# The project is hosted at /code_LINK/. Crawlers read robots.txt only at
+# https://zaradee.github.io/robots.txt, not at this project subdirectory.
+# These rules can be merged into that root file by the user-site maintainer.
+User-agent: *
+Allow: /code_LINK/
+
+Sitemap: https://zaradee.github.io/code_LINK/sitemap.xml

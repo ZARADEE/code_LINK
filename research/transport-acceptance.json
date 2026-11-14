@@ -1,0 +1,1 @@
+{"passed":true,"invalidPairingRejected":true,"wrongPinRejected":true,"unmappedInputRejected":true,"duplicateInputExecutedOnce":true,"pcInputWhileMapped":true,"reconnectRestoresMapping":true,"unmapRevokesInput":true,"credentialsProtectedAndReloadable":true,"completeExternalSnapshot":true}

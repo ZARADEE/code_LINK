@@ -238,10 +238,10 @@ B 组在全部完成时才同时标红标签和本轮成员。逐个点击查看
 
 遇到问题请[提交 Issue](https://github.com/ZARADEE/code_LINK/issues/new/choose)，附上两端系统版本、App 版本、连接方式、终端类型和复现步骤。截图前遮住配对二维码、密钥和私人终端内容。
 
-- [贡献指南](CONTRIBUTING.md) · [安全问题](SECURITY.md) · [版本记录](CHANGELOG.md)
+- [贡献指南](CONTRIBUTING.md) · [社区规范](CODE_OF_CONDUCT.md) · [安全问题](SECURITY.md) · [版本记录](CHANGELOG.md)
 - [从源码构建](docs/BUILDING.md) · [当前实现](docs/implementation.zh-CN.md) · [开发记录](docs/development-status.md) · [初始技术方案](docs/technical-proposal.zh-CN.md)
 - 项目代码采用 [MIT 许可证](LICENSE)。图片、动画和第三方组件的授权范围见 [素材说明](assets/README.md)与[第三方声明](THIRD_PARTY_NOTICES.md)。
 
 维护者为 [ZARADEE](https://github.com/ZARADEE)。本项目为独立开发的终端伴随工具。
 
-*文中应用界面来自真实运行截图，规则图为说明示意；本机路径、设备名已做模糊处理。README 对应 Android 1.2.0。*
+*Windows 与平板主界面于 2026-11-14 实际连接后拍摄，通知来自既有真机记录；规则图为说明示意。本机路径、设备名和私人窗口标题已模糊。[图片来源](docs/assets/README.md)。README 对应 Android 1.2.0。*

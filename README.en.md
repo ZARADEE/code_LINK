@@ -86,11 +86,11 @@ The `codex` command requires a locally installed Codex CLI. `terminal` defaults 
 ## Help and development
 
 - [Report a problem](https://github.com/ZARADEE/code_LINK/issues/new/choose) with your OS, app version, transport, terminal type, and reproduction steps.
-- [Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Security](SECURITY.md) · [Changelog](CHANGELOG.md)
+- [Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Community guidelines](CODE_OF_CONDUCT.md) · [Security](SECURITY.md) · [Changelog](CHANGELOG.md)
 - [Chinese usage guide and troubleshooting](README.md) · [Validation record](research/pad-background-acceptance.json)
 
 Windows and Android are the current targets. iPad/iOS, macOS/Linux desktop, and WSL are not validated targets.
 
 Code is licensed under [MIT](LICENSE). Supplied artwork has [separate terms](assets/README.md); dependencies retain their [original licenses](THIRD_PARTY_NOTICES.md). Maintained by [ZARADEE](https://github.com/ZARADEE), independently of terminal and AI vendors.
 
-Screenshots show the real application, with local paths and computer names blurred. Documentation corresponds to Android 1.2.0.
+Windows and Android screenshots were captured on connected devices on November 14, 2026; notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md). Documentation corresponds to Android 1.2.0.

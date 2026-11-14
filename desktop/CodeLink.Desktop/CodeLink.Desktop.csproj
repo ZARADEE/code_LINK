@@ -1,4 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net10.0-windows</TargetFramework><UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><Nullable>enable</Nullable><ApplicationIcon>../../assets/app.ico</ApplicationIcon><AssemblyName>CodeLink</AssemblyName></PropertyGroup>
-  <ItemGroup><ProjectReference Include="../CodeLink.Core/CodeLink.Core.csproj"/><PackageReference Include="QRCoder" Version="1.6.0"/><Content Include="../../assets/*"><Link>assets/%(Filename)%(Extension)</Link><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content></ItemGroup>
+  <ItemGroup><ProjectReference Include="../CodeLink.Core/CodeLink.Core.csproj"/><PackageReference Include="QRCoder" Version="1.8.1"/><Content Include="../../assets/*"><Link>assets/%(Filename)%(Extension)</Link><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content></ItemGroup>
 </Project>

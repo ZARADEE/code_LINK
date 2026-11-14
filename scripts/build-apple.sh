@@ -44,7 +44,7 @@ xcodebuild -project apple/CodeLink.xcodeproj -scheme CodeLinkiOS -configuration 
   CODE_SIGNING_ALLOWED=NO archive > "$OUT/build-ios-device.log" 2>&1 || { tail -100 "$OUT/build-ios-device.log"; exit 1; }
 ditto -c -k --sequesterRsrc --keepParent "$ROOT/.local/apple/CodeLink-iOS-unsigned.xcarchive" "$OUT/CodeLink-iOS-unsigned-archive-v$VERSION.zip"
 python3 scripts/package-apple-source.py
-python3 scripts/test-apple-host.py "$ROOT/.local/apple/mac-$(uname -m)/Build/Products/Release/CodeLink.app"
+python3 -u scripts/test-apple-host.py "$ROOT/.local/apple/mac-$(uname -m)/Build/Products/Release/CodeLink.app" 2>&1 | tee "$OUT/integration.log"
 python3 - <<'PY'
 from pathlib import Path
 import hashlib

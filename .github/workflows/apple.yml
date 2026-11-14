@@ -7,9 +7,12 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: apple-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   apple:
-    runs-on: macos-15-intel
+    runs-on: macos-15
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4

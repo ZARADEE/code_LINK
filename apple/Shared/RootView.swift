@@ -137,7 +137,7 @@ struct RootView: View {
                             }
                             Button("Remove session", role:.destructive) { model.action("delete", ["sessionId":session.id]) }
                         }
-                    } label: { Label("Group " + model.group(session.id), systemImage:"slider.horizontal.3") }.font(.caption)
+                    } label: { Label("Group " + model.group(session.id), systemImage:"slider.horizontal.3") }.font(.caption).fixedSize()
                 }.padding(14)
                 TerminalView(text:model.output, sessionID:session.id, observer:session.kind == "observer", enabled:model.canInput && session.kind == "terminal") { model.send($0, raw:true) }
                     .frame(maxWidth:.infinity, maxHeight:.infinity)
@@ -146,14 +146,13 @@ struct RootView: View {
                         .frame(maxHeight:260).background(Color.orange.opacity(0.06))
                 }
                 VStack(spacing:10) {
-                    HStack {
+                    ScrollView(.horizontal, showsIndicators:false) { HStack(spacing:12) {
                         Label(model.canInput ? "Input enabled" : "Read only", systemImage:model.canInput ? "keyboard" : "lock").font(.caption).foregroundStyle(.secondary)
-                        Spacer()
-                        if session.kind == "terminal" {
-                            ForEach([("Tab", "\t"), ("Esc", "\u{1b}"), ("↑", "\u{1b}[A"), ("↓", "\u{1b}[B")], id:\.0) { item in Button(item.0) { model.send(item.1, raw:true) }.disabled(!model.canInput) }
+                        if session.kind != "codex" {
+                            ForEach([("Enter", "\r"), ("Tab", "\t"), ("Esc", "\u{1b}"), ("↑", "\u{1b}[A"), ("↓", "\u{1b}[B"), ("←", "\u{1b}[D"), ("→", "\u{1b}[C")], id:\.0) { item in Button(item.0) { model.send(item.1, raw:true) }.disabled(!model.canInput) }
                         }
                         Button("Interrupt", role:.destructive) { model.action("interrupt", ["sessionId":session.id]) }.disabled(!model.canInput)
-                    }
+                    }.font(.caption) }
                     HStack(alignment:.bottom) {
                         TextField(session.kind == "codex" ? "Send a prompt…" : "Send a command…", text:$draft, axis:.vertical)
                             .lineLimit(1...5).textFieldStyle(.roundedBorder).disabled(!model.canInput)

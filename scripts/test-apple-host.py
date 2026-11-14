@@ -156,7 +156,7 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             candidates = [d for runtime, devices in simulators['devices'].items() if 'iOS' in runtime for d in devices if 'iPhone' in d['name']]
             check(bool(candidates), 'iOS simulator runtime is available')
             device = candidates[0]['udid']
-            subprocess.run(['xcrun','simctl','boot',device], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(['xcrun','simctl','boot',device], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
             subprocess.run(['xcrun','simctl','bootstatus',device,'-b'], check=True, timeout=180)
             simulator_app = ROOT / '.local/apple/ios/Build/Products/Release-iphonesimulator/CodeLink.app'
             subprocess.run(['xcrun','simctl','install',device,str(simulator_app)], check=True, timeout=90)
@@ -173,7 +173,7 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             tablets = [d for runtime, devices in simulators['devices'].items() if 'iOS' in runtime for d in devices if 'iPad' in d['name']]
             check(bool(tablets), 'iPad simulator is available')
             tablet = tablets[0]['udid']
-            subprocess.run(['xcrun','simctl','boot',tablet], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.run(['xcrun','simctl','boot',tablet], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
             subprocess.run(['xcrun','simctl','bootstatus',tablet,'-b'], check=True, timeout=180)
             subprocess.run(['xcrun','simctl','install',tablet,str(simulator_app)], check=True, timeout=90)
             subprocess.run(['xcrun','simctl','launch',tablet,'com.codelink.ios','--invite',invitation], check=True, timeout=90)

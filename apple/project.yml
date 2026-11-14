@@ -8,6 +8,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: '5.0'
+    PRODUCT_NAME: CodeLink
     MARKETING_VERSION: '1.3.0'
     CURRENT_PROJECT_VERSION: '130'
     ENABLE_USER_SCRIPT_SANDBOXING: YES

@@ -9,6 +9,7 @@ command -v xcodegen >/dev/null || { echo 'Install XcodeGen: brew install xcodege
 xcodegen generate --spec apple/project.yml
 swiftc apple/Shared/Protocol.swift apple/Shared/Reminders.swift apple/Tests/main.swift -o "$ROOT/.local/apple/logic-tests"
 "$ROOT/.local/apple/logic-tests"
+swiftc apple/Shared/Protocol.swift apple/Shared/Keychain.swift apple/Shared/LinkConnection.swift apple/Tests/NetworkProbe.swift -o "$ROOT/.local/apple/network-probe"
 for ARCH in arm64 x86_64; do
   RID=osx-arm64
   LABEL=AppleSilicon
@@ -17,6 +18,7 @@ for ARCH in arm64 x86_64; do
   xcodebuild -project apple/CodeLink.xcodeproj -scheme CodeLinkMac -configuration Release \
     -derivedDataPath "$BUILD" -destination 'generic/platform=macOS' ARCHS="$ARCH" ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build > "$OUT/build-mac-$ARCH.log" 2>&1 || { tail -100 "$OUT/build-mac-$ARCH.log"; exit 1; }
   APP="$BUILD/Build/Products/Release/CodeLink.app"
+  test -f "$APP/Contents/Info.plist"
   BACKEND="$APP/Contents/Resources/backend"
   dotnet publish desktop/CodeLink.Host/CodeLink.Host.csproj -c Release -r "$RID" --self-contained true -o "$BACKEND" -p:DebugType=None
   dotnet publish desktop/CodeLink.Cli/CodeLink.Cli.csproj -c Release -r "$RID" --self-contained true -o "$BACKEND" -p:DebugType=None

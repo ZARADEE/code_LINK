@@ -95,7 +95,7 @@ The `codex` command requires a locally installed Codex CLI. `terminal` defaults 
 - [Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Community guidelines](CODE_OF_CONDUCT.md) · [Security](SECURITY.md) · [Changelog](CHANGELOG.md)
 - [Chinese usage guide and troubleshooting](README.md) · [Validation record](research/pad-background-acceptance.json)
 
-Windows and Android are the current targets. iPad/iOS, macOS/Linux desktop, and WSL are not validated targets.
+Windows / Android and native macOS 14+ / iOS 17+ clients are available. Apple clients use LAN and managed terminals; iOS pauses in the background and currently requires a simulator or personal signing. Linux and WSL remain unvalidated.
 
 Code is licensed under [MIT](LICENSE). Supplied artwork has [separate terms](assets/README.md); dependencies retain their [original licenses](THIRD_PARTY_NOTICES.md). Maintained by [ZARADEE](https://github.com/ZARADEE), independently of terminal and AI vendors.
 

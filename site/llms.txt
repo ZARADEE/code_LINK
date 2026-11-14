@@ -1,17 +1,18 @@
 # Code Link
 
-> A local terminal companion for Windows and Android, maintained by ZARADEE.
+> A local terminal companion for Windows, macOS, Android and iOS, maintained by ZARADEE.
 
-Monitor Windows terminal output, send text and keys, respond to approvals, and receive individual (A) or grouped (B) completion notifications from an Android tablet. USB and Bluetooth transports work locally without a relay server. The current Android release is 1.3.0. The app interface is Chinese.
+Monitor Windows terminal output, send text and keys, respond to approvals, and receive individual (A) or grouped (B) completion notifications from an Android tablet. USB and Bluetooth transports work locally without a relay server. The current Android release is 1.3.0. Windows / Android use Chinese; Apple clients use English.
 
 ## Project resources
 
 - [Chinese website](https://zaradee.github.io/code_LINK/): product overview and official downloads.
-- [English website](https://zaradee.github.io/code_LINK/en.html): English product overview; the application UI remains Chinese.
+- [English website](https://zaradee.github.io/code_LINK/en.html): English product overview; platform-specific installation instructions.
 - [Repository](https://github.com/ZARADEE/code_LINK): source code and issue tracker.
 - [Chinese user guide](https://github.com/ZARADEE/code_LINK/blob/main/README.md): installation, pairing, reminders and troubleshooting.
 - [English user guide](https://github.com/ZARADEE/code_LINK/blob/main/README.en.md): supported workflows and limitations.
-- [Downloads](https://github.com/ZARADEE/code_LINK/releases/latest): Windows ZIP and Android APK.
+- [Downloads](https://github.com/ZARADEE/code_LINK/releases/latest): Windows ZIP, Android APK, Apple silicon / Intel Mac apps, iOS simulator, unsigned device archive and Xcode source.
+- [Apple guide](https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md): macOS and iOS setup, personal signing, LAN and background limitations.
 - [Build guide](https://github.com/ZARADEE/code_LINK/blob/main/docs/BUILDING.md): development prerequisites and commands.
 - [Implementation](https://github.com/ZARADEE/code_LINK/blob/main/docs/implementation.zh-CN.md): architecture and hardware validation.
 - [Security](https://github.com/ZARADEE/code_LINK/blob/main/SECURITY.md): private vulnerability reporting.
@@ -24,4 +25,4 @@ Public website pages contain static HTML, canonical and hreflang links, and Soft
 
 ## Scope
 
-Windows x64 and Android 9+ are the current targets. Existing Windows Terminal mappings follow the active tab. External terminal completion detection requires supported screen markers; structured Codex events are available through clink codex. LAN is implemented but hardware acceptance is pending. iOS, macOS/Linux desktop and WSL are not validated targets. Code uses MIT; supplied artwork and third-party components have separate terms.
+Targets: Windows x64, Android 9+, macOS 14+ and iOS / iPadOS 17+. Existing Windows Terminal mappings follow the active tab. External terminal completion detection requires supported screen markers; structured Codex events are available through clink codex. LAN is implemented but hardware acceptance is pending. Apple clients use local TLS; macOS runs managed PTYs and local Codex sessions. iOS pauses in the background. There is no signed iPhone IPA or TestFlight release; a simulator app and personal-signing source are provided. Mac apps are ad-hoc signed and not notarized. Linux and WSL remain unvalidated. Code uses MIT; supplied artwork and third-party components have separate terms.

@@ -69,6 +69,10 @@ CI 在 Windows runner 中执行桌面和 APK 构建、Java 行为测试、终端
 
 ## 发布包
 
-构建两端后运行 `python scripts/package-release.py`，在 `dist/releases/v1.2.0` 生成 Windows ZIP、Android APK 与 `SHA256SUMS.txt`。脚本只打包应用文件，重新生成默认 `runtime.json`，排除本机配对、状态和调试文件。
+构建两端后运行 `python scripts/package-release.py`，在 `dist/releases/v1.3.0` 生成 Windows ZIP、Android APK 与 `SHA256SUMS.txt`。脚本只打包应用文件，重新生成默认 `runtime.json`，排除本机配对、状态和调试文件。
 
 `v*` 标签或手动运行 **Build release packages** 会生成 GitHub Actions 测试产物。CI 每次生成的 Android 调试密钥不同，产物不会自动覆盖公开 Release。维护者发布升级 APK 时应沿用发布密钥，并在 Release 中记录证书指纹和安装限制。
+
+## Apple builds
+
+On a Mac with Xcode, .NET 10 SDK and XcodeGen, run `bash scripts/build-apple.sh`. This builds macOS arm64 / x64, iOS Simulator and an unsigned iOS device archive, then runs protocol, reminder and host integration checks. See [Apple setup and signing](APPLE.md).

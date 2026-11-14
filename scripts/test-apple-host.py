@@ -134,6 +134,18 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
         demo = admin.action('create', kind='terminal', name='Release workspace', cwd=str(data), command="printf '\\033[32mCode Link · macOS + iOS\\033[0m\\n\\n'; printf 'Connected over your local network\\n'; printf 'TLS certificate pinning enabled\\n'; printf 'Ready for terminal input and approvals\\n\\n'; exec /bin/zsh -l")
         check(demo['ok'], 'Screenshot terminal is a real managed PTY')
         admin.action('settings', lan=True)
+        invite = dict(host='127.0.0.1', port=port, pin=pairing['fingerprint'], code=pairing['code'])
+        def invitation_text(value):
+            return 'codelink:' + base64.urlsafe_b64encode(json.dumps(value).encode()).decode().rstrip('=')
+        probe = str(ROOT / '.local/apple/network-probe')
+        subprocess.run([probe, invitation_text(invite), 'swift-probe', demo['sessionId']], check=True, timeout=30)
+        check(True, 'Production Swift networking code exchanges real terminal input/output')
+        wrong_pin = dict(invite, pin='0'*64)
+        subprocess.run([probe, invitation_text(wrong_pin), 'swift-bad-pin', demo['sessionId'], '--reject'], check=True, timeout=30)
+        check(True, 'Production Swift networking rejects a different certificate')
+        saved_invite = dict(invite, code='000000')
+        subprocess.run([probe, invitation_text(saved_invite), 'swift-probe', demo['sessionId']], check=True, timeout=30)
+        check(True, 'Swift Keychain credential reconnects with an expired pairing code')
         native = subprocess.Popen([str(APP / 'Contents/MacOS/CodeLink')], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             time.sleep(6)
@@ -146,8 +158,7 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             subprocess.run(['xcrun','simctl','bootstatus',device,'-b'], check=True)
             simulator_app = ROOT / '.local/apple/ios/Build/Products/Release-iphonesimulator/CodeLink.app'
             subprocess.run(['xcrun','simctl','install',device,str(simulator_app)], check=True)
-            invite = dict(host='127.0.0.1', port=port, pin=pairing['fingerprint'], code=pairing['code'])
-            invitation = 'codelink:' + base64.urlsafe_b64encode(json.dumps(invite).encode()).decode().rstrip('=')
+            invitation = invitation_text(invite)
             subprocess.run(['xcrun','simctl','launch',device,'com.codelink.ios','--invite',invitation], check=True)
             connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] != 'apple-smoke-phone'))
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] != 'apple-smoke-phone')

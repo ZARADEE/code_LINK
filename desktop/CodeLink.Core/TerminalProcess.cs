@@ -8,13 +8,21 @@ public sealed class TerminalProcess : IDisposable
 {
     private IntPtr pseudo, process, attributes;
     private FileStream? input,output;
-    public int ProcessId { get; private set; }
-    public uint ExitCode { get; private set; }
+    private UnixTerminalProcess? unix;
+    private int processId;
+    private uint exitCode;
+    public int ProcessId { get=>unix?.ProcessId??processId; private set=>processId=value; }
+    public uint ExitCode { get=>unix?.ExitCode??exitCode; private set=>exitCode=value; }
     public event Action<string>? Data;
     public event Action? Exited;
     private readonly SemaphoreSlim writeLock=new(1);
     public void Start(string command,string cwd)
     {
+        if(OperatingSystem.IsMacOS())
+        {
+            unix=new UnixTerminalProcess();unix.Data+=text=>Data?.Invoke(text);unix.Exited+=()=>Exited?.Invoke();
+            unix.Start(command,cwd);return;
+        }
         if(!CreatePipe(out var inRead,out var inWrite,IntPtr.Zero,0)||!CreatePipe(out var outRead,out var outWrite,IntPtr.Zero,0))throw new Win32Exception();
         try
         {
@@ -33,9 +41,9 @@ public sealed class TerminalProcess : IDisposable
         }
         finally{CloseHandle(inRead);CloseHandle(outWrite);if(inWrite!=IntPtr.Zero)CloseHandle(inWrite);if(outRead!=IntPtr.Zero)CloseHandle(outRead);}
     }
-    public async Task Write(string text){await writeLock.WaitAsync();try{if(input is null)throw new IOException("终端未运行");await input.WriteAsync(Encoding.UTF8.GetBytes(text));await input.FlushAsync();}finally{writeLock.Release();}}
-    public void Resize(short cols,short rows){if(pseudo!=IntPtr.Zero)ResizePseudoConsole(pseudo,new Coord{X=cols,Y=rows});}
-    public void Dispose(){if(process!=IntPtr.Zero){TerminateProcess(process,0);CloseHandle(process);process=IntPtr.Zero;}input?.Dispose();output?.Dispose();if(pseudo!=IntPtr.Zero){ClosePseudoConsole(pseudo);pseudo=IntPtr.Zero;}if(attributes!=IntPtr.Zero){DeleteProcThreadAttributeList(attributes);Marshal.FreeHGlobal(attributes);attributes=IntPtr.Zero;}}
+    public async Task Write(string text){if(unix is not null){await unix.Write(text);return;}await writeLock.WaitAsync();try{if(input is null)throw new IOException("终端未运行");await input.WriteAsync(Encoding.UTF8.GetBytes(text));await input.FlushAsync();}finally{writeLock.Release();}}
+    public void Resize(short cols,short rows){if(unix is not null){unix.Resize(cols,rows);return;}if(pseudo!=IntPtr.Zero)ResizePseudoConsole(pseudo,new Coord{X=cols,Y=rows});}
+    public void Dispose(){if(unix is not null){unix.Dispose();return;}if(process!=IntPtr.Zero){TerminateProcess(process,0);CloseHandle(process);process=IntPtr.Zero;}input?.Dispose();output?.Dispose();if(pseudo!=IntPtr.Zero){ClosePseudoConsole(pseudo);pseudo=IntPtr.Zero;}if(attributes!=IntPtr.Zero){DeleteProcThreadAttributeList(attributes);Marshal.FreeHGlobal(attributes);attributes=IntPtr.Zero;}}
     [StructLayout(LayoutKind.Sequential)]struct Coord{public short X,Y;}
     [StructLayout(LayoutKind.Sequential,CharSet=CharSet.Unicode)]struct StartupInfo{public int cb;public string? lpReserved,lpDesktop,lpTitle;public uint dwX,dwY,dwXSize,dwYSize,dwXCountChars,dwYCountChars,dwFillAttribute,dwFlags;public ushort wShowWindow,cbReserved2;public IntPtr lpReserved2,hStdInput,hStdOutput,hStdError;}
     [StructLayout(LayoutKind.Sequential)]struct StartupInfoEx{public StartupInfo StartupInfo;public IntPtr lpAttributeList;}

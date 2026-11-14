@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'">
+<link rel="stylesheet" href="xterm.css">
+<style>html,body{height:100%;margin:0;background:#192d27;overflow:hidden}#terminal{height:100%}.xterm{padding:10px}#snapshot{display:none;height:100%;box-sizing:border-box;margin:0;padding:12px;overflow:auto;white-space:pre;color:#e4ebdd;font:13px/1.3 monospace}</style>
+</head><body><div id="terminal" aria-label="Terminal output"></div><pre id="snapshot" aria-label="Observed window text"></pre>
+<script src="xterm.js"></script><script>
+const terminal=new Terminal({cols:120,rows:32,fontSize:12,fontFamily:'Menlo,monospace',theme:{background:'#192d27',foreground:'#e4ebdd'},scrollback:3000,convertEol:false,disableStdin:true});
+terminal.open(document.getElementById('terminal'));
+terminal.onData(text=>window.webkit.messageHandlers.terminal.postMessage(text));
+function fit(){const cell=terminal._core?._renderService?.dimensions?.css?.cell;const width=cell?.width||7.2,height=cell?.height||14;terminal.resize(Math.max(20,Math.floor((innerWidth-20)/width)),Math.max(4,Math.floor((innerHeight-20)/height)))}
+window.addEventListener('resize',fit);fit();
+window.renderTerminal=value=>{terminal.options.disableStdin=!value.enabled;const grid=document.getElementById('terminal'),snapshot=document.getElementById('snapshot');grid.style.display=value.observer?'none':'block';snapshot.style.display=value.observer?'block':'none';if(value.observer){if(snapshot.textContent!==value.text){const follow=snapshot.scrollHeight-snapshot.scrollTop-snapshot.clientHeight<40;snapshot.textContent=value.text;if(follow)snapshot.scrollTop=snapshot.scrollHeight}}else{if(value.reset)terminal.reset();if(value.text)terminal.write(value.text)}};
+</script></body></html>

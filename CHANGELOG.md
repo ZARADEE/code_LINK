@@ -1,5 +1,14 @@
 # 版本记录
 
+## 1.3.0 · 2026-11-14
+
+- 新增 macOS SwiftUI 客户端，支持 Apple silicon 与 Intel，内含 .NET 运行时。
+- macOS 使用原生 zsh PTY，可创建终端与 Codex 会话、配对移动设备和分配控制权。
+- 新增 iPhone / iPad SwiftUI 客户端，提供二维码配对、证书固定 TLS、终端输入输出、审批、问题回答和 A/B 提醒。
+- Apple 凭据存入 Keychain；iOS 进入后台后暂停连接，回到前台重新连接，操作不会自动重放。
+- 增加 Apple 编译、协议与提醒行为检查、真实 PTY / TLS / iOS 模拟器联通验证。
+- 发布 macOS 应用、iOS 模拟器包、未签名真机归档与 Xcode 源码工程。当前没有 Apple Developer 账号，不提供公证、签名 IPA 或 TestFlight。
+
 ## 1.2.0 · 2026-11-13
 
 - Android 前台服务持续接收本地终端状态与输出，页面退到后台或回收后继续连接。

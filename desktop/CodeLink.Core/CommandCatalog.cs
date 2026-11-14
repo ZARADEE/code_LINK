@@ -33,6 +33,9 @@ public static class CommandCatalog
 
     public static IReadOnlyList<CommandCandidate> Scan(ISet<int>? excludedProcessIds = null)
     {
+        // Other platforms expose sessions launched by Code Link; Win32 window
+        // enumeration must never run on macOS.
+        if (!OperatingSystem.IsWindows()) return [];
         var processes = Snapshot();
         return Build(processes, Windows(processes), excludedProcessIds)
             .Select(item => item with { Executable = Executable(item.ProcessId) }).ToArray();

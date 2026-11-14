@@ -2,6 +2,7 @@
 from pathlib import Path
 import hashlib
 import json
+import os
 import shutil
 import xml.etree.ElementTree as ET
 import zipfile
@@ -12,7 +13,7 @@ ROOT = Path(__file__).resolve().parent.parent
 def main():
     version = ET.parse(ROOT / 'android/app/src/main/AndroidManifest.xml').getroot().get(
         '{http://schemas.android.com/apk/res/android}versionName')
-    desktop = ROOT / 'dist/desktop'
+    desktop = ROOT / os.environ.get('CODELINK_BUILD_OUTPUT', 'dist/desktop')
     apk = ROOT / 'dist/CodeLink-Android.apk'
     required = ['CodeLink.exe', 'clink.exe', 'CodeLink.Host.exe', 'CodeLink.ConsoleBridge.exe',
                 'CodeLink.Core.dll', 'assets/icon.png', 'assets/app.ico', 'assets/startup.gif',

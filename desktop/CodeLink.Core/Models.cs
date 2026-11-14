@@ -40,6 +40,7 @@ public sealed class HostStorage
     public HostStorage(string directory)
     {
         DirectoryPath = Path.GetFullPath(directory); Directory.CreateDirectory(DirectoryPath);
+        if(!OperatingSystem.IsWindows())File.SetUnixFileMode(DirectoryPath,UnixFileMode.UserRead|UnixFileMode.UserWrite|UnixFileMode.UserExecute);
         var file = Path.Combine(DirectoryPath, "host.json");
         Config = File.Exists(file) ? JsonSerializer.Deserialize<HostConfig>(File.ReadAllText(file))! : new();
         Config.CertificatePassword=WindowsSecret.Unprotect(Config.CertificatePassword);
@@ -52,6 +53,7 @@ public sealed class HostStorage
             req.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, true));
             using var cert = req.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddYears(5));
             File.WriteAllBytes(pfx, cert.Export(X509ContentType.Pfx, Config.CertificatePassword));
+            if(!OperatingSystem.IsWindows())File.SetUnixFileMode(pfx,UnixFileMode.UserRead|UnixFileMode.UserWrite);
         }
         Certificate = X509CertificateLoader.LoadPkcs12FromFile(pfx, Config.CertificatePassword,X509KeyStorageFlags.UserKeySet|X509KeyStorageFlags.PersistKeySet);
         Save();

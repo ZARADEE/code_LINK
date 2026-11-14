@@ -1,0 +1,50 @@
+name: Apple builds and checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: apple-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  apple:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install project generator
+        run: brew install xcodegen
+      - name: Build both Mac architectures, iOS simulator and unsigned device archive
+        run: bash scripts/build-apple.sh
+        env:
+          CODELINK_BUILD_ONLY: '1'
+      - name: Upload Apple packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: CodeLink-Apple-packages
+          path: |
+            dist/apple/*.zip
+            dist/apple/*SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: Verify native host and live iPhone and iPad connections
+        run: |
+          set -o pipefail
+          python3 -u scripts/test-apple-host.py "$PWD/.local/apple/mac-$(uname -m)/Build/Products/Release/CodeLink.app" 2>&1 | tee dist/apple/integration.log
+      - name: Upload build logs and real application screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Apple-validation
+          path: |
+            dist/apple/*.log
+            dist/apple/*.png
+            dist/apple/*.json
+          retention-days: 14

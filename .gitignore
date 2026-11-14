@@ -23,4 +23,6 @@ dot-naiwa-0005-clean-38575baf3a9b1c49-copy.png
 *.jks
 *.keystore
 local.properties
+apple/CodeLink.xcodeproj/
+apple/Generated/
 

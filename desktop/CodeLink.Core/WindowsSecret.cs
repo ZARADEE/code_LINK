@@ -5,8 +5,8 @@ namespace CodeLink;
 public static class WindowsSecret
 {
     [StructLayout(LayoutKind.Sequential)]struct Blob{public int Length;public IntPtr Data;}
-    public static string Protect(string text)=>"dpapi:"+System.Convert.ToBase64String(Convert(Encoding.UTF8.GetBytes(text),true));
-    public static string Unprotect(string text)=>text.StartsWith("dpapi:")?Encoding.UTF8.GetString(Convert(System.Convert.FromBase64String(text[6..]),false)):text;
+    public static string Protect(string text)=>OperatingSystem.IsMacOS()?MacSecret.Protect(text):"dpapi:"+System.Convert.ToBase64String(Convert(Encoding.UTF8.GetBytes(text),true));
+    public static string Unprotect(string text)=>text.StartsWith("keychain:")?MacSecret.Unprotect(text):text.StartsWith("dpapi:")?Encoding.UTF8.GetString(Convert(System.Convert.FromBase64String(text[6..]),false)):text;
     private static byte[] Convert(byte[] bytes,bool protect)
     {
         var input=new Blob{Length=bytes.Length,Data=Marshal.AllocHGlobal(bytes.Length)};Blob output=default;

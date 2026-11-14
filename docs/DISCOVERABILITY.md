@@ -2,12 +2,12 @@
 
 ## GitHub 入口
 
-About 使用中英文用途说明，主页指向 [Code Link 项目站](https://zaradee.github.io/code_LINK/)。搜索分类使用 Topics，版本管理使用 `v1.2.0` 这类 Git 标签。当前建议 Topics 为下列与实际功能相符的词。
+About 使用中英文用途说明，主页指向 [Code Link 项目站](https://zaradee.github.io/code_LINK/)。搜索分类使用 Topics，版本管理使用 `v1.3.0` 这类 Git 标签。当前 Topics 覆盖四个平台与实际功能。
 
 ```text
-terminal remote-terminal terminal-companion windows android android-tablet
+terminal remote-terminal terminal-companion windows macos android ios ipad
 codex codex-cli powershell usb bluetooth local-first remote-control
-notifications developer-tools wpf csharp java
+notifications developer-tools csharp swift swiftui
 ```
 
 README 将用途、真实截图和下载放在前面；构建、贡献、安全、路线图与安装文档提供进一步入口。Topics 帮助 GitHub 分类，README 正文提供用户真正会搜索的用途与操作说明。

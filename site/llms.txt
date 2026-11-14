@@ -2,9 +2,12 @@
 
 > A local terminal companion for Windows, macOS, Android and iOS, maintained by ZARADEE.
 
-Monitor Windows terminal output, send text and keys, respond to approvals, and receive individual (A) or grouped (B) completion notifications from an Android tablet. USB and Bluetooth transports work locally without a relay server. The current Android release is 1.3.0. Windows / Android use Chinese; Apple clients use English.
+Monitor Windows terminal output, send text and keys, respond to approvals, and receive individual (A) or grouped (B) completion notifications from an Android tablet. USB and Bluetooth transports work locally without a relay server. The current Android release is 1.3.0. Windows / Android offer zh-CN and en packages; Apple clients use English. Package filenames identify the language.
 
 ## Project resources
+
+- [Developer walkthrough](https://github.com/ZARADEE/code_LINK/blob/main/if_want_learn.md): a plain Chinese guide to the stack, architecture, modules, localization and extension rules.
+- [English installation](https://github.com/ZARADEE/code_LINK/blob/main/docs/INSTALL.en.md): English package names, setup and language switching.
 
 - [Chinese website](https://zaradee.github.io/code_LINK/): product overview and official downloads.
 - [English website](https://zaradee.github.io/code_LINK/en.html): English product overview; platform-specific installation instructions.

@@ -2,6 +2,10 @@
 
 ## 1.3.0 · 2026-11-14
 
+- Windows 与 Android 新增英文发布包，覆盖界面、通知、设置、错误提示与 CLI 帮助；所有应用包名标注 `zh-CN` 或 `en`。
+- 两种 Android 语言包沿用相同签名和应用 ID；蓝牙设置兼容旧值，授权失效使用稳定错误码。
+- 新增 `if_want_learn.md`，解释技术栈、消息流程、核心模块、语言构建与二次开发注意事项。
+
 - 新增 macOS SwiftUI 客户端，支持 Apple silicon 与 Intel，内含 .NET 运行时。
 - macOS 使用原生 zsh PTY，可创建终端与 Codex 会话、配对移动设备和分配控制权。
 - 新增 iPhone / iPad SwiftUI 客户端，提供二维码配对、证书固定 TLS、终端输入输出、审批、问题回答和 A/B 提醒。

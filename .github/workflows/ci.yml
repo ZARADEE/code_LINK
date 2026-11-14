@@ -24,12 +24,18 @@ jobs:
           python-version: '3.12'
       - name: Check documentation and site metadata
         run: python scripts/check-docs.py
+      - name: Validate English translations
+        run: python scripts/localize-sources.py check
       - name: Fetch pinned build tools
         run: python scripts/setup-tools.py
       - name: Build Windows clients
         run: ./scripts/build-desktop.ps1
+      - name: Build English Windows clients
+        run: ./scripts/build-desktop.ps1 -Language en
       - name: Build Android APK
         run: ./scripts/build-android.ps1
+      - name: Build English Android APK
+        run: ./scripts/build-android.ps1 -Language en
       - name: Test reminders and background output cache
         shell: pwsh
         run: |

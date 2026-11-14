@@ -61,14 +61,16 @@ macOS 提供 Apple silicon 和 Intel 包，内含 .NET 运行时，尚未进行 
 
 | 客户端 | 下载文件 | 安装方法 |
 | --- | --- | --- |
-| Windows | `CodeLink-Windows-v1.3.0.zip` | 解压并保留完整目录，双击 `CodeLink.exe` |
-| Android | `CodeLink-Android.apk` | 复制到平板后安装，按系统提示允许该来源安装应用 |
-| macOS 14+ | `CodeLink-macOS-AppleSilicon-v1.3.0.zip` / `CodeLink-macOS-Intel-v1.3.0.zip` | 解压并放入 Applications，参见 [Apple 指南](docs/APPLE.md) |
-| iOS / iPadOS 17+ | `CodeLink-iOS-Simulator-v1.3.0.zip` / `CodeLink-Apple-Source-v1.3.0.zip` | Mac 模拟器运行，或用自己的 Apple 账号在 Xcode 签名；非直接安装包 |
+| Windows | `CodeLink-Windows-v1.3.0-zh-CN.zip` | 解压并保留完整目录，双击 `CodeLink.exe` |
+| Android | `CodeLink-Android-v1.3.0-zh-CN.apk` | 复制到平板后安装，按系统提示允许该来源安装应用 |
+| Windows 英文版 | `CodeLink-Windows-v1.3.0-en.zip` | 英文界面、托盘菜单、错误提示与 CLI 帮助 |
+| Android 英文版 | `CodeLink-Android-v1.3.0-en.apk` | 英文界面、通知和设置；可覆盖中文版并保留应用数据 |
+| macOS 14+ | `CodeLink-macOS-AppleSilicon-v1.3.0-en.zip` / `CodeLink-macOS-Intel-v1.3.0-en.zip` | 解压并放入 Applications，参见 [Apple 指南](docs/APPLE.md) |
+| iOS / iPadOS 17+ | `CodeLink-iOS-Simulator-v1.3.0-en.zip` / `CodeLink-Apple-Source-v1.3.0-en.zip` | Mac 模拟器运行，或用自己的 Apple 账号在 Xcode 签名；非直接安装包 |
 
 Windows 需要 [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)，下载页选择 **.NET Desktop Runtime → Windows x64**。Android 最低安装版本为 9，当前界面主要面向横屏平板。
 
-Release 同时提供 `SHA256SUMS.txt`，可按[安装说明](docs/INSTALL.md)核对下载。当前 Android 包使用开发签名，Windows 程序尚无商业代码签名；Windows / Android 界面为中文。Apple 下载另附 `APPLE-SHA256SUMS.txt`。
+Release 同时提供 `SHA256SUMS.txt`，可按[安装说明](docs/INSTALL.md)核对下载。当前 Android 包使用开发签名，Windows 程序尚无商业代码签名；Windows / Android 提供简体中文与英文包，文件名以 zh-CN 或 en 标注。Apple 下载另附 `APPLE-SHA256SUMS.txt`。
 
 当前真机验证设备为联想小新 Pad Pro 12.7，Android 14 / ZUI 16。Codex 使用者请先在电脑上安装、登录 Codex，并确认它能在原来的命令行中正常运行。
 
@@ -247,6 +249,8 @@ B 组在全部完成时才同时标红标签和本轮成员。逐个点击查看
 详细结果见[当前实现与验收记录](docs/implementation.zh-CN.md)和[后台通知验收数据](research/pad-background-acceptance.json)。
 
 ## 帮助、参与和许可
+
+想了解项目怎样工作、重点代码在哪里、怎样继续开发，可以先读 [if_want_learn.md](if_want_learn.md)。文档从一条手机输入如何到达电脑终端讲起。
 
 遇到问题请[提交 Issue](https://github.com/ZARADEE/code_LINK/issues/new/choose)，附上两端系统版本、App 版本、连接方式、终端类型和复现步骤。截图前遮住配对二维码、密钥和私人终端内容。
 

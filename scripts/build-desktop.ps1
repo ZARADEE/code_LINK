@@ -1,6 +1,14 @@
+param([ValidateSet('zh-CN','en')][string]$Language='zh-CN')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-$output = if ($env:CODELINK_BUILD_OUTPUT) { Join-Path $root $env:CODELINK_BUILD_OUTPUT } else { Join-Path $root 'dist/desktop' }
+$projectRoot = $root
+if ($Language -eq 'en') {
+    & python (Join-Path $PSScriptRoot 'localize-sources.py') generate
+    if ($LASTEXITCODE -ne 0) { throw 'English translation validation failed' }
+    $projectRoot = Join-Path $root '.local/localized/en'
+}
+$defaultOutput = if ($Language -eq 'en') { 'dist/desktop-en' } else { 'dist/desktop' }
+$output = if ($env:CODELINK_BUILD_OUTPUT) { Join-Path $root $env:CODELINK_BUILD_OUTPUT } else { Join-Path $root $defaultOutput }
 $adbSource = Join-Path $root '.tools/platform-tools'
 
 foreach ($project in @(
@@ -9,7 +17,7 @@ foreach ($project in @(
     'desktop/CodeLink.Cli/CodeLink.Cli.csproj',
     'desktop/CodeLink.ConsoleBridge/CodeLink.ConsoleBridge.csproj'
 )) {
-    & dotnet build (Join-Path $root $project) --configuration Release
+    & dotnet build (Join-Path $projectRoot $project) --configuration Release
     if ($LASTEXITCODE -ne 0) { throw "Build failed: $project" }
 }
 
@@ -17,10 +25,10 @@ New-Item -ItemType Directory -Force -Path $output | Out-Null
 if (-not (Test-Path -LiteralPath (Join-Path $output 'runtime.json'))) {
     [IO.File]::WriteAllText((Join-Path $output 'runtime.json'),'{"instance":"main","dataDirectory":"state"}',[Text.Encoding]::UTF8)
 }
-Copy-Item -Path (Join-Path $root 'desktop/CodeLink.Desktop/bin/Release/net10.0-windows/*') -Destination $output -Recurse -Force
-Copy-Item -Path (Join-Path $root 'desktop/CodeLink.Host/bin/Release/net10.0/*') -Destination $output -Recurse -Force
-Copy-Item -Path (Join-Path $root 'desktop/CodeLink.Cli/bin/Release/net10.0/*') -Destination $output -Recurse -Force
-Copy-Item -Path (Join-Path $root 'desktop/CodeLink.ConsoleBridge/bin/Release/net10.0/*') -Destination $output -Recurse -Force
+Copy-Item -Path (Join-Path $projectRoot 'desktop/CodeLink.Desktop/bin/Release/net10.0-windows/*') -Destination $output -Recurse -Force
+Copy-Item -Path (Join-Path $projectRoot 'desktop/CodeLink.Host/bin/Release/net10.0/*') -Destination $output -Recurse -Force
+Copy-Item -Path (Join-Path $projectRoot 'desktop/CodeLink.Cli/bin/Release/net10.0/*') -Destination $output -Recurse -Force
+Copy-Item -Path (Join-Path $projectRoot 'desktop/CodeLink.ConsoleBridge/bin/Release/net10.0/*') -Destination $output -Recurse -Force
 
 $tools = Join-Path $output 'tools'
 New-Item -ItemType Directory -Force -Path $tools | Out-Null
@@ -28,5 +36,6 @@ Copy-Item -LiteralPath (Join-Path $adbSource 'adb.exe'), (Join-Path $adbSource '
 Copy-Item -LiteralPath (Join-Path $adbSource 'NOTICE.txt') -Destination (Join-Path $tools 'ADB-NOTICE.txt') -Force
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE'), (Join-Path $root 'THIRD_PARTY_NOTICES.md') -Destination $output -Force
 Copy-Item -LiteralPath (Join-Path $root 'licenses') -Destination $output -Recurse -Force
+[IO.File]::WriteAllText((Join-Path $output 'build-language.txt'),$Language,[Text.Encoding]::UTF8)
 Write-Output "Desktop app: $(Join-Path $output 'CodeLink.exe')"
 Write-Output "Command line: $(Join-Path $output 'clink.exe')"

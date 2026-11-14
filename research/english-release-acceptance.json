@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-14",
+  "device": "Lenovo TB371FC, Android 14 / ZUI 16",
+  "build": "1.3.0-en",
+  "checks": {
+    "windowsEnglishControls": true,
+    "androidEnglishControls": true,
+    "englishBackgroundSettings": true,
+    "existingPairingPreservedAfterEnglishUpgrade": true,
+    "realUsbInputAndEcho12345": true,
+    "sameReleaseSigningCertificate": true,
+    "chineseRestoredWithoutUninstallOrRepairing": true
+  },
+  "scope": "English UI on Windows and a physical Android tablet; user terminal text retains its original language."
+}

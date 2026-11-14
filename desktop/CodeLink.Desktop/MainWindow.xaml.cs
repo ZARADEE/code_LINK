@@ -112,10 +112,10 @@ public partial class MainWindow:Window
         var ds=devices.ToJsonString();
         if(ds!=deviceSignature)
         {
-            deviceSignature=ds;DeviceList.ItemsSource=devices.Select(d=>new Item(d!.S("id"),(d.B("online")?"● ":"○ ")+d.S("name")+"\n"+d.S("transport"))).ToArray();
+            deviceSignature=ds;DeviceList.ItemsSource=devices.Select(d=>new Item(d!.S("id"),(d.B("online")?"● ":"○ ")+d.S("name")+"\n"+UiMessages.Server(d.S("transport")))).ToArray();
             DeviceList.SelectedItem=DeviceList.Items.Cast<Item>().FirstOrDefault(d=>d.Id==oldDevice)??DeviceList.Items.Cast<Item>().FirstOrDefault();
         }
-        HostStatus.Text="代理在线 · 蓝牙 "+next.S("bluetooth");
+        HostStatus.Text="代理在线 · 蓝牙 "+UiMessages.Server(next.S("bluetooth"));
         if(externalSelection is null)RenderOutput();
         foreach(var s in sessions)
         {

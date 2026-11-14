@@ -64,7 +64,7 @@ public final class LinkRuntime implements LinkConnection.Listener {
  private void afterAcknowledgement(String oldBatch){if(!oldBatch.equals(reminders.batchNoticeKey()))notices.cancel(oldBatch);notices.prune(reminders);save();}
  private void save(){presentation.edit().putString("reminders",reminders.save()).apply();}
  private void updateConnection(){if(service==null)return;int running=0,waiting=0;JSONArray all=visible();for(int i=0;i<all.length();i++){JSONObject s=all.optJSONObject(i);if(s==null)continue;String status=s.optString("status");if(status.equals("running"))running++;if(status.equals("approval")||status.equals("input"))waiting++;}
-  String text=online?link.mode+" 已连接 · "+running+" 个运行中 · "+waiting+" 个待处理":statusText;
+  String text=online?link.modeLabel()+" 已连接 · "+running+" 个运行中 · "+waiting+" 个待处理":statusText;
   if(!text.equals(connectionSummary)){connectionSummary=text;notices.updateConnection(text);}
  }
 }

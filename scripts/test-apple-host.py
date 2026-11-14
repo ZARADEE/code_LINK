@@ -131,7 +131,7 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
         admin.action('delete', sessionId=failed['sessionId'])
 
         # Screenshot a real host session and a real iOS simulator connection.
-        demo = admin.action('create', kind='terminal', name='Release workspace', cwd=str(data), command="printf '\\033[32mCode Link · macOS + iOS\\033[0m\\n\\n'; printf 'Connected over your local network\\n'; printf 'TLS certificate pinning enabled\\n'; printf 'Ready for terminal input and approvals\\n\\n'; exec /bin/zsh -l")
+        demo = admin.action('create', kind='terminal', name='Release workspace', cwd=str(data), command="export PS1='codelink % '; exec /bin/zsh -f")
         check(demo['ok'], 'Screenshot terminal is a real managed PTY')
         admin.action('settings', lan=True)
         invite = dict(host='127.0.0.1', port=port, pin=pairing['fingerprint'], code=pairing['code'])
@@ -146,6 +146,7 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
         saved_invite = dict(invite, code='000000')
         subprocess.run([probe, invitation_text(saved_invite), 'swift-probe', demo['sessionId']], check=True, timeout=30)
         check(True, 'Swift Keychain credential reconnects with an expired pairing code')
+        admin.action('input', sessionId=demo['sessionId'], text="clear; printf '\\033[32mCode Link · macOS + iOS\\033[0m\\n\\nLocal connection is ready.\\n\\n  [passed] TLS certificate verification\\n  [passed] Real terminal input and output\\n  [passed] Saved device credential reconnect\\n\\nType a command below to continue.\\n\\n'")
         native = subprocess.Popen([str(APP / 'Contents/MacOS/CodeLink')], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         try:
             time.sleep(6)

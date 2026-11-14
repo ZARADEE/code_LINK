@@ -48,7 +48,9 @@ targets:
     productName: CodeLink
     sources:
       - Shared
-      - iOS
+      - path: iOS
+        excludes:
+          - Simulator.entitlements
       - path: Resources/Terminal
         type: folder
         buildPhase: resources

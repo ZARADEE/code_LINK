@@ -112,7 +112,7 @@ import UIKit
     func disconnect() { desiredConnection = false; connection.disconnect() }
     func sceneActive(_ active: Bool) {
         #if os(iOS)
-        if active { if invite != nil { reconnect() } }
+        if active { if invite != nil && !desiredConnection { reconnect() } }
         else { desiredConnection = false; connection.disconnect() }
         #endif
     }

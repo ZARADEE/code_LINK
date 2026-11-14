@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'dist/apple'
 OUT.mkdir(parents=True, exist_ok=True)
 checks = []
+active_simulator = None
 
 
 def check(condition, message):
@@ -163,12 +164,16 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             candidates = [d for d in runtime_devices if 'iPhone' in d['name']]
             check(bool(candidates), 'iOS simulator runtime is available')
             device = candidates[0]['udid']
+            active_simulator = device
+            print('Starting iPhone simulator', device, flush=True)
             subprocess.run(['xcrun','simctl','boot',device], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
+            subprocess.run(['open','-a','Simulator','--args','-CurrentDeviceUDID',device], check=True, timeout=30)
             subprocess.run(['xcrun','simctl','bootstatus',device,'-b'], check=True, timeout=420)
             simulator_app = ROOT / '.local/apple/ios/Build/Products/Release-iphonesimulator/CodeLink.app'
             subprocess.run(['xcrun','simctl','install',device,str(simulator_app)], check=True, timeout=180)
             invitation = invitation_text(invite)
-            subprocess.run(['xcrun','simctl','launch',device,'com.codelink.ios','--invite',invitation], check=True, timeout=90)
+            print('Launching signed iPhone application', flush=True)
+            subprocess.run(['xcrun','simctl','launch',device,'com.codelink.ios','--invite',invitation], check=True, timeout=240)
             test_ids = {'apple-smoke-phone', 'swift-probe'}
             connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids))
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] not in test_ids)
@@ -180,10 +185,14 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             tablets = [d for d in runtime_devices if 'iPad' in d['name']]
             check(bool(tablets), 'iPad simulator is available')
             tablet = tablets[0]['udid']
+            active_simulator = tablet
+            print('Starting iPad simulator', tablet, flush=True)
             subprocess.run(['xcrun','simctl','boot',tablet], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
+            subprocess.run(['open','-a','Simulator','--args','-CurrentDeviceUDID',tablet], check=True, timeout=30)
             subprocess.run(['xcrun','simctl','bootstatus',tablet,'-b'], check=True, timeout=420)
             subprocess.run(['xcrun','simctl','install',tablet,str(simulator_app)], check=True, timeout=180)
-            subprocess.run(['xcrun','simctl','launch',tablet,'com.codelink.ios','--invite',invitation], check=True, timeout=90)
+            print('Launching signed iPad application', flush=True)
+            subprocess.run(['xcrun','simctl','launch',tablet,'com.codelink.ios','--invite',invitation], check=True, timeout=240)
             test_ids.add(mobile['id'])
             connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids))
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] not in test_ids)
@@ -192,7 +201,14 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             time.sleep(4)
             subprocess.run(['xcrun','simctl','io',tablet,'screenshot',str(OUT / 'ipados-live.png')], check=True)
             subprocess.run(['xcrun','simctl','terminate',tablet,'com.codelink.ios'], check=True)
+            active_simulator = None
         finally:
+            if active_simulator:
+                try:
+                    subprocess.run(['xcrun','simctl','io',active_simulator,'screenshot',str(OUT / 'simulator-failure.png')],timeout=30)
+                    with (OUT / 'simulator-failure.log').open('w') as log:
+                        subprocess.run(['xcrun','simctl','spawn',active_simulator,'log','show','--last','3m','--style','compact','--predicate','process == "CodeLink" OR process == "SpringBoard"'],stdout=log,stderr=log,timeout=30)
+                except subprocess.TimeoutExpired: pass
             native.terminate()
             try: native.wait(timeout=8)
             except subprocess.TimeoutExpired: native.kill()

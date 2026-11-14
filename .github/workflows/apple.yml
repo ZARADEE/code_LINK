@@ -9,7 +9,7 @@ permissions:
   contents: read
 jobs:
   apple:
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4

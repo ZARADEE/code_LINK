@@ -4,6 +4,7 @@ import base64
 import hashlib
 import json
 import os
+import platform
 import select
 import shutil
 import socket
@@ -156,11 +157,11 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             check(bool(candidates), 'iOS simulator runtime is available')
             device = candidates[0]['udid']
             subprocess.run(['xcrun','simctl','boot',device], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(['xcrun','simctl','bootstatus',device,'-b'], check=True)
+            subprocess.run(['xcrun','simctl','bootstatus',device,'-b'], check=True, timeout=180)
             simulator_app = ROOT / '.local/apple/ios/Build/Products/Release-iphonesimulator/CodeLink.app'
-            subprocess.run(['xcrun','simctl','install',device,str(simulator_app)], check=True)
+            subprocess.run(['xcrun','simctl','install',device,str(simulator_app)], check=True, timeout=90)
             invitation = invitation_text(invite)
-            subprocess.run(['xcrun','simctl','launch',device,'com.codelink.ios','--invite',invitation], check=True)
+            subprocess.run(['xcrun','simctl','launch',device,'com.codelink.ios','--invite',invitation], check=True, timeout=90)
             test_ids = {'apple-smoke-phone', 'swift-probe'}
             connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids))
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] not in test_ids)
@@ -168,13 +169,14 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             time.sleep(4)
             subprocess.run(['xcrun','simctl','io',device,'screenshot',str(OUT / 'ios-live.png')], check=True)
             subprocess.run(['xcrun','simctl','terminate',device,'com.codelink.ios'], check=True)
+            subprocess.run(['xcrun','simctl','shutdown',device], check=True, timeout=60)
             tablets = [d for runtime, devices in simulators['devices'].items() if 'iOS' in runtime for d in devices if 'iPad' in d['name']]
             check(bool(tablets), 'iPad simulator is available')
             tablet = tablets[0]['udid']
             subprocess.run(['xcrun','simctl','boot',tablet], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            subprocess.run(['xcrun','simctl','bootstatus',tablet,'-b'], check=True)
-            subprocess.run(['xcrun','simctl','install',tablet,str(simulator_app)], check=True)
-            subprocess.run(['xcrun','simctl','launch',tablet,'com.codelink.ios','--invite',invitation], check=True)
+            subprocess.run(['xcrun','simctl','bootstatus',tablet,'-b'], check=True, timeout=180)
+            subprocess.run(['xcrun','simctl','install',tablet,str(simulator_app)], check=True, timeout=90)
+            subprocess.run(['xcrun','simctl','launch',tablet,'com.codelink.ios','--invite',invitation], check=True, timeout=90)
             test_ids.add(mobile['id'])
             connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids))
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] not in test_ids)
@@ -194,5 +196,5 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
         except subprocess.TimeoutExpired: host.kill(); host.wait()
         log = host.stdout.read().decode(errors='replace')
         (OUT / 'host-validation.log').write_text(log)
-(OUT / 'validation.json').write_text(json.dumps({'passed':len(checks), 'checks':checks}, indent=2))
+(OUT / 'validation.json').write_text(json.dumps({'passed':len(checks), 'architecture':platform.machine(), 'checks':checks}, indent=2))
 print(f'PASS: {len(checks)} macOS host and iOS simulator checks')

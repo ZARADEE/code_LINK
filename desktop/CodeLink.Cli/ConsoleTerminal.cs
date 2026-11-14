@@ -6,6 +6,7 @@ internal static class ConsoleTerminal
 {
     public static void Enable()
     {
+        if(!OperatingSystem.IsWindows()){Console.InputEncoding=Encoding.UTF8;Console.OutputEncoding=Encoding.UTF8;return;}
         var output=GetStdHandle(-11);if(GetConsoleMode(output,out var mode))SetConsoleMode(output,mode|4);
         Console.InputEncoding=Encoding.UTF8;Console.OutputEncoding=Encoding.UTF8;
     }
@@ -21,6 +22,7 @@ internal static class ConsoleTerminal
     }
     public static string Quote(string argument)
     {
+        if(!OperatingSystem.IsWindows())return "'"+argument.Replace("'","'\\''")+"'";
         if(argument.Length>0&&!argument.Any(c=>char.IsWhiteSpace(c)||c=='"'))return argument;
         var b=new StringBuilder("\"");int slashes=0;
         foreach(var c in argument){if(c=='\\'){slashes++;continue;}if(c=='"'){b.Append('\\',slashes*2+1).Append(c);slashes=0;continue;}b.Append('\\',slashes).Append(c);slashes=0;}
@@ -28,6 +30,7 @@ internal static class ConsoleTerminal
     }
     public static void NewWindow(string[] args,string cwd)
     {
+        if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Open Terminal.app and run clink without --new-window, or create a session in Code Link.");
         var command=new StringBuilder(string.Join(" ",new[]{Environment.ProcessPath!}.Concat(args).Select(Quote)));
         var startup=new StartupInfo{cb=Marshal.SizeOf<StartupInfo>()};
         if(!CreateProcess(null,command,IntPtr.Zero,IntPtr.Zero,false,0x10,IntPtr.Zero,cwd,ref startup,out var info))throw new Win32Exception();

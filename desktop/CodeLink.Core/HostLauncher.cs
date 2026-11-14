@@ -5,7 +5,7 @@ public static class HostLauncher
     public static async Task Connect(LocalClient client)
     {
         try{await client.Connect();return;}catch(TimeoutException){}catch(IOException){}
-        var host=Path.Combine(AppContext.BaseDirectory,"CodeLink.Host.exe");
+        var host=Path.Combine(AppContext.BaseDirectory,OperatingSystem.IsWindows()?"CodeLink.Host.exe":"CodeLink.Host");
         if(!File.Exists(host))throw new IOException("找不到 CodeLink.Host.exe，请使用完整发布目录。");
         using var process=Process.Start(new ProcessStartInfo(host){UseShellExecute=false,CreateNoWindow=true,WindowStyle=ProcessWindowStyle.Hidden});
         for(var i=0;i<5;i++)

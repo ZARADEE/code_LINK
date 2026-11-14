@@ -22,9 +22,16 @@ public sealed class CodexEngine : IDisposable
             var executable=configuredPath;
             if(string.IsNullOrWhiteSpace(executable))
             {
+                if(!OperatingSystem.IsWindows())
+                    executable=new[]{"/opt/homebrew/bin/codex","/usr/local/bin/codex"}
+                        .Concat((Environment.GetEnvironmentVariable("PATH")??"").Split(Path.PathSeparator).Where(p=>p.Length>0).Select(p=>Path.Combine(p,"codex")))
+                        .FirstOrDefault(File.Exists)??throw new FileNotFoundException("Install Codex or set its executable path in Code Link settings.");
+                else
+                {
                 var npm=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"npm","node_modules","@openai");
                 var candidates=new[]{ Path.Combine(npm,"codex","node_modules","@openai","codex-win32-x64","vendor","x86_64-pc-windows-msvc","bin","codex.exe"),Path.Combine(npm,"codex-win32-x64","vendor","x86_64-pc-windows-msvc","bin","codex.exe")};
                 executable=candidates.FirstOrDefault(File.Exists)??throw new FileNotFoundException("未找到 Codex。请在 PC 设置中填写 codex.exe 路径。");
+                }
             }
             var info=new ProcessStartInfo(executable){RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false,CreateNoWindow=true,
                 StandardInputEncoding=new System.Text.UTF8Encoding(false),StandardOutputEncoding=System.Text.Encoding.UTF8,StandardErrorEncoding=System.Text.Encoding.UTF8};

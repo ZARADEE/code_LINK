@@ -1,0 +1,83 @@
+name: CodeLink
+options:
+  bundleIdPrefix: com.codelink
+  deploymentTarget:
+    macOS: '14.0'
+    iOS: '17.0'
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    MARKETING_VERSION: '1.3.0'
+    CURRENT_PROJECT_VERSION: '130'
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    CODE_SIGNING_ALLOWED: NO
+targets:
+  CodeLinkMac:
+    type: application
+    platform: macOS
+    productName: CodeLink
+    sources:
+      - Shared
+      - macOS
+      - path: Resources/Terminal
+        type: folder
+        buildPhase: resources
+      - Resources/Assets.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.codelink.mac
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_HARDENED_RUNTIME: NO
+        COMBINE_HIDPI_IMAGES: YES
+    info:
+      path: Generated/Mac-Info.plist
+      properties:
+        CFBundleDisplayName: Code Link
+        NSHighResolutionCapable: true
+        LSApplicationCategoryType: public.app-category.developer-tools
+        NSLocalNetworkUsageDescription: Code Link shares your terminal with devices you pair on your local network.
+  CodeLinkiOS:
+    type: application
+    platform: iOS
+    productName: CodeLink
+    sources:
+      - Shared
+      - iOS
+      - path: Resources/Terminal
+        type: folder
+        buildPhase: resources
+      - Resources/Assets.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.codelink.ios
+        TARGETED_DEVICE_FAMILY: '1,2'
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+    info:
+      path: Generated/iOS-Info.plist
+      properties:
+        CFBundleDisplayName: Code Link
+        NSCameraUsageDescription: Scan the pairing QR code displayed by Code Link on your computer.
+        NSLocalNetworkUsageDescription: Connect securely to the Code Link host you pair on your local network.
+        ITSAppUsesNonExemptEncryption: false
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        'UISupportedInterfaceOrientations~ipad':
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+schemes:
+  CodeLinkMac:
+    build:
+      targets:
+        CodeLinkMac: all
+  CodeLinkiOS:
+    build:
+      targets:
+        CodeLinkiOS: all

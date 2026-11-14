@@ -19,6 +19,7 @@ public sealed class Broker : IDisposable
     private readonly CancellationTokenSource stop=new();
     private readonly SemaphoreSlim sessionWriter=new(1);
     private TcpListener? listener;
+    private Socket? unixListener;
     private BluetoothServer? bluetooth;
     private long version;
     private CommandCandidate[] commandWindows=[];
@@ -46,6 +47,7 @@ public sealed class Broker : IDisposable
         listener=new TcpListener(IPAddress.IPv6Any,Storage.Config.Port);
         listener.Server.DualMode=true;listener.Start();
         _=Task.Run(PipeLoop);
+        if(OperatingSystem.IsMacOS())_=Task.Run(UnixLoop);
         _=Task.Run(BluetoothLoop);
         _=Task.Run(async()=>{try{while(!stop.IsCancellationRequested){
             var excluded=Sessions.Values.SelectMany(s=>new[]{s.Terminal?.ProcessId??0,s.FrontendPid}).Where(id=>id>0).ToHashSet();
@@ -85,6 +87,7 @@ public sealed class Broker : IDisposable
     }
     private async Task BluetoothLoop()
     {
+        if(!OperatingSystem.IsWindows()){BluetoothStatus="Use local network on macOS";Changed();return;}
         if(!Storage.Config.BluetoothEnabled){BluetoothStatus="已关闭";return;}
         try
         {
@@ -237,7 +240,7 @@ public sealed class Broker : IDisposable
                     {
                         var terminal=new TerminalProcess();s.Terminal=terminal;
                         terminal.Data+=text=>{s.Append(text);Changed();};terminal.Exited+=()=>{s.Status=terminal.ExitCode==0?"completed":"failed";s.Append("\n[终端进程已退出，退出码 "+terminal.ExitCode+"]\n");Changed();};
-                        terminal.Start(msg.S("command","powershell.exe -NoLogo"),cwd);s.Status="running";
+                        s.Status="running";terminal.Start(msg.S("command",OperatingSystem.IsWindows()?"powershell.exe -NoLogo":"/bin/zsh -l"),cwd);
                     }
                     else throw new IOException("未知会话类型");
                 }
@@ -429,5 +432,26 @@ public sealed class Broker : IDisposable
         var file=Path.Combine(Storage.DirectoryPath,"sessions.json");if(!File.Exists(file))return;
         try{foreach(var n in JsonNode.Parse(File.ReadAllText(file))!.AsArray()){if(n is null||n.S("kind")!="codex")continue;var s=new Session{Id=n.S("id"),Name=n.S("name"),Kind="codex",Cwd=n.S("cwd"),ThreadId=n.S("threadId"),Controller="pc",Status="disconnected"};foreach(var d in n["devices"]!.AsArray())s.Devices.Add(d!.ToString());s.Append("[可恢复的历史会话；发送新任务时恢复，不重放之前的操作]\n");Sessions[s.Id]=s;}}catch{}
     }
-    public void Dispose(){stop.Cancel();listener?.Stop();bluetooth?.Dispose();foreach(var p in peers.Values)p.Dispose();foreach(var s in Sessions.Values)s.Terminal?.Dispose();engine.Dispose();}
+    private async Task UnixLoop()
+    {
+        if(!OperatingSystem.IsMacOS())return;
+        var path=Path.Combine(Storage.DirectoryPath,"control.sock");
+        try
+        {
+            if(File.Exists(path))File.Delete(path);
+            unixListener=new Socket(AddressFamily.Unix,SocketType.Stream,ProtocolType.Unspecified);
+            unixListener.Bind(new UnixDomainSocketEndPoint(path));
+            File.SetUnixFileMode(path,UnixFileMode.UserRead|UnixFileMode.UserWrite);
+            unixListener.Listen(8);
+            while(!stop.IsCancellationRequested)
+            {
+                var socket=await unixListener.AcceptAsync(stop.Token);
+                _=Task.Run(async()=>{using var stream=new NetworkStream(socket,true);await Serve(stream,true,"Local Mac");});
+            }
+        }
+        catch(Exception e) when(e is OperationCanceledException or ObjectDisposedException){}
+        catch(Exception e){Storage.Audit(new{eventType="localSocketFailed",error=e.Message});}
+        finally{unixListener?.Dispose();if(File.Exists(path))File.Delete(path);}
+    }
+    public void Dispose(){stop.Cancel();listener?.Stop();unixListener?.Dispose();bluetooth?.Dispose();foreach(var p in peers.Values)p.Dispose();foreach(var s in Sessions.Values)s.Terminal?.Dispose();engine.Dispose();}
 }

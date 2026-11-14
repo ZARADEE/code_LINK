@@ -21,7 +21,7 @@ async Task Main()
         """);return;
     }
     var mode=args[0];var cwd=Environment.CurrentDirectory;string? name=null;JsonNode? config=null;
-    string command="powershell.exe -NoLogo";
+    string command=OperatingSystem.IsWindows()?"powershell.exe -NoLogo":"/bin/zsh -l";
     for(var i=1;i<args.Length;i++)
     {
         if(args[i]=="--"){command=string.Join(" ",args.Skip(i+1).Select(ConsoleTerminal.Quote));break;}

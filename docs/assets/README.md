@@ -14,9 +14,11 @@
 | `ios.png` | 同次构建中的 iPhone 16 Pro 模拟器，已配对并接收真实终端输出 |
 | `ipados.png` | 同次构建中的 iPad 模拟器，已配对并接收同一终端输出 |
 | `apple-overview.png` | 将上述三张 Apple 实际截图排版，标明模拟器来源 |
-| `social-preview.png` | 使用四个平台真实界面制作的网页分享图，尺寸 1280 × 640 |
+| `social-preview.png` | 使用真实英文 Android 界面制作的网页分享图，突出 Windows + Android 使用场景，尺寸 1280 × 640 |
 | `notifications.png` | 2026-11-13 真机后台验收中的 A/B 通知横幅，依据 [验收记录](../../research/pad-background-acceptance.json) |
 | `reminder-modes.png` | A/B 完成提醒规则示意图 |
+| `workflow.gif` | 2026-11-14 中文客户端 USB 真机四帧演示：平板发送 1，电脑实际执行文档与 291 条英文翻译检查，进程以 0 退出后显示 A 模式完成提醒；各帧停留时间经过缩短 |
+| `workflow-complete.png` | 同次演示的完成画面，作为动图的静态替代 |
 | `logo.png` | 由维护者提供的原始素材生成，许可范围见 [素材说明](../../assets/README.md) |
 
 截图仅裁掉系统边栏并模糊本机路径、设备名和私人窗口标题。终端正文与连接状态保留实际画面。原始截图留在本机，公开仓库只保存处理后的版本。

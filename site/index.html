@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Code Link｜Windows / macOS 终端助手，连接 Android / iOS</title>
-  <meta name="description" content="用 Android、iPhone 或 iPad 查看 Windows / macOS 终端，发送输入、处理 Codex 授权和 A/B 提醒。本地连接，无需中转服务器。Apple 端使用 LAN，详见 iOS 后台与签名说明。">
+  <title>Code Link｜把 Android 平板变成 Windows 终端任务看板</title>
+  <meta name="description" content="用闲置 Android 平板查看 Windows 终端、处理 Codex 授权、接收单个或整批任务提醒。本地 USB 与蓝牙直连。另提供 Mac 托管终端和 iOS 开发预览。">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <meta name="theme-color" content="#1d372d">
   <link rel="canonical" href="https://zaradee.github.io/code_LINK/">
@@ -19,16 +19,16 @@
   <meta property="og:site_name" content="Code Link">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:locale:alternate" content="en_US">
-  <meta property="og:title" content="Code Link｜Windows / macOS 终端助手，连接 Android / iOS">
-  <meta property="og:description" content="用 Android、iPhone 或 iPad 查看 Windows / macOS 终端，发送输入、处理 Codex 授权和 A/B 提醒。本地连接，无需中转服务器。Apple 端使用 LAN，详见 iOS 后台与签名说明。">
+  <meta property="og:title" content="Code Link｜把 Android 平板变成 Windows 终端任务看板">
+  <meta property="og:description" content="用闲置 Android 平板查看 Windows 终端、处理 Codex 授权、接收单个或整批任务提醒。本地 USB 与蓝牙直连。另提供 Mac 托管终端和 iOS 开发预览。">
   <meta property="og:url" content="https://zaradee.github.io/code_LINK/">
   <meta property="og:image" content="https://zaradee.github.io/code_LINK/assets/social-preview.png">
   <meta property="og:image:width" content="1280">
   <meta property="og:image:height" content="640">
   <meta property="og:image:alt" content="Code Link 真实 Windows 桌面面板和 Android 平板界面">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Code Link — Local terminal companion">
-  <meta name="twitter:description" content="用 Android、iPhone 或 iPad 查看 Windows / macOS 终端，发送输入、处理 Codex 授权和 A/B 提醒。本地连接，无需中转服务器。Apple 端使用 LAN，详见 iOS 后台与签名说明。">
+  <meta name="twitter:title" content="Code Link｜把 Android 平板变成 Windows 终端任务看板">
+  <meta name="twitter:description" content="用闲置 Android 平板查看 Windows 终端、处理 Codex 授权、接收单个或整批任务提醒。本地 USB 与蓝牙直连。另提供 Mac 托管终端和 iOS 开发预览。">
   <meta name="twitter:image" content="https://zaradee.github.io/code_LINK/assets/social-preview.png">
   <script type="application/ld+json">
   {
@@ -36,7 +36,7 @@
     "@type": "SoftwareApplication",
     "name": "Code Link",
     "url": "https://zaradee.github.io/code_LINK/",
-    "description": "Local terminal companion for Windows, macOS, Android and iOS. Managed terminals, remote input, Codex approvals and grouped completion notifications; transport and background support vary by platform.",
+    "description": "Turn an Android tablet into a local Windows terminal dashboard with terminal input, Codex approvals and task alerts. Mac managed sessions and iOS developer preview also available.",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Windows x64; macOS 14 or later; Android 9 or later; iOS 17 or later",
     "softwareVersion": "1.3.0",
@@ -60,11 +60,11 @@
   </header>
   <main id="main">
     <section class="wrap hero">
-      <p class="eyebrow">WINDOWS / macOS + ANDROID / iOS · LOCAL TERMINAL COMPANION</p>
-      <h1>电脑继续运行。<br>平板随时接手。</h1>
-      <p class="intro">把 Codex、PowerShell 和命令行带到手边。查看输出、追加输入、处理授权，等任务完成时再收到提醒。</p>
-      <div class="actions"><a class="button" href="https://github.com/ZARADEE/code_LINK/releases/latest">下载 v1.3.0 <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/ZARADEE/code_LINK#readme">阅读使用说明 →</a></div>
-      <p class="meta">USB / 蓝牙 / LAN · 无需中转服务器 · 原生桌面与移动端 · 代码 MIT 授权</p>
+      <p class="eyebrow">WINDOWS 终端 + 你的 ANDROID 平板</p>
+      <h1>闲置平板，<br>变成终端任务看板。</h1>
+      <p class="intro">电脑继续跑构建、测试和 Codex，手边的平板查看输出、发送输入、处理授权。一个任务结束就提醒，或等整批任务完成再看。</p>
+      <div class="actions"><a class="button" href="#downloads">选择适合的安装包 <span aria-hidden="true">↓</span></a><a class="text-link" href="#start">连接第一个终端 →</a></div>
+      <p class="meta">本地 USB / 蓝牙 · 无需账号与中转服务器 · Mac 支持托管终端 · iOS 开发预览</p>
       <figure><img src="assets/overview.png" width="1800" height="820" alt="Code Link 在 Windows 与 Android 上同步显示一条真实 PowerShell 任务的输出"><figcaption>真实运行界面，已模糊本机路径与电脑名。</figcaption></figure>
     </section>
     <section class="wrap features" aria-label="主要功能">
@@ -73,7 +73,9 @@
       <article><span class="number">03 / 后台通知</span><h2>切到其他 App，也能收到</h2><p>Android 前台服务维持连接，后台继续接收状态。任务完成时显示系统横幅，点开即可回到对应任务。</p></article>
     </section>
     <section class="wrap details" aria-labelledby="screenshots">
-      <h2 id="screenshots">在平板上查看，并把输入送回电脑</h2>
+      <h2 id="screenshots">从平板输入，到任务完成</h2>
+      <figure><a href="assets/workflow.gif"><img src="assets/workflow-complete.png" width="1400" height="890" alt="真实 Android 平板发起仓库检查，显示成功结果与 A 模式任务完成提醒" loading="lazy"></a><figcaption><a href="assets/workflow.gif">观看真机演示动图 →</a> 从平板发送输入，查看文档和翻译检查，收到完成提醒。四张中文客户端 USB 真机截图，展示时间经过缩短。</figcaption></figure>
+      <h3>终端输出与输入</h3>
       <figure><a href="assets/android.png"><img src="assets/android.png" width="1600" height="880" alt="2026 年 11 月 14 日平板真机截图，USB 已连接，输入 12345 后收到 Windows 回显" loading="lazy"></a><figcaption>实际 USB 连接与输入演示。点击图片查看大图；本机路径、电脑名和私人窗口标题已模糊。</figcaption></figure>
     </section>
     <section class="wrap split" id="start">
@@ -84,10 +86,27 @@
         <li><strong>连接并选择终端</strong><p>两端打开 Code Link，在电脑点击“连接设备 → USB 一键连接”，选中终端和设备，映射到移动端。</p></li>
       </ol>
     </section>
+    <section class="wrap setup" aria-labelledby="setup-title">
+      <h2 id="setup-title">一步一步，连接第一个终端</h2>
+      <p>完成一步就勾选一项。清单仅在当前页面记录进度，不会检测你的设备。</p>
+      <p class="setup-count" aria-live="polite">已勾选 0 / 5 步</p>
+      <progress class="setup-progress" max="5" value="0" aria-label="连接步骤完成进度"></progress>
+      <div class="setup-list">
+        <details open><summary><label><input type="checkbox" class="setup-check">两端应用已打开</label></summary><p>完整解压 Windows 包并打开 CodeLink.exe。若提示缺少 .NET，请安装 <a href="https://dotnet.microsoft.com/en-us/download/dotnet/10.0">.NET 10 Desktop Runtime x64</a>。在 Android 安装 APK 并打开 Code Link。</p></details>
+        <details><summary><label><input type="checkbox" class="setup-check">USB 调试已授权</label></summary><p>使用数据线连接，解锁平板并允许电脑调试请求。找不到设备时，换一根数据线或 USB 接口。在 Windows 应用目录执行 <code>tools\adb.exe -P 5037 devices -l</code>，也可尝试端口 5038。<code>unauthorized</code> 表示需要在 Android 确认授权。</p></details>
+        <details><summary><label><input type="checkbox" class="setup-check">平板显示 USB 已连接</label></summary><p>在 Windows 点击 <strong>连接设备 → USB 一键连接</strong>。保持两端应用打开，配对通过数据线完成，无需手动填写 IP。</p></details>
+        <details><summary><label><input type="checkbox" class="setup-check">平板已显示终端输出</label></summary><p>在 Android 点击终端；也可在 Windows 选中终端和在线设备，再点击 <strong>映射到移动端</strong>。首次输入请选择测试终端。</p></details>
+        <details><summary><label><input type="checkbox" class="setup-check">输入已回到对应终端</label></summary><p>发送 <code>echo hello</code>，需要时再按 Enter。对应终端应显示 <code>hello</code>。要启用提醒，请在 Android 打开<strong>后台与通知</strong>，允许横幅与后台运行。</p></details>
+      </div>
+      <p><a href="https://github.com/ZARADEE/code_LINK/discussions">提问连接问题</a> · <a href="https://github.com/ZARADEE/code_LINK/issues/new/choose">报告可复现问题</a></p>
+    </section>
     <section class="wrap details" aria-labelledby="downloads">
-      <h2 id="apple">Mac 终端，连接 iPhone 与 iPad</h2>
-      <figure><a href="assets/apple-overview.png"><img src="assets/apple-overview.png" width="1800" height="1030" alt="原生 macOS 应用与 iPhone、iPad 模拟器通过本地 TLS 同步真实终端输出" loading="lazy"></a><figcaption>三端实际运行截图。iPhone / iPad 为模拟器；真机需自行签名，iOS 后台会暂停连接。</figcaption></figure>
       <h2 id="downloads">下载当前版本</h2>
+      <div class="download-picker" data-download-picker>
+        <div class="download-controls"><label>你的设备<select id="download-platform"><option value="windows-android">Windows + Android 平板</option><option value="mac-android">Mac + Android</option><option value="ios">iPhone / iPad 开发预览</option></select></label><label>界面语言<select id="download-language"><option value="zh-CN">简体中文</option><option value="en">English</option></select></label></div>
+        <p id="download-note" aria-live="polite"></p>
+        <div id="download-links" class="actions"></div>
+      </div>
       <p>Apple 端通过同一局域网连接，参见 <a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md">macOS / iOS 安装指南</a>。Apple 包另附 <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/APPLE-SHA256SUMS.txt">校验文件</a>。</p>
       <div class="table-scroll"><table><caption>Code Link v1.3.0 官方下载</caption><thead><tr><th scope="col">平台</th><th scope="col">下载</th><th scope="col">安装要求</th></tr></thead><tbody>
         <tr><th scope="row">Windows x64</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-Windows-v1.3.0-zh-CN.zip">Windows ZIP ↗</a></td><td>完整解压，需要 .NET 10 Desktop Runtime</td></tr>
@@ -97,6 +116,9 @@
         <tr><th scope="row">iOS / iPadOS 17+</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-iOS-Simulator-v1.3.0-en.zip">模拟器包 ↗</a> / <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-Apple-Source-v1.3.0-en.zip">Xcode 工程 ↗</a></td><td>模拟器运行或自行签名，非直接安装 IPA；后台暂停连接</td></tr>
       </tbody></table></div>
       <p>Windows / Android 提供简体中文与英文包，文件名以 zh-CN 或 en 标注。APK 使用开发签名，Windows 程序尚无商业代码签名。下载后可用 <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/SHA256SUMS.txt">SHA256SUMS.txt</a> 核对文件，详见<a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/INSTALL.md">安装速查</a>。</p>
+      <h3>平台能力有区别</h3><div class="table-scroll"><table><caption>选择前先确认你的操作需求</caption><thead><tr><th>需求</th><th>Windows + Android</th><th>Mac / iOS</th></tr></thead><tbody><tr><th>接入已打开的终端窗口</th><td>支持，Windows Terminal 跟随活动标签页</td><td>Mac 管理 Code Link 内创建的会话</td></tr><tr><th>离开界面后接收提醒</th><td>Android 前台服务；需允许后台和通知</td><td>iOS 进入后台暂停，返回时重连</td></tr><tr><th>连接方式</th><td>USB、经典蓝牙、LAN</td><td>LAN；跨设备真机验收待完成</td></tr></tbody></table></div>
+      <h2 id="apple">Mac 托管终端与 iOS 开发预览</h2>
+      <figure><a href="assets/apple-overview.png"><img src="assets/apple-overview.png" width="1800" height="1030" alt="原生 macOS 应用与 iPhone、iPad 模拟器通过本地 TLS 同步真实终端输出" loading="lazy"></a><figcaption>三端实际运行截图。iPhone / iPad 为模拟器；真机需自行签名，iOS 后台会暂停连接。</figcaption></figure>
     </section>
     <section class="wrap notification">
       <div><p class="eyebrow">A / B NOTIFICATIONS</p><h2>该你处理时，再把注意力带回来。</h2><p>在“后台与通知”中允许通知、完成横幅与后台运行。系统勿扰设置仍然生效。逐个查看 B 组完成提醒后，组标签红点也会一起清除。</p></div>
@@ -114,6 +136,7 @@
     </section>
     <section class="wrap closing"><h2>让命令行留在工作里，<br>让进度出现在手边。</h2><a class="button" href="https://github.com/ZARADEE/code_LINK/releases/latest">下载 Code Link ↗</a></section>
   </main>
-  <footer class="wrap"><p>Code Link · Maintained by <a href="https://github.com/ZARADEE">ZARADEE</a></p><p><a href="https://github.com/ZARADEE/code_LINK/issues/new/choose">反馈问题</a> · <a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/ROADMAP.md">下一步计划</a> · <a href="https://github.com/ZARADEE/code_LINK/blob/main/LICENSE">MIT 代码许可</a> · <a href="llms.txt">资料索引</a></p></footer>
+  <footer class="wrap"><p>Code Link · Maintained by <a href="https://github.com/ZARADEE">ZARADEE</a></p><p><a href="https://github.com/ZARADEE/code_LINK/discussions">提问与建议</a> · <a href="https://github.com/ZARADEE/code_LINK/issues/new/choose">反馈问题</a> · <a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/ROADMAP.md">下一步计划</a> · <a href="https://github.com/ZARADEE/code_LINK/blob/main/LICENSE">MIT 代码许可</a> · <a href="llms.txt">资料索引</a></p></footer>
+  <script src="guide.js" defer></script>
 </body>
 </html>

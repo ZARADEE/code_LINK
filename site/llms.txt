@@ -12,8 +12,8 @@ Monitor Windows terminal output, send text and keys, respond to approvals, and r
 - [Chinese website](https://zaradee.github.io/code_LINK/): product overview and official downloads.
 - [English website](https://zaradee.github.io/code_LINK/en.html): English product overview; platform-specific installation instructions.
 - [Repository](https://github.com/ZARADEE/code_LINK): source code and issue tracker.
-- [Chinese user guide](https://github.com/ZARADEE/code_LINK/blob/main/README.md): installation, pairing, reminders and troubleshooting.
-- [English user guide](https://github.com/ZARADEE/code_LINK/blob/main/README.en.md): supported workflows and limitations.
+- [Chinese user guide](https://github.com/ZARADEE/code_LINK/blob/main/README.zh-CN.md): installation, pairing, reminders and troubleshooting.
+- [English user guide](https://github.com/ZARADEE/code_LINK/blob/main/README.md): supported workflows and limitations.
 - [Downloads](https://github.com/ZARADEE/code_LINK/releases/latest): Windows ZIP, Android APK, Apple silicon / Intel Mac apps, iOS simulator, unsigned device archive and Xcode source.
 - [Apple guide](https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md): macOS and iOS setup, personal signing, LAN and background limitations.
 - [Build guide](https://github.com/ZARADEE/code_LINK/blob/main/docs/BUILDING.md): development prerequisites and commands.

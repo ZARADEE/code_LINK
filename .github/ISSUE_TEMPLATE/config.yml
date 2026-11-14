@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
+  - name: Questions and ideas / 使用交流
+    url: https://github.com/ZARADEE/code_LINK/discussions
+    about: Ask a setup question or share how you use Code Link / 连接求助与使用场景
   - name: 使用说明 / User guide
     url: https://github.com/ZARADEE/code_LINK#readme
-    about: 安装、连接、提醒和常见问题
+    about: Installation, pairing, alerts and troubleshooting / 安装、连接、提醒和常见问题
   - name: 安全问题 / Security issue
     url: https://github.com/ZARADEE/code_LINK/security/advisories/new
-    about: 私下报告可能暴露终端输入或设备凭据的漏洞
+    about: Privately report terminal input or device credential vulnerabilities / 私下报告安全漏洞

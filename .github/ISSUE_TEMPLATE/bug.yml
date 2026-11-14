@@ -1,10 +1,10 @@
-name: 问题反馈 / Bug report
-description: 连接、终端输入、显示或通知出现问题
+name: Bug report / 问题反馈
+description: Reproducible connection, terminal, display or notification problem / 连接、终端输入、显示或通知问题
 labels: [bug]
 body:
   - type: markdown
     attributes:
-      value: 请勿附上配对码、二维码、设备密钥或私人终端内容。安全漏洞请按 SECURITY.md 私下报告。
+      value: Do not attach pairing codes, QR codes, device keys or private terminal content. Report security vulnerabilities privately through SECURITY.md. / 请勿附上配对码、二维码、设备密钥或私人终端内容。安全漏洞请按 SECURITY.md 私下报告。
   - type: input
     id: versions
     attributes:
@@ -28,7 +28,7 @@ body:
     id: steps
     attributes:
       label: 复现步骤 / Steps to reproduce
-      description: 写清操作顺序，以及终端是否最小化、App 是否在后台。
+      description: Include the exact order, whether the terminal is minimized, and whether the app is in the background. / 写清操作顺序，以及终端是否最小化、App 是否在后台。
     validations:
       required: true
   - type: textarea

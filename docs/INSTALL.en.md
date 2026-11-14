@@ -1,0 +1,39 @@
+# Install Code Link in English
+
+Download from [Code Link Releases](https://github.com/ZARADEE/code_LINK/releases/latest). Choose files ending in `-en`; `-zh-CN` means Simplified Chinese.
+
+## Windows and Android
+
+1. Download `CodeLink-Windows-v1.3.0-en.zip` and `CodeLink-Android-v1.3.0-en.apk`.
+2. Install [.NET 10 Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) on Windows. Extract the entire ZIP and open `CodeLink.exe`.
+3. Install the APK on Android 9 or newer and allow notifications. A landscape tablet provides the most room for terminal output.
+4. Enable USB debugging on Android, connect a data cable, unlock the device and authorize your computer.
+5. In the Windows panel, choose **Pair device → Connect over USB**. Select a terminal on Android, or select a terminal and device in Windows and choose **Share with device**.
+6. Send a short command and check the output. Use **Background & alerts** on Android to allow completion banners and background activity. Keep the Windows tray application running.
+
+Group A alerts after each task completes. Group B alerts when all tasks in the current batch finish successfully. Approvals, failures and interruptions are handled separately. An idle terminal is not automatically treated as a finished task.
+
+## Switch languages or upgrade
+
+The Chinese and English APKs use the same app identity and release signing certificate. Install the other language over the existing app to keep pairing and group settings; do not uninstall first. They are language variants of one application and cannot be installed side by side.
+
+For Windows, finish or record active work, close Code Link and its host, then replace the application files while preserving your `state` directory. Use one language consistently for the desktop panel and bundled host. The ZIP contains a `LANGUAGE.txt` marker.
+
+The language applies to Code Link's interface and messages. Terminal output, filenames, session names, external tool prompts and operating-system dialogs retain their original language.
+
+## Verify the download
+
+Compare these results with `SHA256SUMS.txt` from the same release:
+
+```powershell
+Get-FileHash .\CodeLink-Windows-v1.3.0-en.zip -Algorithm SHA256
+Get-FileHash .\CodeLink-Android-v1.3.0-en.apk -Algorithm SHA256
+```
+
+The APK uses a development signing certificate. Windows executables do not have a commercial code-signing certificate. Source builds and CI test APKs may use a different Android signing key, so they cannot replace the published APK without a matching key.
+
+## macOS and iOS
+
+Apple packages also end in `-en`. Mac apps include the runtime and are available for Apple silicon and Intel. They are ad-hoc signed and not notarized. iOS provides a simulator app, an unsigned device archive and a source project for personal signing; there is no directly installable signed IPA or TestFlight release. Follow the [Apple guide](https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md).
+
+For Bluetooth, pairing, notifications and troubleshooting, read the [English usage guide](https://github.com/ZARADEE/code_LINK/blob/main/README.en.md).

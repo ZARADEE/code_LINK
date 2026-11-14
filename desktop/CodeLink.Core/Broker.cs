@@ -92,7 +92,7 @@ public sealed class Broker : IDisposable
         try
         {
             bluetooth=new BluetoothServer();bluetooth.Start();BluetoothStatus="可连接";Changed();
-            while(!stop.IsCancellationRequested){var stream=await Task.Run(bluetooth.Accept,stop.Token);_=Task.Run(async()=>{using(stream)await Serve(stream,false,"蓝牙");});}
+            while(!stop.IsCancellationRequested){var stream=await Task.Run(bluetooth.Accept,stop.Token);_=Task.Run(async()=>{using(stream)await Serve(stream,false,"Bluetooth");});}
         }
         catch(Exception e){BluetoothStatus=e.Message;Changed();}
     }
@@ -116,7 +116,7 @@ public sealed class Broker : IDisposable
                     if(known is not null)
                     {
                         var provided=System.Text.Encoding.UTF8.GetBytes(hello.S("key"));var expected=System.Text.Encoding.UTF8.GetBytes(known.Key);
-                        if(known.Revoked||provided.Length!=expected.Length||!CryptographicOperations.FixedTimeEquals(provided,expected))throw new IOException("设备授权已失效，请在 PC 重新配对");
+                        if(known.Revoked||provided.Length!=expected.Length||!CryptographicOperations.FixedTimeEquals(provided,expected))throw new IOException("设备授权已失效，请在 PC 重新配对"){Data={["code"]="auth_expired"}};
                         known.Name=peer.Name;
                     }
                     else
@@ -149,7 +149,7 @@ public sealed class Broker : IDisposable
                         var delta=reset?full:full[lastOutput.Length..];
                         // Keep Bluetooth frames small and let logs catch up over several frames.
                         // Window snapshots must remain complete, including their first lines.
-                        var limit=selected?.Kind=="observer"?120000:transport=="蓝牙"?8000:60000;
+                        var limit=selected?.Kind=="observer"?120000:transport=="Bluetooth"?8000:60000;
                         if(reset&&delta.Length>limit)delta=delta[^limit..];
                         else if(delta.Length>limit)delta=delta[..limit];
                         var consumed=reset?full: lastOutput+delta;
@@ -162,7 +162,7 @@ public sealed class Broker : IDisposable
                             pairing=admin?new{code=pairCode,expires=pairExpires,fingerprint=Storage.Fingerprint,port=Storage.Config.Port}:null},peer.WriteLock,alive.Token);
                         lastOutput=consumed;lastWatch=peer.Watch;lastGeneration=generation;sent=consumed==full?now:-1;heartbeat=DateTime.UtcNow;
                     }
-                    await Task.Delay(transport=="蓝牙"?350:180,alive.Token);
+                    await Task.Delay(transport=="Bluetooth"?350:180,alive.Token);
                 }
             },alive.Token);
             _=push.ContinueWith(task=>{if(task.IsFaulted){Storage.Audit(new{at=DateTimeOffset.UtcNow,eventType="pushFailed",device=peer.Id,error=task.Exception?.GetBaseException().Message});alive.Cancel();peer.Dispose();}},TaskScheduler.Default);
@@ -183,7 +183,7 @@ public sealed class Broker : IDisposable
             alive.Cancel();try{await push;}catch{}
         }
         catch(Exception e) when(e is IOException or OperationCanceledException or TimeoutException or ObjectDisposedException or SocketException)
-        {Storage.Audit(new{at=DateTimeOffset.UtcNow,eventType="disconnect",transport=peer.Transport,device=peer.Id,reason=e.GetType().Name,message=e.Message});try{await Wire.Write(stream,new{type="error",error=e.Message},peer.WriteLock);}catch{}}
+        {Storage.Audit(new{at=DateTimeOffset.UtcNow,eventType="disconnect",transport=peer.Transport,device=peer.Id,reason=e.GetType().Name,message=e.Message});try{await Wire.Write(stream,new{type="error",code=e.Data["code"] as string??"connection_error",error=e.Message},peer.WriteLock);}catch{}}
         finally{alive.Cancel();peers.TryRemove(connectionId,out _);if(!admin)Storage.Audit(new{at=DateTimeOffset.UtcNow,eventType="disconnected",connectionId,device=peer.Id,transport});Changed();}
     }
     private async Task<object> ExecuteAudited(Peer peer,JsonNode msg)

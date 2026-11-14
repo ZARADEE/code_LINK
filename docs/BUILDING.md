@@ -30,7 +30,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-desktop.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android.ps1
 ```
 
-输出分别为 `dist/desktop/CodeLink.exe`、`dist/desktop/clink.exe` 和 `dist/CodeLink-Android.apk`。桌面便携包必须保留整个输出目录。首次运行时，本机状态保存在该目录下的 `state`；不要把它打包或提交到仓库。
+输出分别为 `dist/desktop/CodeLink.exe`、`dist/desktop/clink.exe` 和 `dist/CodeLink-Android-zh-CN.apk`。桌面便携包必须保留整个输出目录。首次运行时，本机状态保存在该目录下的 `state`；不要把它打包或提交到仓库。
 
 Android 当前直接使用 `aapt`、`javac`、`d8`、`zipalign`、`apksigner` 构建，尚未迁移到 Gradle。构建脚本会生成本机调试签名文件 `.local/CodeLink.debug.keystore`。公开的 1.2.0 APK 也使用开发签名，适合侧载测试；本地新生成的签名不能覆盖另一签名的安装包。需要切换签名时先卸载，卸载会清除平板上的配对、分组和已读记录。密钥不随源码分发。
 
@@ -74,5 +74,9 @@ CI 在 Windows runner 中执行桌面和 APK 构建、Java 行为测试、终端
 `v*` 标签或手动运行 **Build release packages** 会生成 GitHub Actions 测试产物。CI 每次生成的 Android 调试密钥不同，产物不会自动覆盖公开 Release。维护者发布升级 APK 时应沿用发布密钥，并在 Release 中记录证书指纹和安装限制。
 
 ## Apple builds
+
+Windows 与 Android 的构建脚本支持 `-Language zh-CN` 和 `-Language en`。英文 Windows 输出为 `dist/desktop-en`，英文 APK 为 `dist/CodeLink-Android-en.apk`。发布前构建两种语言，再运行打包脚本；发布文件会包含版本号和语言后缀。
+
+翻译字典在 `localization/en.json`。新增文案后运行 `python scripts/localize-sources.py extract` 与 `check`，确保英文覆盖完整。生成目录 `.local/localized/en` 不应手动修改或提交。开发导读见 [if_want_learn.md](../if_want_learn.md)。
 
 On a Mac with Xcode, .NET 10 SDK and XcodeGen, run `bash scripts/build-apple.sh`. This builds macOS arm64 / x64, iOS Simulator and an unsigned iOS device archive, then runs protocol, reminder and host integration checks. See [Apple setup and signing](APPLE.md).

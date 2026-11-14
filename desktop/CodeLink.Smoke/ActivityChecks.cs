@@ -18,7 +18,9 @@ internal static class ActivityChecks
   Require(s.Expire(DateTime.UtcNow.AddSeconds(20))&&s.Status=="disconnected","Stale observer cannot keep reporting an active task");
   Require(WindowActivity.Classify("CONFIRM [Y,N]?")=="input","Native prompt recognition");
   Require(WindowActivity.Classify("Conversation interrupted - tell the model what to do differently\n› Retry\n? for shortcuts")=="interrupted","Interrupted is not successful");
-  File.WriteAllText("research/activity-acceptance.json",J.Stringify(new{passed=true,checks=11,source="Codex screen fixtures; not app-server protocol events"}));
-  Console.WriteLine("WindowActivity: 11 behavioral checks passed");
+  foreach(var marker in new[]{"[终端窗口已关闭]","[终端文本暂不可读取]","[此终端未公开可读取的文本缓冲]","[Terminal window closed]","[Terminal text is temporarily unavailable]","[This terminal does not expose a readable text buffer]"})
+   Require(WindowActivity.Classify(marker)=="disconnected","Unavailable terminal stays disconnected in both UI languages");
+  File.WriteAllText("research/activity-acceptance.json",J.Stringify(new{passed=true,checks=17,source="Codex screen fixtures; not app-server protocol events"}));
+  Console.WriteLine("WindowActivity: 17 behavioral checks passed");
  }
 }

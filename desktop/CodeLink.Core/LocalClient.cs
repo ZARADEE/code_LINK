@@ -24,7 +24,7 @@ public sealed class LocalClient : IDisposable
     {
         var id=Guid.NewGuid().ToString("N");var msg=parameters is null?new JsonObject():J.Node(parameters).AsObject();msg["type"]="action";msg["action"]=action;msg["id"]=id;
         var tcs=new TaskCompletionSource<JsonNode>(TaskCreationOptions.RunContinuationsAsynchronously);pending[id]=tcs;
-        try{await Wire.Write(pipe!,msg,writeLock);var result=await tcs.Task.WaitAsync(TimeSpan.FromSeconds(100));if(!result.B("ok"))throw new IOException(result.S("error","操作失败"));return result;}finally{pending.TryRemove(id,out _);}
+        try{await Wire.Write(pipe!,msg,writeLock);var result=await tcs.Task.WaitAsync(TimeSpan.FromSeconds(100));if(!result.B("ok"))throw new IOException(UiMessages.Server(result.S("error","操作失败")));return result;}finally{pending.TryRemove(id,out _);}
     }
     public void Dispose(){pipe?.Dispose();}
 }

@@ -32,8 +32,12 @@ jobs:
         run: python scripts/setup-tools.py
       - name: Build Windows clients
         run: ./scripts/build-desktop.ps1
+      - name: Build English Windows clients
+        run: ./scripts/build-desktop.ps1 -Language en
       - name: Build Android test APK
         run: ./scripts/build-android.ps1
+      - name: Build English Android test APK
+        run: ./scripts/build-android.ps1 -Language en
       - name: Assemble clean packages and checksums
         run: python scripts/package-release.py
       - uses: actions/upload-artifact@v4

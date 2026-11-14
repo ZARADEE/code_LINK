@@ -8,7 +8,7 @@
 </p>
 <p align="center"><a href="https://github.com/ZARADEE/code_LINK/releases/latest">Download</a> · <a href="README.md">简体中文</a> · <a href="https://zaradee.github.io/code_LINK/en.html">Website</a> · <a href="docs/ROADMAP.md">Roadmap</a></p>
 
-![Code Link running on Windows and an Android tablet](docs/assets/overview.png)
+![English Code Link running on Windows and an Android tablet](docs/assets/overview-en.png)
 
 Code Link is a local terminal companion for Windows, macOS, Android and iOS. View terminal output, send text and keys, answer approval prompts, and receive completion notifications while your terminal is minimized or covered by other windows.
 
@@ -26,19 +26,19 @@ iOS 17+ is provided as a simulator app, an unsigned device archive and an Xcode 
 
 ## Get started
 
-1. Download `CodeLink-Windows-v1.3.0.zip` and `CodeLink-Android.apk` from [Releases](https://github.com/ZARADEE/code_LINK/releases/latest).
+1. Download `CodeLink-Windows-v1.3.0-en.zip` and `CodeLink-Android-v1.3.0-en.apk` from [Releases](https://github.com/ZARADEE/code_LINK/releases/latest).
 2. On Windows, install the [.NET 10 Desktop Runtime, x64](https://dotnet.microsoft.com/en-us/download/dotnet/10.0), extract the entire ZIP, and open `CodeLink.exe`.
 3. Install the APK on your Android device. Enable **Developer options → USB debugging**, connect a data-capable USB cable, unlock the tablet, and accept the computer's debugging authorization. File transfer is a suitable USB mode.
-4. Open Code Link on both devices. On the PC, choose **连接设备 → USB 一键连接** (Connect device → USB quick connect).
-5. Select a terminal and the connected tablet, then click **映射到移动端** (Map to mobile). You can also open a detected terminal from the tablet's list.
+4. Open Code Link on both devices. On the PC, choose **Pair device → Connect over USB**.
+5. Select a terminal and the connected tablet, then click **Share with device**. You can also open a detected terminal from the tablet's list.
 
-Windows and Android currently use a Chinese interface; the Apple clients use English. Android 9 or later is required; landscape tablets are the primary layout. Hardware validation used a Lenovo Xiaoxin Pad Pro 12.7, Android 14 / ZUI 16.
+Windows and Android offer separate Simplified Chinese (`zh-CN`) and English (`en`) packages; Apple clients use English. Android 9 or later is required; landscape tablets are the primary layout. Hardware validation used a Lenovo Xiaoxin Pad Pro 12.7, Android 14 / ZUI 16.
 
-Each release includes `SHA256SUMS.txt`. See the [installation guide](docs/INSTALL.md) for verification. The Android APK uses a development signing key; Windows executables are unsigned.
+Each release includes `SHA256SUMS.txt`. See the [English installation and language-switching guide](docs/INSTALL.en.md) for verification. The Android APK uses a development signing key; Windows executables are unsigned. Language variants keep the same Android app identity and signing key, so installing the other language preserves app data.
 
 ## Your terminal, within reach
 
-![Android terminal view with input and shortcut keys](docs/assets/android.png)
+![English Android terminal view with input and shortcut keys](docs/assets/android-en.png)
 
 - Monitor detected PowerShell, Command Prompt, Windows Terminal, and Codex windows.
 - Send text, Enter, Esc, Tab, arrow keys, or Ctrl+C from the tablet.
@@ -59,13 +59,15 @@ External windows synchronize readable text and spacing. Full colors and graphica
 
 Idle terminals that never started do not block a B round. Failed, disconnected, unknown, or interrupted tasks do not count as successful completion. Approval and question prompts alert immediately in either group. Acknowledging a reminder does **not** approve a command.
 
-![Real Android completion banners for A and B groups](docs/assets/notifications.png)
+![Real Android completion banners for A and B groups, captured with the Chinese interface](docs/assets/notifications.png)
 
 Completion detection depends on the terminal source. Managed finite commands use process exit status; `clink codex` uses structured turn events. Existing terminal windows use supported screen markers. Unrecognized output remains unknown and does not produce a success notification.
 
 ## Background connection
 
-Open **后台与通知** (Background and notifications) and allow notifications, completion banners, and background operation. The connected-device foreground service keeps a quiet ongoing connection notification. Android's notification settings and Do Not Disturb determine whether a banner appears.
+Open **Background & alerts** and allow notifications, completion banners, and background operation. The connected-device foreground service keeps a quiet ongoing connection notification. Android's notification settings and Do Not Disturb determine whether a banner appears.
+
+![English background and notification settings on the tablet](docs/assets/background-settings-en.png)
 
 Keep the Windows tray app running. Force-stopping the Android app, stopping its foreground service, unplugging the cable, or sleeping the PC affects live updates. Reconnection restores current state without automatically replaying unacknowledged input.
 
@@ -95,6 +97,8 @@ The `codex` command requires a locally installed Codex CLI. `terminal` defaults 
 
 ## Help and development
 
+For a plain-language walkthrough of the stack, message flow, core modules and extension points, read [if_want_learn.md (Chinese)](if_want_learn.md).
+
 - [Report a problem](https://github.com/ZARADEE/code_LINK/issues/new/choose) with your OS, app version, transport, terminal type, and reproduction steps.
 - [Build from source](docs/BUILDING.md) · [Contribute](CONTRIBUTING.md) · [Community guidelines](CODE_OF_CONDUCT.md) · [Security](SECURITY.md) · [Changelog](CHANGELOG.md)
 - [Chinese usage guide and troubleshooting](README.md) · [Validation record](research/pad-background-acceptance.json)
@@ -103,4 +107,4 @@ Windows / Android and native macOS 14+ / iOS 17+ clients are available. Apple cl
 
 Code is licensed under [MIT](LICENSE). Supplied artwork has [separate terms](assets/README.md); dependencies retain their [original licenses](THIRD_PARTY_NOTICES.md). Maintained by [ZARADEE](https://github.com/ZARADEE), independently of terminal and AI vendors.
 
-Windows and Android screenshots were captured on connected devices on November 14, 2026; notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md). Documentation corresponds to Android 1.3.0.
+English Windows and Android screenshots were captured on connected devices on November 14, 2026; the Chinese notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md) · [English UI acceptance record](research/english-release-acceptance.json). Documentation corresponds to Android 1.3.0.

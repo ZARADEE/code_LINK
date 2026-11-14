@@ -1,17 +1,22 @@
-param([switch]$Install)
+param([switch]$Install,[ValidateSet('zh-CN','en')][string]$Language='zh-CN')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $buildTools = Join-Path $root '.tools/android-sdk/build-tools/android-15'
 $platform = Join-Path $root '.tools/android-sdk/platforms/android-35'
 $source = Join-Path $root 'android/app/src/main'
-$generated = Join-Path $root '.local/android-gen'
-$classes = Join-Path $root '.local/android-classes'
-$dex = Join-Path $root '.local/android-dex'
-$classJar = Join-Path $root '.local/CodeLink-classes.jar'
+if ($Language -eq 'en') {
+    & python (Join-Path $PSScriptRoot 'localize-sources.py') generate
+    if ($LASTEXITCODE -ne 0) { throw 'English translation validation failed' }
+    $source = Join-Path $root '.local/localized/en/android/app/src/main'
+}
+$generated = Join-Path $root ".local/android-gen-$Language"
+$classes = Join-Path $root ".local/android-classes-$Language"
+$dex = Join-Path $root ".local/android-dex-$Language"
+$classJar = Join-Path $root ".local/CodeLink-classes-$Language.jar"
 $keystore = Join-Path $root '.local/CodeLink.debug.keystore'
-$unsigned = Join-Path $root '.local/CodeLink-unsigned.apk'
-$aligned = Join-Path $root '.local/CodeLink-aligned.apk'
-$output = Join-Path $root 'dist/CodeLink-Android.apk'
+$unsigned = Join-Path $root ".local/CodeLink-unsigned-$Language.apk"
+$aligned = Join-Path $root ".local/CodeLink-aligned-$Language.apk"
+$output = Join-Path $root "dist/CodeLink-Android-$Language.apk"
 $androidJar = Join-Path $platform 'android.jar'
 $zxing = Join-Path $root '.tools/zxing-core.jar'
 $aapt = Join-Path $buildTools 'aapt.exe'

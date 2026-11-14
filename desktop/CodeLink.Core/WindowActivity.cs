@@ -33,7 +33,7 @@ public sealed class WindowActivity
     }
     public static string Classify(string text)
     {
-        if(text.StartsWith("[终端窗口已关闭]")||text.StartsWith("[终端文本暂不可读取]")||text.StartsWith("[此终端未公开"))return "disconnected";
+        if(text.StartsWith("[Terminal window closed]")||text.StartsWith("[Terminal text is temporarily unavailable]")||text.StartsWith("[This terminal does not expose")||text.StartsWith("[终端窗口已关闭]")||text.StartsWith("[终端文本暂不可读取]")||text.StartsWith("[此终端未公开"))return "disconnected";
         var lines=text.Replace("\r","").Split('\n').Select(l=>l.Trim()).Where(l=>l.Length>0).ToArray();
         var tail=string.Join("\n",lines.TakeLast(32));
         bool Match(string pattern)=>Regex.IsMatch(tail,pattern,RegexOptions.IgnoreCase|RegexOptions.Multiline);

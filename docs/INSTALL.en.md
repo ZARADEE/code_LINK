@@ -36,4 +36,4 @@ The APK uses a development signing certificate. Windows executables do not have 
 
 Apple packages also end in `-en`. Mac apps include the runtime and are available for Apple silicon and Intel. They are ad-hoc signed and not notarized. iOS provides a simulator app, an unsigned device archive and a source project for personal signing; there is no directly installable signed IPA or TestFlight release. Follow the [Apple guide](https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md).
 
-For Bluetooth, pairing, notifications and troubleshooting, read the [English usage guide](https://github.com/ZARADEE/code_LINK/blob/main/README.en.md).
+For Bluetooth, pairing, notifications and troubleshooting, read the [English usage guide](https://github.com/ZARADEE/code_LINK/blob/main/README.md).

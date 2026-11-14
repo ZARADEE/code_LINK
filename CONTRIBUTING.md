@@ -1,4 +1,16 @@
-# 参与 Code Link
+# Contributing to Code Link
+
+[中文说明](#参与-code-link)
+
+Code Link focuses on Windows terminals, Android tablets, local connections and reliable task alerts. Questions and use cases belong in [Discussions](https://github.com/ZARADEE/code_LINK/discussions); reproducible bugs and proposed changes belong in [Issues](https://github.com/ZARADEE/code_LINK/issues/new/choose). English and Chinese are both welcome.
+
+1. Fork the repository and create a branch. Discuss larger behavior changes in an issue first.
+2. Follow the [build guide](docs/BUILDING.md). Run checks relevant to your change and describe your test environment and results in the PR.
+3. Include hardware validation for changes to input delivery, Bluetooth, USB, notifications or window capture. The Java reminder tests do not need a tablet. Maintainer scripts named `scripts/test-pad-*.py` require your own test device and terminal.
+
+Keep build outputs, pairing credentials and local `.local` / `.tools` directories out of commits. Update third-party notices when adding dependencies. Code contributions use MIT; provide the source and license for artwork.
+
+## 参与 Code Link
 
 欢迎提交可复现的问题、使用建议和 Pull Request。当前重点是 Windows + Android 平板、本地连接、终端输入以及可靠的提醒状态。
 

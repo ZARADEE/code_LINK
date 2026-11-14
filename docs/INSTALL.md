@@ -29,7 +29,7 @@ Get-FileHash .\CodeLink-Android-v1.3.0-zh-CN.apk -Algorithm SHA256
 
 配对会允许操作所选终端，只配对自己的设备。发布包首次运行会在解压目录生成 `state`，升级前保留自己的状态目录，不要分享它。
 
-完整的[中文使用说明](https://github.com/ZARADEE/code_LINK#readme)包含蓝牙、通知与故障排查；也可阅读 [English guide](https://github.com/ZARADEE/code_LINK/blob/main/README.en.md)。
+完整的[中文使用说明](https://github.com/ZARADEE/code_LINK/blob/main/README.zh-CN.md)包含蓝牙、通知与故障排查；也可阅读 [English guide](https://github.com/ZARADEE/code_LINK/blob/main/README.md)。
 
 ## English quick start
 

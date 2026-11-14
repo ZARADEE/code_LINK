@@ -34,6 +34,7 @@ class Page(HTMLParser):
         self.description = ""
         self.has_h1 = False
         self.has_robots = False
+        self.alternates = {}
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
@@ -41,6 +42,8 @@ class Page(HTMLParser):
             self.has_h1 = True
         if tag == "link" and attrs.get("rel") == "canonical":
             self.canonical = attrs.get("href", "")
+        if tag == "link" and attrs.get("rel") == "alternate" and "hreflang" in attrs:
+            self.alternates[attrs["hreflang"]] = attrs.get("href", "")
         if tag == "meta" and attrs.get("name") == "description":
             self.description = attrs.get("content", "")
         if tag == "meta" and attrs.get("name") == "robots":
@@ -53,7 +56,8 @@ class Page(HTMLParser):
 
 
 def main():
-    documents = [*ROOT.glob("*.md"), *ROOT.joinpath("docs").rglob("*.md"), ROOT / "assets/README.md"]
+    documents = [*ROOT.glob("*.md"), *ROOT.joinpath("docs").rglob("*.md"),
+                 *ROOT.joinpath(".github").rglob("*.md"), ROOT / "assets/README.md"]
     for source in documents:
         text = re.sub(r"```.*?```", "", source.read_text(encoding="utf-8"), flags=re.S)
         for target in re.findall(r"\[[^\]]*\]\(([^\s)]+)(?:\s+\"[^\"]*\")?\)", text):
@@ -61,22 +65,31 @@ def main():
         parser = Page(source)
         parser.feed(text)
 
-    source = ROOT / "site/index.html"
-    html = source.read_text(encoding="utf-8")
-    page = Page(source)
-    page.feed(html)
     canonical = "https://zaradee.github.io/code_LINK/"
-    if page.canonical != canonical or not page.description or not page.has_h1 or not page.has_robots:
-        ERRORS.append("site/index.html: missing or invalid search metadata")
-    data = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)[1])
     manifest = ET.parse(ROOT / "android/app/src/main/AndroidManifest.xml").getroot()
     version = manifest.get("{http://schemas.android.com/apk/res/android}versionName")
-    if data.get("softwareVersion") != version or data.get("url") != canonical:
-        ERRORS.append("site/index.html: structured data differs from release or canonical URL")
+    page_urls = {"index.html": canonical, "en.html": canonical + "en.html"}
+    for name, url in page_urls.items():
+        source = ROOT / "site" / name
+        html = source.read_text(encoding="utf-8")
+        page = Page(source)
+        page.feed(html)
+        if page.canonical != url or not page.description or not page.has_h1 or not page.has_robots:
+            ERRORS.append(f"site/{name}: missing or invalid search metadata")
+        expected = {"zh-CN": canonical, "en": page_urls["en.html"], "x-default": canonical}
+        if page.alternates != expected:
+            ERRORS.append(f"site/{name}: missing reciprocal language links")
+        structured = re.search(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
+        try:
+            data = json.loads(structured[1]) if structured else {}
+        except json.JSONDecodeError:
+            data = {}
+        if data.get("softwareVersion") != version or data.get("url") != url:
+            ERRORS.append(f"site/{name}: structured data differs from release or canonical URL")
     sitemap = ET.parse(ROOT / "site/sitemap.xml")
     urls = [element.text for element in sitemap.iter() if element.tag.endswith("}loc")]
-    if canonical not in urls:
-        ERRORS.append("site/sitemap.xml: canonical URL missing")
+    if not set(page_urls.values()).issubset(urls):
+        ERRORS.append("site/sitemap.xml: language page URL missing")
     if ERRORS:
         print("\n".join(ERRORS))
         return 1

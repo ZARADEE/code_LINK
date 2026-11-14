@@ -24,6 +24,7 @@ jobs:
         run: |
           mkdir -p site/assets
           cp docs/assets/*.png site/assets/
+          cp docs/assets/*.gif site/assets/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

@@ -169,11 +169,13 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             subprocess.run(['xcrun','simctl','boot',device], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
             subprocess.run(['open','-a','Simulator','--args','-CurrentDeviceUDID',device], check=True, timeout=30)
             subprocess.run(['xcrun','simctl','bootstatus',device,'-b'], check=True, timeout=420)
+            print('Verifying Simulator can launch the system Settings app', flush=True)
+            subprocess.run(['xcrun','simctl','launch',device,'com.apple.Preferences'],check=True,timeout=120)
             simulator_app = ROOT / '.local/apple/ios/Build/Products/Release-iphonesimulator/CodeLink.app'
             subprocess.run(['xcrun','simctl','install',device,str(simulator_app)], check=True, timeout=180)
             invitation = invitation_text(invite)
             print('Launching signed iPhone application', flush=True)
-            subprocess.run(['xcrun','simctl','launch',device,'com.codelink.ios','--invite',invitation], check=True, timeout=240)
+            subprocess.run(['xcrun','simctl','launch','--terminate-running-process',device,'com.codelink.ios','--invite',invitation], check=True, timeout=120)
             test_ids = {'apple-smoke-phone', 'swift-probe'}
             connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids))
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] not in test_ids)
@@ -190,9 +192,10 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             subprocess.run(['xcrun','simctl','boot',tablet], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
             subprocess.run(['open','-a','Simulator','--args','-CurrentDeviceUDID',tablet], check=True, timeout=30)
             subprocess.run(['xcrun','simctl','bootstatus',tablet,'-b'], check=True, timeout=420)
+            subprocess.run(['xcrun','simctl','launch',tablet,'com.apple.Preferences'],check=True,timeout=120)
             subprocess.run(['xcrun','simctl','install',tablet,str(simulator_app)], check=True, timeout=180)
             print('Launching signed iPad application', flush=True)
-            subprocess.run(['xcrun','simctl','launch',tablet,'com.codelink.ios','--invite',invitation], check=True, timeout=240)
+            subprocess.run(['xcrun','simctl','launch','--terminate-running-process',tablet,'com.codelink.ios','--invite',invitation], check=True, timeout=120)
             test_ids.add(mobile['id'])
             connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids))
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] not in test_ids)
@@ -207,7 +210,7 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
                 try:
                     subprocess.run(['xcrun','simctl','io',active_simulator,'screenshot',str(OUT / 'simulator-failure.png')],timeout=30)
                     with (OUT / 'simulator-failure.log').open('w') as log:
-                        subprocess.run(['xcrun','simctl','spawn',active_simulator,'log','show','--last','3m','--style','compact','--predicate','process == "CodeLink" OR process == "SpringBoard"'],stdout=log,stderr=log,timeout=30)
+                        subprocess.run(['xcrun','simctl','spawn',active_simulator,'log','show','--last','10m','--style','compact','--predicate','eventMessage CONTAINS[c] "codelink" OR process == "CodeLink" OR process == "runningboardd" OR process == "amfid"'],stdout=log,stderr=log,timeout=30)
                 except subprocess.TimeoutExpired: pass
             native.terminate()
             try: native.wait(timeout=8)

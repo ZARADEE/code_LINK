@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/assets/logo.png" width="88" alt="Code Link icon"></p>
 <h1 align="center">Code Link</h1>
-<p align="center"><strong>Keep tasks running on Windows. Follow progress and respond from Android.</strong></p>
+<p align="center"><strong>Keep tasks running on your computer. Follow progress and respond from your phone or tablet.</strong></p>
 <p align="center">
 <a href="https://github.com/ZARADEE/code_LINK/releases/latest"><img src="https://img.shields.io/github/v/release/ZARADEE/code_LINK?label=release&amp;color=52745b" alt="Latest release"></a>
 <a href="https://github.com/ZARADEE/code_LINK/actions/workflows/ci.yml"><img src="https://github.com/ZARADEE/code_LINK/actions/workflows/ci.yml/badge.svg" alt="Build and checks"></a>
@@ -10,19 +10,25 @@
 
 ![Code Link running on Windows and an Android tablet](docs/assets/overview.png)
 
-Code Link is a local terminal companion for Windows and Android. View terminal output, send text and keys, answer approval prompts, and receive completion notifications while your terminal is minimized or covered by other windows.
+Code Link is a local terminal companion for Windows, macOS, Android and iOS. View terminal output, send text and keys, answer approval prompts, and receive completion notifications while your terminal is minimized or covered by other windows.
 
 The desktop app is a lightweight **WPF tray application**. The Android app uses native Java controls and xterm.js for managed terminal rendering. Connections use USB or Bluetooth without an account or relay server.
 
+## macOS and iOS
+
+Native SwiftUI clients add managed zsh terminals and Codex sessions on macOS, with an iPhone/iPad companion using the same pinned TLS protocol. Download Apple silicon or Intel builds for macOS 14+, including the .NET runtime. The Mac apps are ad-hoc signed and not notarized.
+
+iOS 17+ is provided as a simulator app, an unsigned device archive and an Xcode source project for personal signing. There is no directly installable signed IPA or TestFlight release. iOS connections pause in the background and resume on return. Read the [Apple guide](docs/APPLE.md) for installation and the platform capability matrix. The USB, Bluetooth, background service and external window scanning instructions below apply to Windows + Android.
+
 ## Get started
 
-1. Download `CodeLink-Windows-v1.2.0.zip` and `CodeLink-Android.apk` from [Releases](https://github.com/ZARADEE/code_LINK/releases/latest).
+1. Download `CodeLink-Windows-v1.3.0.zip` and `CodeLink-Android.apk` from [Releases](https://github.com/ZARADEE/code_LINK/releases/latest).
 2. On Windows, install the [.NET 10 Desktop Runtime, x64](https://dotnet.microsoft.com/en-us/download/dotnet/10.0), extract the entire ZIP, and open `CodeLink.exe`.
 3. Install the APK on your Android device. Enable **Developer options → USB debugging**, connect a data-capable USB cable, unlock the tablet, and accept the computer's debugging authorization. File transfer is a suitable USB mode.
 4. Open Code Link on both devices. On the PC, choose **连接设备 → USB 一键连接** (Connect device → USB quick connect).
 5. Select a terminal and the connected tablet, then click **映射到移动端** (Map to mobile). You can also open a detected terminal from the tablet's list.
 
-The app currently uses a Chinese interface. Android 9 or later is required; landscape tablets are the primary layout. Hardware validation used a Lenovo Xiaoxin Pad Pro 12.7, Android 14 / ZUI 16.
+Windows and Android currently use a Chinese interface; the Apple clients use English. Android 9 or later is required; landscape tablets are the primary layout. Hardware validation used a Lenovo Xiaoxin Pad Pro 12.7, Android 14 / ZUI 16.
 
 Each release includes `SHA256SUMS.txt`. See the [installation guide](docs/INSTALL.md) for verification. The Android APK uses a development signing key; Windows executables are unsigned.
 
@@ -93,4 +99,4 @@ Windows and Android are the current targets. iPad/iOS, macOS/Linux desktop, and 
 
 Code is licensed under [MIT](LICENSE). Supplied artwork has [separate terms](assets/README.md); dependencies retain their [original licenses](THIRD_PARTY_NOTICES.md). Maintained by [ZARADEE](https://github.com/ZARADEE), independently of terminal and AI vendors.
 
-Windows and Android screenshots were captured on connected devices on November 14, 2026; notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md). Documentation corresponds to Android 1.2.0.
+Windows and Android screenshots were captured on connected devices on November 14, 2026; notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md). Documentation corresponds to Android 1.3.0.

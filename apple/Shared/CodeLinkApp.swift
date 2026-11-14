@@ -19,7 +19,7 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
         WindowGroup {
             RootView().environmentObject(model)
                 .onAppear { UNUserNotificationCenter.current().delegate = notificationDelegate }
-                .onChange(of:phase) { model.sceneActive($0 == .active) }
+                .onChange(of:phase) { _, phase in model.sceneActive(phase == .active) }
                 #if os(macOS)
                 .frame(minWidth:1000, minHeight:640)
                 #endif

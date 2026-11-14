@@ -9,6 +9,9 @@ struct RootView: View {
     @State private var draft = ""
     @State private var sending = false
     @State private var showSessions = false
+    @State private var renameID = ""
+    @State private var renameText = ""
+    @State private var renaming = false
     @Environment(\.horizontalSizeClass) private var sizeClass
     var body: some View {
         VStack(spacing:0) {
@@ -52,6 +55,11 @@ struct RootView: View {
             NavigationStack { sessionList.navigationTitle("Sessions").toolbar { Button("Done") { showSessions = false } } }
                 .presentationDetents([.medium, .large])
         }
+        .alert("Rename session", isPresented:$renaming) {
+            TextField("Name on this device", text:$renameText)
+            Button("Save") { model.rename(renameID, renameText.trimmingCharacters(in:.whitespacesAndNewlines)) }
+            Button("Cancel", role:.cancel) {}
+        }
     }
     private var sessionList: some View {
         ScrollView {
@@ -84,6 +92,7 @@ struct RootView: View {
                                     .clipShape(RoundedRectangle(cornerRadius:8))
                             }.buttonStyle(.plain)
                             .contextMenu {
+                                Button("Rename") { renameID = session.id; renameText = model.name(session); renaming = true }
                                 Button("Move to group " + (group == "A" ? "B" : "A")) { model.setGroup(session.id, group == "A" ? "B" : "A") }
                                 Button("Mark read") { model.select(session.id) }
                                 if model.isHost {
@@ -118,6 +127,7 @@ struct RootView: View {
                     }
                     Spacer()
                     Menu {
+                        Button("Rename") { renameID = session.id; renameText = model.name(session); renaming = true }
                         Button("Group A · individual") { model.setGroup(session.id, "A") }
                         Button("Group B · batch") { model.setGroup(session.id, "B") }
                         if model.isHost {

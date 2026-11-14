@@ -40,7 +40,7 @@ import UIKit
     var identity: String {
         if isHost { return "pc" }
         if let id = defaults.string(forKey: "device-id") { return id }
-        let id = UUID().uuidString(); defaults.set(id, forKey: "device-id"); return id
+        let id = UUID().uuidString; defaults.set(id, forKey: "device-id"); return id
     }
     var current: LinkSession? { sessions.first { $0.id == selected } }
     var canInput: Bool { connected && (isHost || current?.controller == identity) && current != nil }
@@ -115,7 +115,7 @@ import UIKit
     }
     func action(_ action: String, _ values: [String: Any] = [:], completion: @escaping (Bool) -> Void = { _ in }) {
         guard connected else { error = "Connect to your computer first."; completion(false); return }
-        let id = UUID().uuidString()
+        let id = UUID().uuidString
         var value = values; value["type"] = "action"; value["id"] = id; value["action"] = action
         pending[id] = (Date(), completion); pendingCount = pending.count; connection.send(value)
     }
@@ -131,7 +131,7 @@ import UIKit
         guard canInput else { error = "This session is read-only. Open it from the command list or grant control on the computer."; completion(false); return }
         action("input", ["sessionId":selected, "text":text, "raw":raw], completion: completion)
     }
-    func group(_ id: String) -> String { groups[id] ?? "A" }
+    func group(_ id: String) -> String { groups[id] ?? "B" }
     func name(_ session: LinkSession) -> String { let value = aliases[session.id] ?? ""; return value.isEmpty ? session.name : value }
     func setGroup(_ id: String, _ group: String) { groups[id] = group; persist() }
     func rename(_ id: String, _ name: String) { aliases[id] = name; persist() }

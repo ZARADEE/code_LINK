@@ -1,5 +1,7 @@
 # 安装 Code Link / Install Code Link
 
+macOS / iOS 用户请看 [Apple 安装指南](APPLE.md)。下列 USB 与 APK 步骤适用于 Windows + Android。
+
 电脑继续运行任务，在 Android 查看终端、发送输入并接收完成提醒。首次使用推荐 USB 数据线。
 
 ## 下载和运行
@@ -19,7 +21,7 @@
 在下载目录运行 PowerShell，将输出与同一 Release 的 `SHA256SUMS.txt` 比较。
 
 ```powershell
-Get-FileHash .\CodeLink-Windows-v1.2.0.zip -Algorithm SHA256
+Get-FileHash .\CodeLink-Windows-v1.3.0.zip -Algorithm SHA256
 Get-FileHash .\CodeLink-Android.apk -Algorithm SHA256
 ```
 

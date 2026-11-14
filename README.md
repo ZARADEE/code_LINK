@@ -1,12 +1,12 @@
 <p align="center"><img src="docs/assets/logo.png" width="88" alt="Code Link 图标"></p>
 <h1 align="center">Code Link</h1>
 <p align="center"><strong>电脑跑任务，平板看进度、输指令、处理授权。</strong></p>
-<p align="center">Local terminal companion for Windows and Android · USB / Bluetooth · No relay server</p>
+<p align="center">Windows / macOS → Android / iOS · Local terminal companion · No relay server</p>
 <p align="center">
 <a href="https://github.com/ZARADEE/code_LINK/releases/latest"><img src="https://img.shields.io/github/v/release/ZARADEE/code_LINK?label=release&amp;color=52745b" alt="最新发布版本"></a>
 <a href="https://github.com/ZARADEE/code_LINK/actions/workflows/ci.yml"><img src="https://github.com/ZARADEE/code_LINK/actions/workflows/ci.yml/badge.svg" alt="构建与检查状态"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-52745b" alt="代码采用 MIT 许可"></a>
-<img src="https://img.shields.io/badge/Windows_x64_%2B_Android_9%2B-local-1d372d" alt="Windows x64 与 Android 9 及以上">
+<img src="https://img.shields.io/badge/Windows_macOS_Android_iOS-local-1d372d" alt="Windows、macOS、Android 与 iOS 客户端">
 </p>
 <p align="center">
 <a href="https://github.com/ZARADEE/code_LINK/releases/latest">下载安装</a> ·
@@ -41,22 +41,30 @@
 
 <a id="quick-start"></a>
 
+## macOS 与 iOS
+
+新增原生 SwiftUI 客户端。macOS 可以创建 zsh 终端和 Codex 会话，iPhone / iPad 通过同一局域网连接 Mac 或 Windows，查看输出、输入指令、处理审批和 A/B 提醒。Apple 端界面为英文，详见 [Apple 安装与功能说明](docs/APPLE.md)。
+
+macOS 提供 Apple silicon 和 Intel 包，内含 .NET 运行时，尚未进行 Developer ID 签名与公证。iOS 提供模拟器包、未签名真机归档和可自行签名的 Xcode 工程；当前没有可直接安装的签名 IPA 或 TestFlight。iOS 退到后台后会暂停连接，返回时重连。下文 USB、蓝牙、后台常驻与外部窗口扫描步骤适用于 Windows + Android。
+
 ## 开始使用
 
 首次连接推荐使用 **USB 数据线**。
 
 ### 1. 下载安装
 
-从 [Releases](https://github.com/ZARADEE/code_LINK/releases/latest) 获取两个客户端。
+从 [Releases](https://github.com/ZARADEE/code_LINK/releases/latest) 获取对应平台的客户端。
 
 | 客户端 | 下载文件 | 安装方法 |
 | --- | --- | --- |
-| Windows | `CodeLink-Windows-v1.2.0.zip` | 解压并保留完整目录，双击 `CodeLink.exe` |
+| Windows | `CodeLink-Windows-v1.3.0.zip` | 解压并保留完整目录，双击 `CodeLink.exe` |
 | Android | `CodeLink-Android.apk` | 复制到平板后安装，按系统提示允许该来源安装应用 |
+| macOS 14+ | `CodeLink-macOS-AppleSilicon-v1.3.0.zip` / `CodeLink-macOS-Intel-v1.3.0.zip` | 解压并放入 Applications，参见 [Apple 指南](docs/APPLE.md) |
+| iOS / iPadOS 17+ | `CodeLink-iOS-Simulator-v1.3.0.zip` / `CodeLink-Apple-Source-v1.3.0.zip` | Mac 模拟器运行，或用自己的 Apple 账号在 Xcode 签名；非直接安装包 |
 
 Windows 需要 [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)，下载页选择 **.NET Desktop Runtime → Windows x64**。Android 最低安装版本为 9，当前界面主要面向横屏平板。
 
-Release 同时提供 `SHA256SUMS.txt`，可按[安装说明](docs/INSTALL.md)核对下载。当前 Android 包使用开发签名，Windows 程序尚无商业代码签名；界面为中文。
+Release 同时提供 `SHA256SUMS.txt`，可按[安装说明](docs/INSTALL.md)核对下载。当前 Android 包使用开发签名，Windows 程序尚无商业代码签名；Windows / Android 界面为中文。Apple 下载另附 `APPLE-SHA256SUMS.txt`。
 
 当前真机验证设备为联想小新 Pad Pro 12.7，Android 14 / ZUI 16。Codex 使用者请先在电脑上安装、登录 Codex，并确认它能在原来的命令行中正常运行。
 
@@ -244,4 +252,4 @@ B 组在全部完成时才同时标红标签和本轮成员。逐个点击查看
 
 维护者为 [ZARADEE](https://github.com/ZARADEE)。本项目为独立开发的终端伴随工具。
 
-*Windows 与平板主界面于 2026-11-14 实际连接后拍摄，通知来自既有真机记录；规则图为说明示意。本机路径、设备名和私人窗口标题已模糊。[图片来源](docs/assets/README.md)。README 对应 Android 1.2.0。*
+*Windows 与平板主界面于 2026-11-14 实际连接后拍摄，通知来自既有真机记录；规则图为说明示意。本机路径、设备名和私人窗口标题已模糊。[图片来源](docs/assets/README.md)。README 对应 Android 1.3.0。*

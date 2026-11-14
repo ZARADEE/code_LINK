@@ -26,6 +26,9 @@ targets:
         type: folder
         buildPhase: resources
       - Resources/Assets.xcassets
+      - path: Resources/Licenses
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.codelink.mac
@@ -50,6 +53,9 @@ targets:
         type: folder
         buildPhase: resources
       - Resources/Assets.xcassets
+      - path: Resources/Licenses
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.codelink.ios

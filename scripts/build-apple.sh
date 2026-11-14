@@ -25,6 +25,8 @@ for ARCH in arm64 x86_64; do
   clang -arch "$ARCH" -mmacosx-version-min=14.0 -Wall -Wextra -Werror -O2 apple/native/codelink-pty.c -o "$BACKEND/codelink-pty"
   cp LICENSE "$APP/Contents/Resources/LICENSE"
   cp licenses/xterm.txt "$APP/Contents/Resources/xterm-LICENSE.txt"
+  cp THIRD_PARTY_NOTICES.md "$APP/Contents/Resources/THIRD_PARTY_NOTICES.md"
+  cp assets/README.md "$APP/Contents/Resources/ARTWORK-NOTICE.md"
   codesign --force --deep --sign - "$APP"
   codesign --verify --deep --strict "$APP"
   ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/CodeLink-macOS-$LABEL-v$VERSION.zip"
@@ -32,6 +34,10 @@ done
 xcodebuild -project apple/CodeLink.xcodeproj -scheme CodeLinkiOS -configuration Release \
   -derivedDataPath "$ROOT/.local/apple/ios" -destination 'generic/platform=iOS Simulator' \
   ARCHS='arm64 x86_64' ONLY_ACTIVE_ARCH=NO CODE_SIGNING_ALLOWED=NO build > "$OUT/build-ios-simulator.log" 2>&1 || { tail -100 "$OUT/build-ios-simulator.log"; exit 1; }
+# Simulator builds need an application identity to access their own Keychain.
+# This ad-hoc identity is for Simulator only; device archives remain unsigned.
+codesign --force --sign - --entitlements apple/iOS/Simulator.entitlements "$ROOT/.local/apple/ios/Build/Products/Release-iphonesimulator/CodeLink.app"
+codesign --verify --strict "$ROOT/.local/apple/ios/Build/Products/Release-iphonesimulator/CodeLink.app"
 ditto -c -k --sequesterRsrc --keepParent "$ROOT/.local/apple/ios/Build/Products/Release-iphonesimulator/CodeLink.app" "$OUT/CodeLink-iOS-Simulator-v$VERSION.zip"
 xcodebuild -project apple/CodeLink.xcodeproj -scheme CodeLinkiOS -configuration Release \
   -destination 'generic/platform=iOS' -archivePath "$ROOT/.local/apple/CodeLink-iOS-unsigned.xcarchive" \

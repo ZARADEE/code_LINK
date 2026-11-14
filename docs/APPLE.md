@@ -20,6 +20,8 @@ There is no signed iPhone IPA or TestFlight release. `CodeLink-iOS-Simulator` ru
 
 macOS keeps its host and terminals alive while Code Link is open. Quitting the Mac app stops its host and managed terminals. Keep it open when using the phone. Pairing secrets are encrypted with a key stored in macOS Keychain; iOS stores its device credential in Keychain.
 
+For terminal completion reminders, create a session with a command that exits when its task finishes, such as a build or test command. An interactive zsh shell remains running until you exit it; Code Link does not infer individual command completion from its prompt. Codex sessions report completion for each turn.
+
 ## Platform differences
 
 | Capability | macOS / iOS support |

@@ -6,6 +6,7 @@ struct ConnectionView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var scanner = false
     @State private var confirmRevoke: LinkDevice?
+    @State private var codexPath = ""
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -40,6 +41,15 @@ struct ConnectionView: View {
                         }
                     }
                     Text("Select a session, then use its menu to share it with a device. A paired device can also open sessions from its command list.").font(.caption).foregroundStyle(.secondary)
+                    Divider()
+                    Text("Codex executable (optional)").font(.headline)
+                    TextField("/opt/homebrew/bin/codex", text:$codexPath).textFieldStyle(.roundedBorder)
+                    HStack {
+                        Button("Save path") { model.action("settings", ["lan":model.lan, "codexPath":codexPath.trimmingCharacters(in:.whitespacesAndNewlines)]) }
+                        Spacer()
+                        Button("Open host logs") { NSWorkspace.shared.open(model.host.dataDirectory) }
+                    }
+                    Text("Leave the path empty to detect Homebrew or PATH installations. Keep any required Node runtime available on PATH.").font(.caption).foregroundStyle(.secondary)
                     #else
                     Text("Connect to your computer").font(.title2.bold())
                     Text("Enable LAN in Code Link on your Mac or Windows PC. Scan its pairing QR code or paste the invitation here.").foregroundStyle(.secondary)

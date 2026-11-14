@@ -2,9 +2,16 @@ import SwiftUI
 import UserNotifications
 
 final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    var onOpen: ((String) -> Void)?
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner, .sound])
+    }
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        let session = response.notification.request.content.userInfo["sessionId"] as? String ?? ""
+        DispatchQueue.main.async { self.onOpen?(session) }
+        completionHandler()
     }
 }
 
@@ -18,7 +25,10 @@ final class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(model)
-                .onAppear { UNUserNotificationCenter.current().delegate = notificationDelegate }
+                .onAppear {
+                    notificationDelegate.onOpen = { model.openNotification($0) }
+                    UNUserNotificationCenter.current().delegate = notificationDelegate
+                }
                 .onChange(of:phase) { _, phase in model.sceneActive(phase == .active) }
                 #if os(macOS)
                 .frame(minWidth:1000, minHeight:640)

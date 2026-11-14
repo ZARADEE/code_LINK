@@ -25,6 +25,7 @@ import UIKit
     let connection = LinkConnection()
     private var caches = [String: String]()
     private var pendingWatch: String?
+    private var notificationTarget: String?
     private var pending = [String: (Date, (Bool) -> Void)]()
     private var invite: PairingInvite?
     private var desiredConnection = false
@@ -59,6 +60,7 @@ import UIKit
         connection.onStatus = { [weak self] status, online in DispatchQueue.main.async {
             guard let self else { return }
             self.connected = online; self.connectionStatus = status
+            if !online && !status.hasPrefix("Connecting") { NSLog("Code Link connection: %@", status) }
             if !online { self.failPending() }
         } }
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
@@ -78,7 +80,7 @@ import UIKit
             error = "No confirmation received. Check the terminal before sending again; the command may already have run."
         }
         pendingCount = pending.count
-        if desiredConnection && !connected && Date().timeIntervalSince(lastAttempt) > 30 { reconnect() }
+        if desiredConnection && !connected && Date().timeIntervalSince(lastAttempt) > (isHost ? 3 : 30) { reconnect() }
     }
     private func failPending() {
         guard !pending.isEmpty else { return }
@@ -100,7 +102,8 @@ import UIKit
     func reconnect() {
         desiredConnection = true; lastAttempt = Date()
         #if os(macOS)
-        connection.connectLocal(path: host.socketPath)
+        do { try host.start(); connection.connectLocal(path: host.socketPath) }
+        catch { self.error = error.localizedDescription }
         #else
         guard let invite else { return }
         connection.connect(invite: invite, deviceID: identity, name: UIDevice.current.name)
@@ -121,8 +124,15 @@ import UIKit
     }
     func select(_ id: String) {
         selected = id; pendingWatch = id; output = caches[id] ?? ""
+        if let notice = reminders.notice(for:id) { UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers:[notice.key]) }
         reminders.acknowledge(id); persist()
+        if reminders.batchUnread.isEmpty { removeBatchNotifications() }
         connection.send(["type":"watch", "sessionId":id])
+    }
+    func openNotification(_ id: String) {
+        let target = id == "@B" ? sessions.first(where:{ reminders.batchUnread.contains($0.id) })?.id : id
+        if let target, !target.isEmpty, connected { select(target) }
+        else { notificationTarget = id }
     }
     func open(_ item: LinkSession) {
         action("openCommand", ["key":item.catalogKey ?? item.id])
@@ -135,7 +145,13 @@ import UIKit
     func name(_ session: LinkSession) -> String { let value = aliases[session.id] ?? ""; return value.isEmpty ? session.name : value }
     func setGroup(_ id: String, _ group: String) { groups[id] = group; persist() }
     func rename(_ id: String, _ name: String) { aliases[id] = name; persist() }
-    func acknowledgeBatch() { reminders.acknowledgeBatch(); persist() }
+    func acknowledgeBatch() { reminders.acknowledgeBatch(); persist(); removeBatchNotifications() }
+    private func removeBatchNotifications() {
+        UNUserNotificationCenter.current().getDeliveredNotifications { notes in
+            let ids = notes.filter { $0.request.content.userInfo["sessionId"] as? String == "@B" }.map { $0.request.identifier }
+            UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers:ids)
+        }
+    }
     private func persist() {
         defaults.set(groups, forKey: "groups"); defaults.set(aliases, forKey: "aliases")
         defaults.set(try? JSONEncoder().encode(reminders), forKey: "reminders")
@@ -169,6 +185,7 @@ import UIKit
         }, online:connected)
         persist()
         for notice in notices { notify(notice) }
+        if let target = notificationTarget, !sessions.isEmpty { notificationTarget = nil; openNotification(target) }
     }
     func requestNotifications() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
@@ -180,6 +197,7 @@ import UIKit
         content.title = notice.kind == "batch" ? "Code Link · Group B complete" : "Code Link · " + notice.kind
         content.body = notice.kind == "batch" ? "All tasks in this batch have completed." : sessions.first(where: { $0.id == notice.id }).map(name) ?? "Session update"
         content.sound = .default
+        content.userInfo = ["sessionId":notice.id]
         UNUserNotificationCenter.current().add(UNNotificationRequest(identifier:notice.key, content:content, trigger:nil))
     }
 }

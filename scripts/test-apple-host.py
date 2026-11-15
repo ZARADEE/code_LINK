@@ -215,9 +215,12 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             subprocess.run(['xcrun','simctl','install',device,str(simulator_app)], check=True, timeout=180)
             invitation = invitation_text(invite)
             print('Launching signed iPhone application', flush=True)
-            subprocess.run(['xcrun','simctl','launch','--terminate-running-process',device,'com.codelink.ios','--invite',invitation,'--validate-terminal'], check=True, timeout=120)
+            subprocess.run(['xcrun','simctl','launch','--terminate-running-process',
+                            '--stdout=' + str(OUT / 'iphone-stdout.log'),
+                            '--stderr=' + str(OUT / 'iphone-stderr.log'),
+                            device,'com.codelink.ios','--invite',invitation,'--validate-terminal'], check=True, timeout=180)
             test_ids = {'apple-smoke-phone', 'swift-probe'}
-            connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids))
+            connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids), timeout=120)
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] not in test_ids)
             check(admin.action('map', sessionId=demo['sessionId'], deviceId=mobile['id'], enabled=True, control=True)['ok'], 'Real iOS app pairs and receives session mapping')
             verify_terminal_screen(device, 'iPhone')
@@ -229,9 +232,12 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             tablet = boot_simulator(tablets[0])
             subprocess.run(['xcrun','simctl','install',tablet,str(simulator_app)], check=True, timeout=180)
             print('Launching signed iPad application', flush=True)
-            subprocess.run(['xcrun','simctl','launch','--terminate-running-process',tablet,'com.codelink.ios','--invite',invitation,'--validate-terminal'], check=True, timeout=120)
+            subprocess.run(['xcrun','simctl','launch','--terminate-running-process',
+                            '--stdout=' + str(OUT / 'ipad-stdout.log'),
+                            '--stderr=' + str(OUT / 'ipad-stderr.log'),
+                            tablet,'com.codelink.ios','--invite',invitation,'--validate-terminal'], check=True, timeout=180)
             test_ids.add(mobile['id'])
-            connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids))
+            connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids), timeout=120)
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] not in test_ids)
             check(admin.action('map', sessionId=demo['sessionId'], deviceId=mobile['id'], enabled=True, control=True)['ok'], 'Real iPad app pairs and receives session mapping')
             subprocess.run(['xcrun','simctl','io',tablet,'orientation','landscapeLeft'], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -244,8 +250,11 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
                 try:
                     subprocess.run(['xcrun','simctl','io',active_simulator,'screenshot',str(OUT / 'simulator-failure.png')],timeout=30)
                     with (OUT / 'simulator-failure.log').open('w') as log:
-                        subprocess.run(['xcrun','simctl','spawn',active_simulator,'log','show','--last','10m','--style','compact','--predicate','eventMessage CONTAINS[c] "codelink" OR process == "CodeLink" OR process == "runningboardd" OR process == "amfid"'],stdout=log,stderr=log,timeout=30)
+                        subprocess.run(['xcrun','simctl','spawn',active_simulator,'log','show','--last','5m','--style','compact','--predicate','eventMessage CONTAINS[c] "codelink" OR process == "CodeLink"'],stdout=log,stderr=log,timeout=45)
                 except subprocess.TimeoutExpired: pass
+                for report in (Path.home() / 'Library/Logs/DiagnosticReports').glob('CodeLink*'):
+                    if report.is_file():
+                        shutil.copy2(report, OUT / ('crash-' + report.name + '.log'))
             native.terminate()
             try: native.wait(timeout=8)
             except subprocess.TimeoutExpired: native.kill()

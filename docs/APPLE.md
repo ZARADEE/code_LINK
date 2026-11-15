@@ -62,7 +62,7 @@ For terminal completion reminders, create a session with a command that exits wh
 
 Install Xcode, its command-line tools, .NET 10 SDK and XcodeGen (`brew install xcodegen`) on a Mac. Run `bash scripts/build-apple.sh` from the repository root. Output is in `dist/apple`. The script builds both Mac architectures, an iOS simulator app, an unsigned iOS device archive and a source archive. It runs protocol / reminder checks and exercises the real macOS host.
 
-The GitHub Apple workflow fixes Xcode 16.4 and Python 3.12 on the macOS 15 Intel runner, builds both Mac architectures, and tests the native host with newly created iPhone and iPad simulators. It uploads packages after the application checks pass. Build logs and screenshots are retained even after a failure.
+The GitHub Apple workflow fixes Xcode 16.4 and Python 3.12 on the macOS 15 Apple silicon runner, builds both Mac architectures, and tests the native host with newly created iPhone and iPad simulators. It uploads packages after the application checks pass. Build logs and screenshots are retained even after a failure.
 
 For publication, push a tag matching the application version, such as `v1.3.0`. An Apple rebuild can use `v1.3.0-apple.1` to create a separate prerelease while retaining the existing Windows/Android release. The tag, version and validated commit must match. The workflow verifies every package and its uploaded SHA-256 digest before publishing the draft. Published files are never overwritten. Apple rebuilds do not run the Windows/Android release workflow.
 

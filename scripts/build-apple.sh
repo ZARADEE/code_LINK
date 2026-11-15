@@ -2,9 +2,17 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
-VERSION=1.3.0
+VERSION="$(python3 scripts/apple_packages.py version)"
 OUT="$ROOT/dist/apple"
 mkdir -p "$OUT" "$ROOT/.local/apple"
+python3 scripts/apple_packages.py check-version
+{
+  xcodebuild -version
+  xcrun --sdk iphonesimulator --show-sdk-version
+  python3 --version
+  dotnet --version
+  uname -m
+} > "$OUT/build-environment.log" 2>&1
 command -v xcodegen >/dev/null || { echo 'Install XcodeGen: brew install xcodegen'; exit 1; }
 xcodegen generate --spec apple/project.yml
 python3 scripts/localize-sources.py generate
@@ -49,12 +57,5 @@ python3 scripts/package-apple-source.py
 if [ "${CODELINK_BUILD_ONLY:-0}" != 1 ]; then
   python3 -u scripts/test-apple-host.py "$ROOT/.local/apple/mac-$(uname -m)/Build/Products/Release/CodeLink.app" 2>&1 | tee "$OUT/integration.log"
 fi
-python3 - <<'PY'
-from pathlib import Path
-import hashlib, xml.etree.ElementTree as ET
-root=Path('dist/apple')
-version=ET.parse('android/app/src/main/AndroidManifest.xml').getroot().get('{http://schemas.android.com/apk/res/android}versionName')
-packages=[root/f'CodeLink-{platform}-v{version}-en.zip' for platform in ('macOS-AppleSilicon','macOS-Intel','iOS-Simulator','iOS-unsigned-archive','Apple-Source')]
-(root/'APPLE-SHA256SUMS.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in packages))
-PY
+python3 scripts/apple_packages.py write-checksums
 python3 scripts/verify-apple-packages.py "$OUT"

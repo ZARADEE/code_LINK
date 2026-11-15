@@ -22,6 +22,7 @@ OUT = ROOT / 'dist/apple'
 OUT.mkdir(parents=True, exist_ok=True)
 checks = []
 active_simulator = None
+created_simulators = []
 
 
 def check(condition, message):
@@ -58,8 +59,8 @@ class Peer:
             self.states.append(value)
         return value
 
-    def until(self, predicate):
-        deadline = time.monotonic() + 20
+    def until(self, predicate, timeout=20):
+        deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
             value = self.read()
             if predicate(value):
@@ -154,7 +155,6 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
         try:
             time.sleep(6)
             subprocess.run(['screencapture', '-x', str(OUT / 'macos-live.png')], check=True)
-            subprocess.run(['xcrun','simctl','shutdown','all'], check=False, timeout=90)
             simulators = json.loads(subprocess.check_output(['xcrun','simctl','list','devices','available','--json']))
             sdk = subprocess.check_output(['xcrun','--sdk','iphonesimulator','--show-sdk-version'], text=True).strip()
             runtime_suffix = 'iOS-' + sdk.replace('.', '-')
@@ -164,14 +164,30 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             (OUT / 'simulator-environment.json').write_text(json.dumps({'sdk':sdk,'runtime':runtimes[0],'devices':runtime_devices},indent=2))
             candidates = [d for d in runtime_devices if 'iPhone' in d['name']]
             check(bool(candidates), 'iOS simulator runtime is available')
-            device = candidates[0]['udid']
-            active_simulator = device
-            print('Starting iPhone simulator', device, flush=True)
-            subprocess.run(['xcrun','simctl','boot',device], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
-            subprocess.run(['open','-a','Simulator','--args','-CurrentDeviceUDID',device], check=True, timeout=30)
-            subprocess.run(['xcrun','simctl','bootstatus',device,'-b'], check=True, timeout=420)
-            print('Verifying Simulator can launch the system Settings app', flush=True)
-            subprocess.run(['xcrun','simctl','launch',device,'com.apple.Preferences'],check=True,timeout=120)
+            def boot_simulator(template):
+                global active_simulator
+                # CI images include restored device data. Use an isolated device and
+                # simctl directly: a Simulator GUI / Settings launch is not an app test.
+                for attempt in range(2):
+                    identity = subprocess.check_output([
+                        'xcrun','simctl','create','CodeLink-' + uuid.uuid4().hex[:8],
+                        template['deviceTypeIdentifier'],runtimes[0]], text=True, timeout=60).strip()
+                    created_simulators.append(identity)
+                    active_simulator = identity
+                    print('Booting isolated simulator', identity, 'attempt', attempt + 1, flush=True)
+                    try:
+                        subprocess.run(['xcrun','simctl','boot',identity], check=True, timeout=120)
+                        subprocess.run(['xcrun','simctl','bootstatus',identity,'-b'], check=True, timeout=240)
+                        return identity
+                    except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+                        if attempt == 1:
+                            raise
+                        # Only cold-boot infrastructure is retried. App installation,
+                        # launch, pairing and mapping below must succeed on their own.
+                        subprocess.run(['xcrun','simctl','shutdown',identity], check=False, timeout=60)
+                raise RuntimeError('Simulator did not boot')
+
+            device = boot_simulator(candidates[0])
             simulator_app = ROOT / '.local/apple/ios/Build/Products/Release-iphonesimulator/CodeLink.app'
             subprocess.run(['xcrun','simctl','install',device,str(simulator_app)], check=True, timeout=180)
             invitation = invitation_text(invite)
@@ -187,13 +203,7 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             subprocess.run(['xcrun','simctl','shutdown',device], check=True, timeout=60)
             tablets = [d for d in runtime_devices if 'iPad' in d['name']]
             check(bool(tablets), 'iPad simulator is available')
-            tablet = tablets[0]['udid']
-            active_simulator = tablet
-            print('Starting iPad simulator', tablet, flush=True)
-            subprocess.run(['xcrun','simctl','boot',tablet], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
-            subprocess.run(['open','-a','Simulator','--args','-CurrentDeviceUDID',tablet], check=True, timeout=30)
-            subprocess.run(['xcrun','simctl','bootstatus',tablet,'-b'], check=True, timeout=420)
-            subprocess.run(['xcrun','simctl','launch',tablet,'com.apple.Preferences'],check=True,timeout=120)
+            tablet = boot_simulator(tablets[0])
             subprocess.run(['xcrun','simctl','install',tablet,str(simulator_app)], check=True, timeout=180)
             print('Launching signed iPad application', flush=True)
             subprocess.run(['xcrun','simctl','launch','--terminate-running-process',tablet,'com.codelink.ios','--invite',invitation], check=True, timeout=120)
@@ -216,6 +226,12 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             native.terminate()
             try: native.wait(timeout=8)
             except subprocess.TimeoutExpired: native.kill()
+            for identity in created_simulators:
+                try:
+                    subprocess.run(['xcrun','simctl','shutdown',identity],check=False,timeout=30,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+                    subprocess.run(['xcrun','simctl','delete',identity],check=False,timeout=30)
+                except subprocess.TimeoutExpired:
+                    pass
         local.close()
     finally:
         host.terminate()

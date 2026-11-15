@@ -10,7 +10,7 @@ macOS 需要 14 或更新版本，iPhone / iPad 需要 iOS / iPadOS 17 或更新
 4. 在 iOS 客户端点击 **Connect → Scan QR**，扫描电脑配对二维码，允许相机与本地网络访问。也可复制并粘贴配对邀请。
 5. 从手机的会话列表打开终端，或在 Mac 会话菜单中将它共享给已配对设备。A 组逐个完成提醒，B 组整批完成提醒；审批与失败单独显示。
 
-**iPhone 安装条件**：当前提供 iOS 模拟器包、未签名真机归档和 Xcode 工程，没有可直接安装的签名 IPA 或 TestFlight。真机测试需在自己的 Mac 上打开源码工程，选择 `CodeLinkiOS`，将 **Code Signing Allowed** 改为 **Yes**，开启自动签名并选择自己的 Apple 开发团队。普通 Apple 账号可在 Apple 免费签名限制内进行个人真机测试。未签名归档不能直接安装到 iPhone。
+**iPhone 安装条件**：当前提供 iOS 模拟器包、未签名真机归档和 Xcode 工程，没有可直接安装的签名 IPA 或 TestFlight。真机测试需在自己的 Mac 上打开源码工程，选择 `CodeLinkiOS`，开启自动签名，选择自己的 Apple 开发团队及唯一的 Bundle Identifier。工程默认允许个人签名。普通 Apple 账号可在 Apple 免费签名限制内进行个人真机测试。未签名归档不能直接安装到 iPhone。
 
 **运行范围**：Apple 端使用局域网；iOS 进入后台后暂停连接，返回前台时重连。Mac 只共享 Code Link 中创建的托管终端。Windows 的外部窗口扫描、Android 的 USB / 蓝牙与后台常驻不适用于 Apple 端。退出 Mac 应用会停止其托管终端；需要手机持续操作时请保持 Mac 应用运行。
 
@@ -62,10 +62,12 @@ For terminal completion reminders, create a session with a command that exits wh
 
 Install Xcode, its command-line tools, .NET 10 SDK and XcodeGen (`brew install xcodegen`) on a Mac. Run `bash scripts/build-apple.sh` from the repository root. Output is in `dist/apple`. The script builds both Mac architectures, an iOS simulator app, an unsigned iOS device archive and a source archive. It runs protocol / reminder checks and exercises the real macOS host.
 
-The GitHub Apple workflow fixes Xcode 16.4 and Python 3.12 on the macOS 15 Intel runner, builds both Mac architectures, and tests the native host with newly created iPhone and iPad simulators. It uploads packages after the application checks pass. Build logs and screenshots are retained even after a failure.
+The GitHub Apple workflow fixes Xcode 16.4 and Python 3.12 on the macOS 15 Apple silicon runner, builds both Mac architectures, and tests the native host with newly created iPhone and iPad simulators. It uploads packages after the application checks pass. Build logs and screenshots are retained even after a failure.
 
 For publication, push a tag matching the application version, such as `v1.3.0`. An Apple rebuild can use `v1.3.0-apple.1` to create a separate prerelease while retaining the existing Windows/Android release. The tag, version and validated commit must match. The workflow verifies every package and its uploaded SHA-256 digest before publishing the draft. Published files are never overwritten. Apple rebuilds do not run the Windows/Android release workflow.
 
 The source archive includes `SOURCE-FILES.txt` so `bash scripts/build-apple.sh` also works from the extracted source without a Git checkout. CI validates source completeness, CPU architectures, executable permissions, runtime libraries, app metadata and checksums. Run `python3 -m unittest discover -s scripts -p 'test_apple_*.py' -v` for packaging and publication regression checks.
+
+Simulator checks also send a unique command to the real PTY and wait until each app's WebView reports that its display buffer contains the resulting output. Screenshots are captured after this confirmation. The terminal keeps pending output until JavaScript acknowledges it and replays the full buffer after a WebView process reload.
 
 Apple references: [distribution options](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases), [free account and program comparison](https://developer.apple.com/support/compare-memberships/), [opening apps safely](https://support.apple.com/en-us/102445).

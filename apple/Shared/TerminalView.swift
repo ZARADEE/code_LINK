@@ -68,7 +68,7 @@ final class TerminalCoordinator: NSObject, WKNavigationDelegate, WKScriptMessage
         let values: [String:Any] = ["text":request.text, "reset":request.reset,
                                    "observer":request.snapshot.observer, "enabled":request.snapshot.enabled]
         webView.callAsyncJavaScript("return await window.renderTerminal(value);", arguments:["value":values],
-                                    in:nil, contentWorld:.page) { [weak self] result in
+                                    in:nil, in:.page) { [weak self] result in
             guard let self, self.generation == revision else { return }
             switch result {
             case .success(let value):

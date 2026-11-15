@@ -187,17 +187,40 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
                         subprocess.run(['xcrun','simctl','shutdown',identity], check=False, timeout=60)
                 raise RuntimeError('Simulator did not boot')
 
+            def verify_terminal_screen(identity, label):
+                container = Path(subprocess.check_output([
+                    'xcrun','simctl','get_app_container',identity,'com.codelink.ios','data'],
+                    text=True, timeout=30).strip())
+                rendered = container / 'Documents/codelink-render.json'
+                marker = 'CL-' + uuid.uuid4().hex[:10]
+                # Encode the marker in the command so the echoed input cannot
+                # satisfy the screen assertion. Only real PTY output contains it.
+                escaped = ''.join('\\x' + format(ord(char), '02x') for char in marker)
+                check(admin.action('input', sessionId=demo['sessionId'], text="printf '\\n" + escaped + "\\n'")['ok'], label + ' terminal probe command accepted')
+                deadline = time.monotonic() + 120
+                while time.monotonic() < deadline:
+                    try:
+                        value = json.loads(rendered.read_text())
+                        if value.get('sessionId') == demo['sessionId'] and marker in value.get('screenText',''):
+                            (OUT / (label.lower() + '-render.json')).write_text(json.dumps(value, indent=2))
+                            check(True, label + ' WebView visibly renders fresh PTY output')
+                            return
+                    except (FileNotFoundError, json.JSONDecodeError):
+                        pass
+                    time.sleep(0.5)
+                raise AssertionError(label + ' paired but did not render fresh terminal output')
+
             device = boot_simulator(candidates[0])
             simulator_app = ROOT / '.local/apple/ios/Build/Products/Release-iphonesimulator/CodeLink.app'
             subprocess.run(['xcrun','simctl','install',device,str(simulator_app)], check=True, timeout=180)
             invitation = invitation_text(invite)
             print('Launching signed iPhone application', flush=True)
-            subprocess.run(['xcrun','simctl','launch','--terminate-running-process',device,'com.codelink.ios','--invite',invitation], check=True, timeout=120)
+            subprocess.run(['xcrun','simctl','launch','--terminate-running-process',device,'com.codelink.ios','--invite',invitation,'--validate-terminal'], check=True, timeout=120)
             test_ids = {'apple-smoke-phone', 'swift-probe'}
             connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids))
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] not in test_ids)
             check(admin.action('map', sessionId=demo['sessionId'], deviceId=mobile['id'], enabled=True, control=True)['ok'], 'Real iOS app pairs and receives session mapping')
-            time.sleep(4)
+            verify_terminal_screen(device, 'iPhone')
             subprocess.run(['xcrun','simctl','io',device,'screenshot',str(OUT / 'ios-live.png')], check=True)
             subprocess.run(['xcrun','simctl','terminate',device,'com.codelink.ios'], check=True)
             subprocess.run(['xcrun','simctl','shutdown',device], check=True, timeout=60)
@@ -206,13 +229,13 @@ with tempfile.TemporaryDirectory(prefix='cl-') as temporary:
             tablet = boot_simulator(tablets[0])
             subprocess.run(['xcrun','simctl','install',tablet,str(simulator_app)], check=True, timeout=180)
             print('Launching signed iPad application', flush=True)
-            subprocess.run(['xcrun','simctl','launch','--terminate-running-process',tablet,'com.codelink.ios','--invite',invitation], check=True, timeout=120)
+            subprocess.run(['xcrun','simctl','launch','--terminate-running-process',tablet,'com.codelink.ios','--invite',invitation,'--validate-terminal'], check=True, timeout=120)
             test_ids.add(mobile['id'])
             connected = admin.until(lambda m: m.get('type') == 'state' and any(d['online'] for d in m.get('devices',[]) if d['id'] not in test_ids))
             mobile = next(d for d in connected['devices'] if d['online'] and d['id'] not in test_ids)
             check(admin.action('map', sessionId=demo['sessionId'], deviceId=mobile['id'], enabled=True, control=True)['ok'], 'Real iPad app pairs and receives session mapping')
             subprocess.run(['xcrun','simctl','io',tablet,'orientation','landscapeLeft'], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            time.sleep(4)
+            verify_terminal_screen(tablet, 'iPad')
             subprocess.run(['xcrun','simctl','io',tablet,'screenshot',str(OUT / 'ipados-live.png')], check=True)
             subprocess.run(['xcrun','simctl','terminate',tablet,'com.codelink.ios'], check=True)
             active_simulator = None

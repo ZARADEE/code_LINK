@@ -17,7 +17,7 @@ command -v xcodegen >/dev/null || { echo 'Install XcodeGen: brew install xcodege
 xcodegen generate --spec apple/project.yml
 python3 scripts/localize-sources.py generate
 EN_SOURCE="$ROOT/.local/localized/en"
-swiftc apple/Shared/Protocol.swift apple/Shared/Reminders.swift apple/Tests/main.swift -o "$ROOT/.local/apple/logic-tests"
+swiftc apple/Shared/Protocol.swift apple/Shared/Reminders.swift apple/Shared/TerminalRenderBuffer.swift apple/Tests/main.swift -o "$ROOT/.local/apple/logic-tests"
 "$ROOT/.local/apple/logic-tests"
 swiftc apple/Shared/Protocol.swift apple/Shared/Keychain.swift apple/Shared/LinkConnection.swift apple/Tests/NetworkProbe.swift -o "$ROOT/.local/apple/network-probe"
 for ARCH in arm64 x86_64; do

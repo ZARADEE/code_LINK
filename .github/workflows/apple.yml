@@ -31,6 +31,8 @@ jobs:
           python-version: '3.12'
       - name: Check Apple packaging and release guards
         run: python3 -m unittest discover -s scripts -p 'test_apple_*.py' -v
+      - name: Check terminal rendering acknowledgement
+        run: node scripts/test-apple-terminal.cjs
       - name: Build both Mac architectures, iOS simulator and unsigned device archive
         run: bash scripts/build-apple.sh
         env:

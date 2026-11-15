@@ -40,23 +40,55 @@ final class TerminalCoordinator: NSObject, WKNavigationDelegate, WKScriptMessage
     weak var webView: WKWebView?
     var onInput: ((String) -> Void)?
     private var ready = false
-    private var previousText = "", previousID = ""
-    private var desired = (text:"", id:"", observer:false, enabled:false)
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) { ready = true; render() }
+    private var buffer = TerminalRenderBuffer()
+    private var generation = 0
+    private var retries = 0
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        generation += 1; ready = false; buffer.reset()
+    }
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        generation += 1; ready = false; buffer.reset(); webView.reload()
+    }
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         decisionHandler(navigationAction.request.url?.isFileURL == true ? .allow : .cancel)
     }
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if desired.enabled, message.frameInfo.isMainFrame, let input = message.body as? String { onInput?(input) }
+        guard message.frameInfo.isMainFrame else { return }
+        if let value = message.body as? [String: String], value["event"] == "ready" {
+            ready = true; render()
+        } else if buffer.desired.enabled, let input = message.body as? String { onInput?(input) }
     }
-    func update(text:String, id:String, observer:Bool, enabled:Bool) { desired = (text, id, observer, enabled); render() }
+    func update(text:String, id:String, observer:Bool, enabled:Bool) {
+        buffer.desired = TerminalSnapshot(text:text, id:id, observer:observer, enabled:enabled)
+        render()
+    }
     private func render() {
-        guard ready, let webView else { return }
-        let reset = previousID != desired.id || !desired.text.hasPrefix(previousText)
-        let delta = reset ? desired.text : String(desired.text.dropFirst(previousText.count))
-        let values: [String:Any] = ["text":desired.observer ? desired.text : delta, "reset":reset, "observer":desired.observer, "enabled":desired.enabled]
-        guard let data = try? JSONSerialization.data(withJSONObject:values, options:[.fragmentsAllowed]), let json = String(data:data, encoding:.utf8) else { return }
-        webView.evaluateJavaScript("window.renderTerminal(\(json));", completionHandler:nil)
-        previousText = desired.text; previousID = desired.id
+        guard ready, let webView, let request = buffer.next() else { return }
+        let revision = generation
+        let values: [String:Any] = ["text":request.text, "reset":request.reset,
+                                   "observer":request.snapshot.observer, "enabled":request.snapshot.enabled]
+        webView.callAsyncJavaScript("return await window.renderTerminal(value);", arguments:["value":values],
+                                    in:nil, contentWorld:.page) { [weak self] result in
+            guard let self, self.generation == revision else { return }
+            switch result {
+            case .success(let value):
+                self.buffer.complete(success:true); self.retries = 0
+                self.recordValidation(screen:value as? String ?? "", session:request.snapshot.id)
+                self.render()
+            case .failure(let error):
+                self.buffer.complete(success:false)
+                NSLog("Code Link terminal render failed: %@", error.localizedDescription)
+                // Retain the unacknowledged output and replay it after reloading.
+                if self.retries < 2 { self.retries += 1; webView.reload() }
+            }
+        }
+    }
+    private func recordValidation(screen:String, session:String) {
+        #if targetEnvironment(simulator)
+        guard ProcessInfo.processInfo.arguments.contains("--validate-terminal"),
+              let directory = FileManager.default.urls(for:.documentDirectory, in:.userDomainMask).first,
+              let data = try? JSONSerialization.data(withJSONObject:["sessionId":session, "screenText":screen]) else { return }
+        try? data.write(to:directory.appendingPathComponent("codelink-render.json"), options:.atomic)
+        #endif
     }
 }

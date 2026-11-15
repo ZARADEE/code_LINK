@@ -3,6 +3,7 @@ from pathlib import Path
 import hashlib
 import json
 import os
+import re
 import shutil
 import xml.etree.ElementTree as ET
 import zipfile
@@ -34,7 +35,8 @@ def main():
 
 def package_language(version, language, desktop, apk, output):
     required = ['CodeLink.exe', 'clink.exe', 'CodeLink.Host.exe', 'CodeLink.ConsoleBridge.exe',
-                'CodeLink.Core.dll', 'assets/icon.png', 'assets/app.ico', 'assets/startup.gif',
+                'CodeLink.Core.dll', 'coreclr.dll', 'hostfxr.dll', 'hostpolicy.dll', 'PresentationFramework.dll',
+                'assets/icon.png', 'assets/app.ico', 'assets/startup.gif',
                 'tools/adb.exe', 'tools/AdbWinApi.dll', 'tools/AdbWinUsbApi.dll',
                 'tools/ADB-NOTICE.txt', 'LICENSE', 'THIRD_PARTY_NOTICES.md']
     missing = [name for name in required if not (desktop / name).is_file()]
@@ -42,17 +44,29 @@ def package_language(version, language, desktop, apk, output):
         raise SystemExit('Build both clients first. Missing: ' + ', '.join(missing + ([] if apk.is_file() else [str(apk)])))
     if (desktop / 'build-language.txt').read_text(encoding='utf-8-sig').strip() != language:
         raise SystemExit(f'Build language does not match {language}: {desktop}')
+    build_files = json.loads((desktop / 'build-files.json').read_text(encoding='utf-8-sig'))
+    for name in required:
+        if name not in build_files:
+            raise SystemExit(f'Required file is absent from the current build: {name}')
+    for app in ('CodeLink', 'CodeLink.Host', 'clink', 'CodeLink.ConsoleBridge'):
+        options = json.loads((desktop / f'{app}.runtimeconfig.json').read_text())['runtimeOptions']
+        if not options.get('includedFrameworks') or options.get('frameworks') or options.get('framework'):
+            raise SystemExit(f'{app} must include its .NET runtime')
     archive = output / f'CodeLink-Windows-v{version}-{language}.zip'
     with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as zipped:
-        for path in sorted(desktop.iterdir()):
-            if path.is_file() and (path.suffix.lower() in {'.exe', '.dll'} or
-                                   path.name.endswith(('.deps.json', '.runtimeconfig.json')) or
-                                   path.name in {'LICENSE', 'THIRD_PARTY_NOTICES.md'}):
-                zipped.write(path, path.name)
-        for directory in ['assets', 'tools', 'licenses']:
-            for path in sorted((desktop / directory).rglob('*')):
-                if path.is_file():
-                    zipped.write(path, path.relative_to(desktop).as_posix())
+        for name in sorted(set(build_files)):
+            path = (desktop / name).resolve()
+            parts = Path(name).parts
+            if not path.is_relative_to(desktop.resolve()) or not path.is_file() or '\\' in name:
+                raise SystemExit(f'Invalid build file: {name}')
+            allowed = (len(parts) == 1 and (path.suffix.lower() in {'.exe', '.dll'} or
+                       name.endswith(('.deps.json', '.runtimeconfig.json')) or
+                       name in {'LICENSE', 'THIRD_PARTY_NOTICES.md', 'LICENSE.txt', 'ThirdPartyNotices.txt'})) or (
+                       len(parts) > 1 and (parts[0] in {'assets', 'tools', 'licenses', 'runtimes'} or
+                       re.fullmatch(r'[a-z]{2}(?:-[A-Za-z]{2,4})?', parts[0])))
+            if not allowed:
+                raise SystemExit(f'Unexpected file in build manifest: {name}')
+            zipped.write(path, name)
         # Always generate clean defaults; never copy a developer's runtime or pairing state.
         zipped.writestr('runtime.json', json.dumps({'instance': 'main', 'dataDirectory': 'state'}) + '\n')
         guide = 'docs/INSTALL.en.md' if language == 'en' else 'docs/INSTALL.md'

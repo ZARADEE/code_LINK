@@ -1,0 +1,68 @@
+{
+  "version": "1.4.0",
+  "checked_at": "2026-11-15T11:50:18.831820+00:00",
+  "device": "Lenovo TB371FC, Android 14 / ZUI 16",
+  "scope": "Physical Android tablet; 360dp/412dp phone windows simulated through display overrides. Physical phones and a Windows machine without a globally installed runtime have not been tested.",
+  "windows": {
+    "languages": [
+      "zh-CN",
+      "en"
+    ],
+    "selfContainedRuntimeMetadata": true,
+    "extractedZipLaunch": true,
+    "wpfWindow": true,
+    "cliHostRoundTrip": true,
+    "consoleBridge": true,
+    "runtimeEnvironmentRedirectedAwayFromGlobalInstall": true
+  },
+  "pairing": {
+    "authenticatedAttemptConfirmation": true,
+    "invalidCredentialsRejected": true,
+    "legacyClientReconnect": true,
+    "twoPhysicalUsbAttemptsPerLanguage": true
+  },
+  "android": {
+    "zh-CN": {
+      "checks": [
+        "360dp phone shows a full-height terminal list",
+        "Opening a phone terminal replaces the list",
+        "Phone navigation and send action remain visible",
+        "Soft keyboard was actually shown",
+        "Send button is visibly above the open keyboard",
+        "Sending with the soft keyboard open reaches the real Windows terminal",
+        "Draft survives resizing from 360dp to 412dp",
+        "Draft survives rotation to phone landscape",
+        "Draft survives phone landscape and return to portrait",
+        "Phone send reaches the real Windows terminal",
+        "Unsent text is not carried into another terminal",
+        "Returning to a terminal restores its own draft",
+        "Phone actions remain available at 130 percent font size",
+        "Tablet landscape shows list and detail together",
+        "Draft survives switching to the tablet layout",
+        "Tablet portrait keeps two panes when enough width is available"
+      ],
+      "passed": true
+    },
+    "en": {
+      "checks": [
+        "360dp phone shows a full-height terminal list",
+        "Opening a phone terminal replaces the list",
+        "Phone navigation and send action remain visible",
+        "Soft keyboard was actually shown",
+        "Send button is visibly above the open keyboard",
+        "Sending with the soft keyboard open reaches the real Windows terminal",
+        "Draft survives resizing from 360dp to 412dp",
+        "Draft survives rotation to phone landscape",
+        "Draft survives phone landscape and return to portrait",
+        "Phone send reaches the real Windows terminal",
+        "Unsent text is not carried into another terminal",
+        "Returning to a terminal restores its own draft",
+        "Phone actions remain available at 130 percent font size",
+        "Tablet landscape shows list and detail together",
+        "Draft survives switching to the tablet layout",
+        "Tablet portrait keeps two panes when enough width is available"
+      ],
+      "passed": true
+    }
+  }
+}

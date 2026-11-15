@@ -106,6 +106,7 @@ public sealed class Broker : IDisposable
             var hello=await Wire.Read(stream,alive.Token).WaitAsync(TimeSpan.FromSeconds(15));
             if(hello?.S("type")!="hello")throw new IOException("缺少设备握手");
             peer.Id=admin?"pc":hello.S("deviceId");peer.Name=admin?"本机":hello.S("name","Android 设备");
+            peer.PairingAttempt=!admin&&Guid.TryParseExact(hello.S("pairingAttempt"),"N",out var attempt)?attempt.ToString("N"):"";
             if(peer.Id.Length<2||peer.Id.Length>100||peer.Id=="pc"&&!admin)throw new IOException("设备身份无效");
             string issuedKey="";
             if(!admin)
@@ -157,7 +158,7 @@ public sealed class Broker : IDisposable
                             sessions=available.Select(s=>s.Snapshot(false)).ToArray(),selected=peer.Watch,output=delta,reset,
                             commands=commandWindows.Select(w=>{var activity=windowActivities.GetOrAdd(w.Id,_=>new());lock(activity)return new{key=w.Id,name=w.WindowTitle,processId=w.ProcessId,windowHandle=w.WindowHandle,kind="observer",status=activity.Status,activityCycle=activity.Cycle,sessionId=Sessions.Values.FirstOrDefault(s=>s.Kind=="observer"&&s.ObservedWindowHandle==w.WindowHandle&&s.ObservedProcessId==w.ProcessId)?.Id??""};})
                               .Concat(Sessions.Values.Where(s=>s.Kind!="observer"&&s.Status!="disconnected"&&s.Status!="exited").Select(s=>new{key=s.Id,name=s.Name,processId=0,windowHandle=0L,kind=s.Kind,status=s.Status,activityCycle=0L,sessionId=s.Id})).ToArray(),
-                            devices=admin?Storage.Config.Devices.Where(d=>!d.Revoked).Select(d=>new{d.Id,d.Name,online=peers.Values.Any(p=>p.Id==d.Id),transport=peers.Values.FirstOrDefault(p=>p.Id==d.Id)?.Transport??"离线"}).ToArray():null,
+                            devices=admin?Storage.Config.Devices.Where(d=>!d.Revoked).Select(d=>new{d.Id,d.Name,online=peers.Values.Any(p=>p.Id==d.Id),transport=peers.Values.FirstOrDefault(p=>p.Id==d.Id)?.Transport??"离线",pairingAttempt=peers.Values.FirstOrDefault(p=>p.Id==d.Id)?.PairingAttempt??""}).ToArray():null,
                             mobileInputs=admin?Sessions.Values.SelectMany(s=>s.PendingInputs()).ToArray():null,
                             pairing=admin?new{code=pairCode,expires=pairExpires,fingerprint=Storage.Fingerprint,port=Storage.Config.Port}:null},peer.WriteLock,alive.Token);
                         lastOutput=consumed;lastWatch=peer.Watch;lastGeneration=generation;sent=consumed==full?now:-1;heartbeat=DateTime.UtcNow;

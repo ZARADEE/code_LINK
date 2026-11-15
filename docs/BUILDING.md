@@ -1,6 +1,6 @@
 # 从源码构建
 
-构建环境为 Windows x64。发布的便携包只需要 .NET 10 Desktop Runtime；修改源码则需要下列开发工具。
+构建环境为 Windows x64。v1.4.0 的便携包已经包含 .NET 桌面运行时，用户无需额外安装；修改源码则需要下列开发工具。
 
 | 工具 | 用途 |
 | --- | --- |
@@ -53,6 +53,12 @@ dotnet run --project desktop/CodeLink.Smoke/CodeLink.Smoke.csproj --configuratio
 
 CI 在 Windows runner 中执行桌面和 APK 构建、Java 行为测试、终端状态识别样例和文档检查。自动构建通过不能代替真机 USB、蓝牙、输入投递或厂商后台策略验收。
 
+v1.4 新增 `python scripts/test-windows-package.py dist/desktop`，验证包内运行时、真实 WPF 窗口、CLI/代理通信和输入桥接；参数也可传入发布 ZIP，以验证用户下载并解压后的内容。打包读取本轮构建生成的 `build-files.json`，排除残留文件与本机状态。
+
+`dotnet run --project desktop/CodeLink.Smoke/CodeLink.Smoke.csproj --configuration Release -- --pairing-checks` 验证配对确认仅在认证后出现，并检查旧版客户端重连兼容性。
+
+Android 布局验收脚本为 `scripts/test-adaptive-layout.py`，需要 Pillow、已授权测试设备、运行中的测试代理，以及已构建的 `CodeLink.Smoke`。例如 `python scripts/test-adaptive-layout.py --serial YOUR_SERIAL --instance YOUR_TEST_INSTANCE`。脚本创建专用终端，临时调整窗口尺寸、旋转、字体与输入法，完成后恢复设置。手机窗口覆盖不能代替实体手机兼容性测试。Windows 向导可用 `scripts/test-connection-wizard.ps1 -DesktopPid YOUR_TEST_PID` 检查两次真实 USB 配对；两项设备测试均不在无设备 CI 上执行。
+
 ## 真机联调与实现
 
 `scripts/test-pad-*.py`、`scripts/test-b-group-mark.py` 和 `scripts/resume-pad-background.py` 是维护者的验收脚本，包含测试机的端口、路径或界面坐标。使用前按自己的环境调整，连接测试平板，并新建专用终端，避免向工作中的命令行写入测试输入。
@@ -69,7 +75,7 @@ CI 在 Windows runner 中执行桌面和 APK 构建、Java 行为测试、终端
 
 ## 发布包
 
-构建两端后运行 `python scripts/package-release.py`，在 `dist/releases/v1.3.0` 生成 Windows ZIP、Android APK 与 `SHA256SUMS.txt`。脚本只打包应用文件，重新生成默认 `runtime.json`，排除本机配对、状态和调试文件。
+构建两端后运行 `python scripts/package-release.py`，在 `dist/releases/v1.4.0` 生成 Windows ZIP、Android APK 与 `SHA256SUMS.txt`。脚本只打包应用文件，重新生成默认 `runtime.json`，排除本机配对、状态和调试文件。
 
 `v*` 标签或手动运行 **Build release packages** 会生成 GitHub Actions 测试产物。CI 每次生成的 Android 调试密钥不同，产物不会自动覆盖公开 Release。维护者发布升级 APK 时应沿用发布密钥，并在 Release 中记录证书指纹和安装限制。
 

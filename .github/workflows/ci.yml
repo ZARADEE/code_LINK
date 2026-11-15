@@ -32,6 +32,11 @@ jobs:
         run: ./scripts/build-desktop.ps1
       - name: Build English Windows clients
         run: ./scripts/build-desktop.ps1 -Language en
+      - name: Verify self-contained Windows packages
+        run: |
+          python scripts/test-windows-package.py dist/desktop
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/test-windows-package.py dist/desktop-en
       - name: Build Android APK
         run: ./scripts/build-android.ps1
       - name: Build English Android APK
@@ -48,3 +53,5 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Test terminal activity detection
         run: dotnet run --project desktop/CodeLink.Smoke/CodeLink.Smoke.csproj --configuration Release -- --activity
+      - name: Test authenticated pairing confirmation
+        run: dotnet run --project desktop/CodeLink.Smoke/CodeLink.Smoke.csproj --configuration Release -- --pairing-checks

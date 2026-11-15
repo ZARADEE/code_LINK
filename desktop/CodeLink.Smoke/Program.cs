@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Text.Json.Nodes;
 
 if(args.FirstOrDefault()=="--activity"){CodeLink.Smoke.ActivityChecks.Run();return;}
+if(args.FirstOrDefault()=="--pairing-checks"){await CodeLink.Smoke.PairingChecks.Run();return;}
 
 if(args.FirstOrDefault()=="--scan")
 {

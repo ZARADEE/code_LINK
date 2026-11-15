@@ -1,0 +1,53 @@
+name: First-use result / 首次连接反馈
+description: Tell us which setup step worked or failed, including successful first connections.
+title: "[First use] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Try `echo hello` in a test terminal first. We want to learn where setup succeeds or stalls.
+        请先在测试终端试通 `echo hello`。成功或卡住的具体步骤都对改进有帮助。请勿附配对凭据或私人终端输出。
+  - type: dropdown
+    id: result
+    attributes:
+      label: Last step reached / 最后完成的一步
+      options:
+        - Downloaded packages / 已下载
+        - Opened both apps / 两端已打开
+        - USB debugging authorized / USB 调试已授权
+        - Tablet connected / 平板已连接
+        - Terminal output visible / 已看到终端输出
+        - Input round trip succeeded / 输入与输出试通
+        - Background completion alert received / 已收到后台完成提醒
+    validations:
+      required: true
+  - type: input
+    id: setup
+    attributes:
+      label: Devices and versions / 设备与版本
+      placeholder: Windows 11, Lenovo tablet, Android 14, Code Link v1.4.0 en, USB
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Your intended workflow / 想解决的具体问题
+      description: What do you run, and when would you use the tablet? / 平时跑什么任务，何时会用到平板？
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: What happened next? / 接下来发生了什么？
+      description: Include exact error text and terminal type if setup stalled. Blur private data in screenshots.
+    validations:
+      required: true
+  - type: dropdown
+    id: return
+    attributes:
+      label: Would you use it again? / 是否打算继续使用？
+      options:
+        - Yes / 会
+        - Need help with setup / 需要先解决连接问题
+        - Missing a feature / 缺少需要的功能
+        - It does not fit my workflow / 与使用习惯不符

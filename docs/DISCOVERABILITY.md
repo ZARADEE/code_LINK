@@ -2,12 +2,12 @@
 
 ## GitHub 入口
 
-About 使用中英文用途说明，主页指向 [Code Link 项目站](https://zaradee.github.io/code_LINK/)。搜索分类使用 Topics，版本管理使用 `v1.3.0` 这类 Git 标签。当前 Topics 覆盖四个平台与实际功能。
+About 使用英文用途说明，主页指向[英文项目站](https://zaradee.github.io/code_LINK/en.html)，站内可切换中文。搜索分类使用 Topics，版本管理使用 `v1.4.0` 这类 Git 标签。当前 Topics 优先描述终端伴侣、本地连接和实际平台。
 
 ```text
-terminal remote-terminal terminal-companion windows macos android ios ipad
-codex codex-cli powershell usb bluetooth local-first remote-control
-notifications developer-tools csharp swift swiftui
+android android-tablet windows macos ios terminal terminal-companion
+terminal-monitor remote-terminal remote-control codex codex-cli powershell
+developer-tools productivity usb bluetooth local-first task-management notifications
 ```
 
 README 将用途、真实截图和下载放在前面；构建、贡献、安全、路线图与安装文档提供进一步入口。Topics 帮助 GitHub 分类，README 正文提供用户真正会搜索的用途与操作说明。
@@ -16,13 +16,13 @@ README 将用途、真实截图和下载放在前面；构建、贡献、安全�
 
 页面由 GitHub Pages 工作流部署。中文首页与 `en.html` 是直接返回正文的静态 HTML，各自提供标题、描述、canonical、双向 hreflang、Open Graph、Twitter Card 和 SoftwareApplication JSON-LD。结构化数据只描述实际支持的系统、当前版本、免费代码许可和下载地址。
 
-`sitemap.xml` 列出两种语言页面，网页头部也链接站点地图。`llms.txt` 提供自动阅读工具可用的文档索引，属于补充约定。它不代替 robots 规则，也不控制搜索排名。
+`sitemap.xml` 列出中英文首页与场景指南，网页头部也链接站点地图。指南提供可执行的 USB、Codex 和并行任务步骤，使用 TechArticle 结构化数据，与首页互相链接。`llms.txt` 提供自动阅读工具可用的文档索引，属于补充约定。它不代替 robots 规则，也不控制搜索排名。
 
 ## robots.txt 的位置
 
 GitHub Pages 项目站位于 `/code_LINK/`。搜索爬虫读取的是 `https://zaradee.github.io/robots.txt`；本仓库中的 `site/robots.txt` 发布为 `/code_LINK/robots.txt`，只作为可合并至根站的规则样例。页面使用 `index,follow` 元数据允许收录。github.com 自身的抓取策略由 GitHub 管理。
 
-如果以后维护 `ZARADEE/ZARADEE.github.io` 根站，可在根路径提供允许抓取的规则，并加入本站地图地址。此次仅配置 code_LINK 仓库。
+根路径当前返回 404，按 Google 的 robots 处理规则不构成禁止抓取。如果以后维护 `ZARADEE/ZARADEE.github.io` 根站，可在根路径加入本站地图地址。此次仅配置 code_LINK 仓库。
 
 ## 搜索平台收录
 

@@ -29,6 +29,18 @@
 
 [安装速查](docs/INSTALL.md) · [下一步计划](docs/ROADMAP.md) · [项目主页](https://zaradee.github.io/code_LINK/)
 
+## 什么情况下最适合用它
+
+你在 Windows 上同时运行 Codex、构建和测试，又不想反复切换终端窗口。Code Link 把手边的 Android 平板变成独立任务看板，让你查看输出、处理授权，并在单个任务或整批任务完成时收到提醒。本地连接，无需账号或云端中继。
+
+- **写代码时，Codex 又在等确认。** 在平板上看清提示并回答。已有 Codex 窗口可以直接接入；需要结构化授权卡片和回合状态时，用 `clink codex` 启动。
+- **几项独立任务同时运行。** 给终端命名，A 组分别提醒，B 组等本轮参与的任务全部成功后统一提醒。失败、中断和未知状态不会冒充成功。
+- **手边有块闲置平板。** 用 USB 放在编辑器旁当任务看板；临时切到其他 Android 应用时，由前台服务继续接收支持的状态提醒。
+
+目前最成熟的使用方式是 **Windows 与桌边的 Android 平板**，重点在已有窗口接入、本地 USB / 蓝牙、终端输入与整批提醒的组合。需要完整图形窗口时可用副屏，需要远程服务器管理时可用 SSH；Code Link 适合把本机终端任务交给已有平板照看。Mac 管理应用内创建的终端，iOS 是开发预览，具体范围见下文。
+
+**[按场景上手：Codex 授权、并行任务与闲置平板 →](https://zaradee.github.io/code_LINK/windows-android-terminal.html)**
+
 ## 你可以用它做什么
 
 | 使用场景 | Code Link 的操作 |
@@ -48,8 +60,8 @@
 
 | 你的设备 | 当前可用的方式 | 从这里开始 |
 | --- | --- | --- |
-| Windows + Android 平板 | 已有终端同步、输入、USB / 蓝牙和 Android 后台提醒；已有真机验收 | [下载中文 Windows 包](https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-Windows-v1.3.0-zh-CN.zip) + [Android APK](https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-Android-v1.3.0-zh-CN.apk) |
-| Mac + Android | 在 Mac 创建托管终端或 Codex 会话，通过局域网连接；跨设备真机验收待完成 | [Apple silicon](https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-macOS-AppleSilicon-v1.3.0-en.zip) / [Intel](https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-macOS-Intel-v1.3.0-en.zip) · [Mac 说明](docs/APPLE.md) |
+| Windows + Android 平板 | 已有终端同步、输入、USB / 蓝牙和 Android 后台提醒；已有真机验收 | [下载中文 Windows 包](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Windows-v1.4.0-zh-CN.zip) + [Android APK](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Android-v1.4.0-zh-CN.apk) |
+| Mac + Android | 在 Mac 创建托管终端或 Codex 会话，通过局域网连接；跨设备真机验收待完成 | [Apple silicon](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-macOS-AppleSilicon-v1.4.0-en.zip) / [Intel](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-macOS-Intel-v1.4.0-en.zip) · [Mac 说明](docs/APPLE.md) |
 | iPhone / iPad | 开发预览，提供模拟器包与自行签名源码；后台暂停连接 | [Apple 安装说明](docs/APPLE.md) |
 
 Mac 用户直接下载 Mac 应用即可，iOS 真机签名只涉及安装到 iPhone / iPad。Mac 当前管理 Code Link 内创建的终端，Windows 还支持接入已有窗口。
@@ -66,14 +78,14 @@ Mac 用户直接下载 Mac 应用即可，iOS 真机签名只涉及安装到 iPh
 
 | 客户端 | 下载文件 | 安装方法 |
 | --- | --- | --- |
-| Windows | `CodeLink-Windows-v1.3.0-zh-CN.zip` | 解压并保留完整目录，双击 `CodeLink.exe` |
-| Android | `CodeLink-Android-v1.3.0-zh-CN.apk` | 复制到平板后安装，按系统提示允许该来源安装应用 |
-| Windows 英文版 | `CodeLink-Windows-v1.3.0-en.zip` | 英文界面、托盘菜单、错误提示与 CLI 帮助 |
-| Android 英文版 | `CodeLink-Android-v1.3.0-en.apk` | 英文界面、通知和设置；可覆盖中文版并保留应用数据 |
-| macOS 14+ | `CodeLink-macOS-AppleSilicon-v1.3.0-en.zip` / `CodeLink-macOS-Intel-v1.3.0-en.zip` | 解压并放入 Applications，参见 [Apple 指南](docs/APPLE.md) |
-| iOS / iPadOS 17+ | `CodeLink-iOS-Simulator-v1.3.0-en.zip` / `CodeLink-Apple-Source-v1.3.0-en.zip` | Mac 模拟器运行，或用自己的 Apple 账号在 Xcode 签名；非直接安装包 |
+| Windows | `CodeLink-Windows-v1.4.0-zh-CN.zip` | 解压并保留完整目录，双击 `CodeLink.exe` |
+| Android | `CodeLink-Android-v1.4.0-zh-CN.apk` | 复制到平板后安装，按系统提示允许该来源安装应用 |
+| Windows 英文版 | `CodeLink-Windows-v1.4.0-en.zip` | 英文界面、托盘菜单、错误提示与 CLI 帮助 |
+| Android 英文版 | `CodeLink-Android-v1.4.0-en.apk` | 英文界面、通知和设置；可覆盖中文版并保留应用数据 |
+| macOS 14+ | `CodeLink-macOS-AppleSilicon-v1.4.0-en.zip` / `CodeLink-macOS-Intel-v1.4.0-en.zip` | 解压并放入 Applications，参见 [Apple 指南](docs/APPLE.md) |
+| iOS / iPadOS 17+ | `CodeLink-iOS-Simulator-v1.4.0-en.zip` / `CodeLink-Apple-Source-v1.4.0-en.zip` | Mac 模拟器运行，或用自己的 Apple 账号在 Xcode 签名；非直接安装包 |
 
-Windows 需要 [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)，下载页选择 **.NET Desktop Runtime → Windows x64**。Android 最低安装版本为 9，当前界面主要面向横屏平板。
+v1.4.0 的 Windows x64 包已包含 .NET 10 桌面运行时，无需另行安装；请完整解压后运行 `CodeLink.exe`。Android 最低安装版本为 9，窄屏手机使用列表／详情切换，宽度足够的平板同时显示两栏；旋转和调整窗口大小会保留各终端的输入草稿。
 
 Release 同时提供 `SHA256SUMS.txt`，可按[安装说明](docs/INSTALL.md)核对下载。当前 Android 包使用开发签名，Windows 程序尚无商业代码签名；Windows / Android 提供简体中文与英文包，文件名以 zh-CN 或 en 标注。Apple 下载另附 `APPLE-SHA256SUMS.txt`。
 
@@ -135,7 +147,7 @@ B 组在全部完成时才同时标红标签和本轮成员。逐个点击查看
 
 ![Android 上实际出现的 A 组与 B 组完成横幅](docs/assets/notifications.png)
 
-首次使用请打开 App 顶部的**后台与通知**。
+首次使用请打开 App 顶部的**更多 → 后台与通知**。
 
 1. 允许通知权限，并在**设置完成横幅**中开启横幅或悬浮通知。
 2. 点击**允许后台运行**，按系统提示放行电池优化限制。
@@ -275,4 +287,4 @@ macOS 提供 Apple silicon 和 Intel 包，内含 .NET 运行时，尚未进行 
 
 维护者为 [ZARADEE](https://github.com/ZARADEE)。本项目为独立开发的终端伴随工具。
 
-*Windows 与平板主界面于 2026-11-14 实际连接后拍摄，通知来自既有真机记录；规则图为说明示意。本机路径、设备名和私人窗口标题已模糊。[图片来源](docs/assets/README.md)。README 对应 Android 1.3.0。*
+*Windows 与平板主界面于 2026-11-14 实际连接后拍摄，通知来自既有真机记录；规则图为说明示意。本机路径、设备名和私人窗口标题已模糊。[图片来源](docs/assets/README.md)。README 对应 Android 1.4.0。*

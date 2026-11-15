@@ -122,6 +122,9 @@ public sealed class Peer : IDisposable
 {
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";
+    // Correlates a desktop USB setup attempt with the authenticated mobile hello.
+    // It grants no authority and is only exposed to local admin clients.
+    public string PairingAttempt { get; set; } = "";
     public bool Admin { get; set; }
     public string Transport { get; set; } = "";
     public string Watch { get; set; } = "";

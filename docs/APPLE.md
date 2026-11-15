@@ -24,7 +24,7 @@ Requirements: macOS 14 or newer; iOS / iPadOS 17 or newer. macOS packages are pr
 
 The macOS application is ad-hoc signed, without an Apple Developer ID or notarization. Download it from this repository's release, unzip it, and move CodeLink.app to Applications. If macOS blocks it, use System Settings → Privacy & Security → Open Anyway after checking the release checksum. Do not disable Gatekeeper globally.
 
-There is no signed iPhone IPA or TestFlight release. `CodeLink-iOS-Simulator` runs in Xcode's iOS Simulator on a Mac. `CodeLink-iOS-unsigned-archive` is an unsigned device archive for developers; it cannot be installed directly on an iPhone. `CodeLink-Apple-Source` contains an Xcode project for personal signing. Open `apple/CodeLink.xcodeproj`, select CodeLinkiOS, set **Build Settings → Code Signing Allowed** to **Yes**, enable automatic signing, select your own development team and bundle identifier, and run on a connected device. A free Apple Account can be used for personal device testing under Apple's provisioning limits. App Store / TestFlight distribution needs paid Apple Developer Program membership.
+There is no signed iPhone IPA or TestFlight release. `CodeLink-iOS-Simulator` runs in Xcode's iOS Simulator on a Mac. `CodeLink-iOS-unsigned-archive` is an unsigned device archive for developers; it cannot be installed directly on an iPhone. `CodeLink-Apple-Source` contains the generated Xcode project and the build inputs for the Mac backend. Open `apple/CodeLink.xcodeproj`, select CodeLinkiOS, enable automatic signing, select your own development team and a unique bundle identifier, and run on a connected device. Signing is enabled for personal builds; the CI script explicitly disables it for unsigned device archives. A free Apple Account can be used for personal device testing under Apple's provisioning limits. App Store / TestFlight distribution needs paid Apple Developer Program membership.
 
 ## First connection
 
@@ -62,6 +62,10 @@ For terminal completion reminders, create a session with a command that exits wh
 
 Install Xcode, its command-line tools, .NET 10 SDK and XcodeGen (`brew install xcodegen`) on a Mac. Run `bash scripts/build-apple.sh` from the repository root. Output is in `dist/apple`. The script builds both Mac architectures, an iOS simulator app, an unsigned iOS device archive and a source archive. It runs protocol / reminder checks and exercises the real macOS host.
 
-The GitHub Apple workflow performs the same build on macOS. Build logs, checksums and screenshots are uploaded as workflow artifacts. Unsigned archives are clearly separated from runnable simulator packages.
+The GitHub Apple workflow fixes Xcode 16.4 and Python 3.12 on the macOS 15 Intel runner, builds both Mac architectures, and tests the native host with newly created iPhone and iPad simulators. It uploads packages after the application checks pass. Build logs and screenshots are retained even after a failure.
+
+For publication, push a tag matching the application version, such as `v1.3.0`. An Apple rebuild can use `v1.3.0-apple.1` to create a separate prerelease while retaining the existing Windows/Android release. The tag, version and validated commit must match. The workflow verifies every package and its uploaded SHA-256 digest before publishing the draft. Published files are never overwritten. Apple rebuilds do not run the Windows/Android release workflow.
+
+The source archive includes `SOURCE-FILES.txt` so `bash scripts/build-apple.sh` also works from the extracted source without a Git checkout. CI validates source completeness, CPU architectures, executable permissions, runtime libraries, app metadata and checksums. Run `python3 -m unittest discover -s scripts -p 'test_apple_*.py' -v` for packaging and publication regression checks.
 
 Apple references: [distribution options](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases), [free account and program comparison](https://developer.apple.com/support/compare-memberships/), [opening apps safely](https://support.apple.com/en-us/102445).

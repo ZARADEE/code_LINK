@@ -7,6 +7,8 @@ permissions:
   contents: read
 jobs:
   package:
+    # Apple-only rebuild tags are published by apple.yml; retain the Android key.
+    if: ${{ !contains(github.ref_name, '-apple.') }}
     runs-on: windows-latest
     timeout-minutes: 25
     steps:

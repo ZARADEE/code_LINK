@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Use an Android tablet for Windows terminal tasks and Codex approvals | Code Link</title>
+<meta name="description" content="Three complete Code Link workflows: handle Codex prompts from an Android tablet, monitor independent builds and tests, and keep a spare tablet connected over local USB.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://zaradee.github.io/code_LINK/windows-android-terminal.en.html">
+<link rel="alternate" hreflang="en" href="https://zaradee.github.io/code_LINK/windows-android-terminal.en.html">
+<link rel="alternate" hreflang="zh-CN" href="https://zaradee.github.io/code_LINK/windows-android-terminal.html">
+<link rel="alternate" hreflang="x-default" href="https://zaradee.github.io/code_LINK/windows-android-terminal.en.html">
+<link rel="stylesheet" href="styles.css"><link rel="icon" href="assets/logo.png" type="image/png">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<meta property="og:type" content="article"><meta property="og:title" content="Use an Android tablet for Windows terminal tasks and Codex approvals">
+<meta property="og:description" content="Three complete Code Link workflows: handle Codex prompts from an Android tablet, monitor independent builds and tests, and keep a spare tablet connected over local USB."><meta property="og:url" content="https://zaradee.github.io/code_LINK/windows-android-terminal.en.html">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Use an Android tablet for Windows terminal tasks and Codex approvals", "description": "Three complete Code Link workflows: handle Codex prompts from an Android tablet, monitor independent builds and tests, and keep a spare tablet connected over local USB.", "url": "https://zaradee.github.io/code_LINK/windows-android-terminal.en.html", "inLanguage": "en", "datePublished": "2026-11-15", "dateModified": "2026-11-15", "author": {"@type": "Person", "name": "ZARADEE", "url": "https://github.com/ZARADEE"}, "about": {"@type": "SoftwareApplication", "name": "Code Link", "url": "https://zaradee.github.io/code_LINK/en.html"}}</script>
+</head><body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="wrap nav"><a class="brand" href="en.html"><img src="assets/logo.png" width="38" height="38" alt=""><span>Code Link</span></a><nav aria-label="Navigation"><a href="en.html">Project home</a><a href="windows-android-terminal.html" hreflang="zh-CN" lang="zh-CN">简体中文</a><a href="https://github.com/ZARADEE/code_LINK">GitHub ↗</a></nav></header>
+<main id="main" class="wrap article"><p class="eyebrow">WORKFLOWS · WINDOWS + ANDROID</p><h1>Use an Android tablet for Windows terminal tasks and Codex approvals</h1><p class="intro">Keep your editor in front and put terminal progress on the tablet beside you. This guide takes you from a first USB connection to three useful daily workflows.</p>
+<a class="button" href="en.html#downloads">Choose downloads ↓</a>
+<h2 id="connect">Start with one USB connection</h2>
+<ol><li>Get the matching Windows ZIP and Android APK from <a href="en.html#downloads">the download picker</a>. Windows v1.4.0 includes the runtime. Extract the entire ZIP and open <code>CodeLink.exe</code>; install and open the APK on Android 9 or newer.</li>
+<li>Enable Android Developer options and USB debugging. Use a data cable, unlock the tablet and accept the computer authorization prompt.</li>
+<li>Choose <strong>Pair device → Connect over USB</strong> in Windows. The connection window shows progress and specific actions for missing, unauthorized or offline devices. Confirm that the tablet shows USB connected.</li>
+<li>Open a disposable PowerShell window. Select it on the tablet, or select the terminal and online device on Windows and choose <strong>Share with device</strong>. Send <code>echo hello</code>, then Enter if needed. Both screens should show <code>hello</code>.</li></ol>
+<p>If Android connects but output stays empty, a terminal still needs to be selected. An online-device count confirms that the host sees a device; it does not replace the input-and-output check.</p>
+<h2 id="codex">1. Handle a Codex prompt while working in your editor</h2>
+<p>You have an agent running on your PC and it pauses for your decision. With an existing Codex window selected, read the original terminal prompt on Android and send the answer or shortcut key. Existing-window capture keeps your current PC workflow intact.</p>
+<p>For structured approval cards and turn status, start a managed session from the extracted Code Link directory. Install and authenticate Codex CLI on the PC first.</p>
+<pre><code>.\clink.exe codex --cwd "D:\your-project" --name "Project assistant" --new-window</code></pre>
+<p>Choose that session on the tablet. Review the request before accepting or declining it. A completion reminder marks an event; acknowledging it never approves a command. Code Link supplies the connection and interface; the local Codex installation runs the agent.</p>
+<h2 id="batch">2. Watch independent jobs and return when the batch succeeds</h2>
+<p>For example, test a backend while a separate frontend builds. Run your normal commands in existing windows, or launch finite managed commands. The paths and tools below are examples: use your own projects, install their dependencies first, and run independent tasks.</p>
+<pre><code>.\clink.exe terminal --cwd "D:\projects\api" --name "API tests" --new-window -- dotnet test
+.\clink.exe terminal --cwd "D:\projects\web" --name "Web build" --new-window -- npm.cmd run build</code></pre>
+<p>Managed finite commands report completion from the process exit code. Put both in B for a reminder after all participating jobs in that round succeed; use A when each job should alert independently. Idle terminals that never ran do not hold up B. Failed, disconnected, interrupted or unknown tasks do not count as success.</p>
+<p>An interactive PowerShell window remains alive between commands, so its status depends on supported screen markers. For reliable finite-job results, launch the actual command as shown above. Existing Windows Terminal mappings follow the active tab; use separate windows for independent capture.</p>
+<h2 id="tablet">3. Give a spare tablet a permanent place on the desk</h2>
+<p>Keep the tablet in landscape beside your editor and leave Code Link in the Windows tray. Open <strong>More → Background &amp; alerts</strong> on Android, then allow notifications, completion banners and background operation. You can switch Android apps while the connected-device foreground service continues receiving supported updates.</p>
+<p>Start a short task with a known completion signal, switch Android apps and confirm its banner. Then try your normal workload. USB input, background delivery and an 89-minute connection were validated on a Lenovo Xiaoxin Pad Pro 12.7, Android 14 / ZUI 16. Your vendor's battery settings and Do Not Disturb can affect banners. Unplugging the cable or sleeping the PC interrupts live updates.</p>
+<h2 id="choose">Choose the workflow that fits your devices</h2>
+<p>Code Link is strongest for an Android tablet beside a Windows PC, especially when you want to keep existing terminal windows. A second monitor is useful for full graphical applications; SSH is useful for server administration. Agent-focused mobile tools offer their own session workflows. Here the focus is local terminal output, input and task reminders on hardware you already have.</p>
+<p>Mac supports sessions created inside Code Link and LAN connections. iOS is a developer preview, pauses its connection in the background, and needs a simulator or personal signing. Read the <a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md">Apple capability and installation guide</a> before choosing those packages.</p>
+<h2 id="feedback">Tell us where your first connection stopped</h2>
+<p>Try the <code>echo hello</code> round trip before a long task. When asking for help, include your Windows version, tablet model and Android version, package language, transport, terminal type, and the last step that worked. Keep pairing details and private terminal output out of screenshots.</p>
+<p><a href="https://github.com/ZARADEE/code_LINK/issues/new?template=first-connection.yml">Report your first-use result</a> · <a href="https://github.com/ZARADEE/code_LINK/discussions">Ask a question or share your workflow</a></p>
+<figure><img src="assets/workflow-complete.png" width="1400" height="770" alt="Real Android tablet showing repository checks and a completion reminder" loading="lazy"><figcaption>Actual USB hardware capture, Chinese interface; private details blurred.</figcaption></figure>
+</main><footer class="wrap"><p>Code Link · <a href="https://github.com/ZARADEE">ZARADEE</a></p><a href="en.html">Project home</a></footer></body></html>

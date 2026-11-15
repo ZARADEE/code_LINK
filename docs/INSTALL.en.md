@@ -4,12 +4,12 @@ Download from [Code Link Releases](https://github.com/ZARADEE/code_LINK/releases
 
 ## Windows and Android
 
-1. Download `CodeLink-Windows-v1.3.0-en.zip` and `CodeLink-Android-v1.3.0-en.apk`.
-2. Install [.NET 10 Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) on Windows. Extract the entire ZIP and open `CodeLink.exe`.
-3. Install the APK on Android 9 or newer and allow notifications. A landscape tablet provides the most room for terminal output.
+1. Download `CodeLink-Windows-v1.4.0-en.zip` and `CodeLink-Android-v1.4.0-en.apk`.
+2. The Windows runtime is included. Extract the entire ZIP and open `CodeLink.exe`.
+3. Install the APK on Android 9 or newer and allow notifications. Phone windows use a list/detail flow with a Back to list button. Tablets use two panes when at least 600dp of width and 480dp of height are available; split-screen adapts to the remaining window.
 4. Enable USB debugging on Android, connect a data cable, unlock the device and authorize your computer.
 5. In the Windows panel, choose **Pair device → Connect over USB**. Select a terminal on Android, or select a terminal and device in Windows and choose **Share with device**.
-6. Send a short command and check the output. Use **Background & alerts** on Android to allow completion banners and background activity. Keep the Windows tray application running.
+6. Send a short command and check the output. Use **More → Background & alerts** on Android to allow completion banners and background activity. Keep the Windows tray application running.
 
 Group A alerts after each task completes. Group B alerts when all tasks in the current batch finish successfully. Approvals, failures and interruptions are handled separately. An idle terminal is not automatically treated as a finished task.
 
@@ -26,8 +26,8 @@ The language applies to Code Link's interface and messages. Terminal output, fil
 Compare these results with `SHA256SUMS.txt` from the same release:
 
 ```powershell
-Get-FileHash .\CodeLink-Windows-v1.3.0-en.zip -Algorithm SHA256
-Get-FileHash .\CodeLink-Android-v1.3.0-en.apk -Algorithm SHA256
+Get-FileHash .\CodeLink-Windows-v1.4.0-en.zip -Algorithm SHA256
+Get-FileHash .\CodeLink-Android-v1.4.0-en.apk -Algorithm SHA256
 ```
 
 The APK uses a development signing certificate. Windows executables do not have a commercial code-signing certificate. Source builds and CI test APKs may use a different Android signing key, so they cannot replace the published APK without a matching key.

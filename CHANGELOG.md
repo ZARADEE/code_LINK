@@ -1,5 +1,17 @@
 # 版本记录
 
+## v1.4.0 — 2026-11-15
+
+- Windows English and Chinese packages now include the .NET Desktop Runtime.
+- Guided USB pairing shows progress, online-device count and actionable errors in the connection window.
+- USB setup now waits for the Android app to authenticate the current attempt before reporting success; the pairing QR code can be refreshed.
+- Android uses a terminal list/detail flow on narrow phone windows and two panes on tablets with enough space. Rotation and window resizing preserve per-terminal input drafts.
+- Phone keyboard layouts keep input and Send visible; terminal shortcuts scroll horizontally and settings dialogs scroll vertically.
+- Windows packages use a fresh publish manifest to exclude stale runtime files and machine state.
+- English and Chinese introductions explain the target user, concrete workflows and platform boundaries; the site adds a complete workflow guide.
+- Apple CI uses isolated, headless simulators while preserving real iPhone/iPad pairing and terminal checks.
+
+
 ## 1.3.0 · 2026-11-14
 
 - Windows 与 Android 新增英文发布包，覆盖界面、通知、设置、错误提示与 CLI 帮助；所有应用包名标注 `zh-CN` 或 `en`。

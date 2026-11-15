@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用 Android 平板照看 Windows 终端、Codex 授权与并行任务 | Code Link</title>
+<meta name="description" content="从 USB 首次连接开始，完整演示 Code Link 的三个场景：平板处理 Codex 提示、查看独立构建与测试、把闲置平板用作本地终端任务看板。">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://zaradee.github.io/code_LINK/windows-android-terminal.html">
+<link rel="alternate" hreflang="en" href="https://zaradee.github.io/code_LINK/windows-android-terminal.en.html">
+<link rel="alternate" hreflang="zh-CN" href="https://zaradee.github.io/code_LINK/windows-android-terminal.html">
+<link rel="alternate" hreflang="x-default" href="https://zaradee.github.io/code_LINK/windows-android-terminal.en.html">
+<link rel="stylesheet" href="styles.css"><link rel="icon" href="assets/logo.png" type="image/png">
+<link rel="sitemap" type="application/xml" href="sitemap.xml">
+<meta property="og:type" content="article"><meta property="og:title" content="用 Android 平板照看 Windows 终端、Codex 授权与并行任务">
+<meta property="og:description" content="从 USB 首次连接开始，完整演示 Code Link 的三个场景：平板处理 Codex 提示、查看独立构建与测试、把闲置平板用作本地终端任务看板。"><meta property="og:url" content="https://zaradee.github.io/code_LINK/windows-android-terminal.html">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "用 Android 平板照看 Windows 终端、Codex 授权与并行任务", "description": "从 USB 首次连接开始，完整演示 Code Link 的三个场景：平板处理 Codex 提示、查看独立构建与测试、把闲置平板用作本地终端任务看板。", "url": "https://zaradee.github.io/code_LINK/windows-android-terminal.html", "inLanguage": "zh-CN", "datePublished": "2026-11-15", "dateModified": "2026-11-15", "author": {"@type": "Person", "name": "ZARADEE", "url": "https://github.com/ZARADEE"}, "about": {"@type": "SoftwareApplication", "name": "Code Link", "url": "https://zaradee.github.io/code_LINK/en.html"}}</script>
+</head><body>
+<a class="skip" href="#main">跳到正文</a>
+<header class="wrap nav"><a class="brand" href="./"><img src="assets/logo.png" width="38" height="38" alt=""><span>Code Link</span></a><nav aria-label="导航"><a href="./">项目首页</a><a href="windows-android-terminal.en.html" hreflang="en" lang="en">English</a><a href="https://github.com/ZARADEE/code_LINK">GitHub ↗</a></nav></header>
+<main id="main" class="wrap article"><p class="eyebrow">使用场景 · WINDOWS + ANDROID</p><h1>用 Android 平板照看 Windows 终端、Codex 授权与并行任务</h1><p class="intro">让编辑器留在电脑前台，把任务进度交给桌边的平板。下面从首次 USB 连接开始，走完三个日常用法。</p>
+<a class="button" href="./#downloads">选择下载 ↓</a>
+<h2 id="connect">先完成一次 USB 输入与输出</h2>
+<ol><li>从<a href="index.html#downloads">下载选择器</a>获取同语言的 Windows ZIP 与 Android APK。Windows v1.4.0 已包含运行时，完整解压后打开 <code>CodeLink.exe</code>；在 Android 9 或以上安装并打开 APK。</li>
+<li>在 Android 开启开发者选项和 USB 调试，用支持数据传输的线连接电脑，解锁平板并允许这台电脑进行调试。</li>
+<li>电脑选择<strong>连接设备 → USB 一键连接</strong>。连接窗口会显示执行进度，并针对未发现设备、未授权或离线给出处理方法。确认平板显示 USB 已连接。</li>
+<li>打开一个用于测试的 PowerShell 窗口，在平板选择它；也可在电脑选中终端与在线设备后点击<strong>映射到移动端</strong>。发送 <code>echo hello</code>，必要时再按 Enter，两端都应看到 <code>hello</code>。</li></ol>
+<p>设备在线但没有输出，通常还需要选择终端。在线设备数说明主机看到了连接，首次使用仍应完成一次输入与输出验证。</p>
+<h2 id="codex">1. 写代码时，从平板处理 Codex 提示</h2>
+<p>电脑上的代理任务在等你确认，但编辑器正占着屏幕。选择已有的 Codex 窗口，在 Android 阅读原始终端提示，再发送回答或按键，电脑端可以继续沿用原来的工作方式。</p>
+<p>如果需要结构化授权卡片与回合状态，在完整解压的 Code Link 目录执行下面的命令。先在电脑安装并登录 Codex CLI。</p>
+<pre><code>.\clink.exe codex --cwd "D:\your-project" --name "Project assistant" --new-window</code></pre>
+<p>在平板选择这个会话，读清请求后再接受或拒绝。完成提醒只记录事件，确认已读不会批准命令。代理仍由电脑上的 Codex 运行，Code Link 负责连接和操作界面。</p>
+<h2 id="batch">2. 同时照看独立任务，整批成功后再回来</h2>
+<p>例如后端跑测试，独立的前端项目做构建。可以直接接入已有窗口，也可以启动有限时长的托管命令。下面的路径与工具只是示例，请换成自己的项目，先安装依赖，并确保两项任务可以独立执行。</p>
+<pre><code>.\clink.exe terminal --cwd "D:\projects\api" --name "API tests" --new-window -- dotnet test
+.\clink.exe terminal --cwd "D:\projects\web" --name "Web build" --new-window -- npm.cmd run build</code></pre>
+<p>有限时长的托管命令根据进程退出码判断结果。将两项任务放进 B 组，本轮参与的任务全部成功后统一提醒；想分别收到提醒就用 A 组。没开始工作的空闲终端不会阻挡 B 组，失败、断连、中断与未知状态不会计为成功。</p>
+<p>普通 PowerShell 窗口在命令结束后仍会保持运行，需要支持的屏幕标记才能识别状态。需要明确的有限任务结果时，按上例直接运行实际命令。已有 Windows Terminal 窗口的映射跟随当前活动标签页，独立任务建议使用独立窗口。</p>
+<h2 id="tablet">3. 把闲置平板固定放在编辑器旁</h2>
+<p>平板保持横屏，Windows 应用留在托盘。Android 打开<strong>更多 → 后台与通知</strong>，允许通知、完成横幅与后台运行。临时切到其他 Android 应用时，由连接设备前台服务继续接收支持的更新。</p>
+<p>先运行一条有明确完成信号的短任务，切换 Android 应用，检查是否收到横幅，再尝试日常工作负载。USB 输入、后台送达与一次 89 分钟连续连接已在小新 Pad Pro 12.7、Android 14 / ZUI 16 上验证。各厂商电池策略与勿扰设置会影响横幅，拔线或电脑休眠会中断实时更新。</p>
+<h2 id="choose">按需求选择工具和平台</h2>
+<p>Code Link 目前最适合 Windows 与桌边的 Android 平板，尤其是希望继续使用已有终端窗口的场景。完整图形界面适合副屏，服务器管理适合 SSH，专门的代理移动客户端也有各自的会话方式。这里重点解决本机终端输出、输入与任务提醒，让已有平板派上用场。</p>
+<p>Mac 支持 Code Link 内创建的托管会话和局域网连接。iOS 是开发预览，进入后台会暂停连接，安装需要模拟器或自行签名。选择前请查看 <a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md">Apple 功能与安装说明</a>。</p>
+<h2 id="feedback">告诉我们首次连接卡在哪一步</h2>
+<p>先试通 <code>echo hello</code>，再运行长任务。反馈时附 Windows 版本、平板型号与 Android 版本、安装包语言、连接方式、终端类型，以及最后成功的一步。截图前遮住配对信息和私人终端内容。</p>
+<p><a href="https://github.com/ZARADEE/code_LINK/issues/new?template=first-connection.yml">反馈首次使用结果</a> · <a href="https://github.com/ZARADEE/code_LINK/discussions">提问或分享实际用法</a></p>
+<figure><img src="assets/workflow-complete.png" width="1400" height="770" alt="真实 Android 平板显示仓库检查输出与完成提醒" loading="lazy"><figcaption>USB 真机截图，中文界面，私人信息已遮挡。</figcaption></figure>
+</main><footer class="wrap"><p>Code Link · <a href="https://github.com/ZARADEE">ZARADEE</a></p><a href="./">项目首页</a></footer></body></html>

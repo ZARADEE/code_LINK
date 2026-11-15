@@ -38,6 +38,7 @@ public partial class MainWindow:Window
     private readonly DispatcherTimer usbTimer=new(){Interval=TimeSpan.FromSeconds(5)};
     private readonly DispatcherTimer observeTimer=new(){Interval=TimeSpan.FromSeconds(1)};
     private bool checkingUsb;
+    private readonly SemaphoreSlim usbGate=new(1);
     private string adbPort="5038";
     private readonly HashSet<string> knownUsb=new();
     private readonly ObservableCollection<ExternalItem> externalItems=new();
@@ -300,56 +301,57 @@ public partial class MainWindow:Window
     }
     private async Task Run(Func<Task> action){try{await action();}catch(Exception e){Footer.Text=e.Message;}}
 
-    private string Invite(string address)
+    private string Invite(string address,string attempt="")
     {
         var p=state?["pairing"]??throw new IOException("代理尚未就绪");
-        return "codelink:"+Convert.ToBase64String(Encoding.UTF8.GetBytes(J.Stringify(new{host=address,port=int.Parse(p.S("port")),pin=p.S("fingerprint"),code=p.S("code")}))).TrimEnd('=').Replace('+','-').Replace('/','_');
+        return "codelink:"+Convert.ToBase64String(Encoding.UTF8.GetBytes(J.Stringify(new{host=address,port=int.Parse(p.S("port")),pin=p.S("fingerprint"),code=p.S("code"),attempt}))).TrimEnd('=').Replace('+','-').Replace('/','_');
     }
     private async void PairDevice(object sender,RoutedEventArgs e)
     {
-        if(state is null)return;
-        await Run(()=>client.Action("rotatePairing"));await Task.Delay(250);
-        var dialog=new Window{Title="连接移动设备",Width=530,Height=660,Owner=this,WindowStartupLocation=WindowStartupLocation.CenterOwner,Background=Background};
-        var panel=new StackPanel{Margin=new Thickness(24)};dialog.Content=panel;
-        var addresses=NetworkInterface.GetAllNetworkInterfaces().Where(n=>n.OperationalStatus==OperationalStatus.Up&&n.NetworkInterfaceType!=NetworkInterfaceType.Loopback).SelectMany(n=>n.GetIPProperties().UnicastAddresses).Where(a=>a.Address.AddressFamily==AddressFamily.InterNetwork&&!a.Address.ToString().StartsWith("169.254")).Select(a=>a.Address.ToString()).Distinct().ToArray();
-        var combo=new ComboBox{ItemsSource=new[]{"USB / 蓝牙初次配对"}.Concat(addresses).ToArray(),SelectedIndex=0,Margin=new Thickness(0,0,0,12)};panel.Children.Add(combo);
-        var qr=new Image{Width=225,Height=225};panel.Children.Add(qr);
-        var invite=new TextBox{IsReadOnly=true,TextWrapping=TextWrapping.Wrap,Height=90,FontSize=11,Margin=new Thickness(0,10,0,10)};panel.Children.Add(invite);
-        var hint=new TextBlock{Text="USB 连接会自动填写。无线连接请在移动端扫码；蓝牙随后选择已配对的电脑。",TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,15)};panel.Children.Add(hint);
-        void Refresh()
+        await Run(async()=>
         {
-            invite.Text=Invite(combo.SelectedIndex==0?"127.0.0.1":(string)combo.SelectedItem);
-            using var generator=new QRCodeGenerator();using var data=generator.CreateQrCode(invite.Text,QRCodeGenerator.ECCLevel.M);using var png=new PngByteQRCode(data);
-            var bitmap=new BitmapImage();bitmap.BeginInit();bitmap.StreamSource=new MemoryStream(png.GetGraphic(5));bitmap.CacheOption=BitmapCacheOption.OnLoad;bitmap.EndInit();qr.Source=bitmap;
-        }
-        combo.SelectionChanged+=async(_,_)=>await Run(async()=>{await client.Action("settings",new{lan=combo.SelectedIndex>0||state.B("lan")});Refresh();});
-        var usb=new Button{Content="USB 一键连接",Background=new SolidColorBrush(Color.FromRgb(233,187,69))};panel.Children.Add(usb);
-        usb.Click+=async(_,_)=>{usb.IsEnabled=false;await Run(async()=>hint.Text=await UsbConnect(Invite("127.0.0.1")));usb.IsEnabled=true;};
-        var copy=new Button{Content="复制配对信息"};copy.Click+=(_,_)=>Clipboard.SetText(invite.Text);panel.Children.Add(copy);
-        Refresh();dialog.ShowDialog();
+            if(state is null)throw new IOException("代理尚未就绪");
+            await client.Action("rotatePairing");await Task.Delay(250);
+            new PairDeviceWindow(this,address=>Invite(address),
+                async enabled=>{await client.Action("settings",new{lan=enabled||state.B("lan")});},
+                (progress,cancel)=>UsbConnect(progress,cancel),
+                ()=>state?["devices"]?.AsArray().Count(d=>d.B("online"))??0,
+                ()=>RefreshPairing(CancellationToken.None)).ShowDialog();
+        });
     }
     private string AdbPath=>new[]{Path.Combine(AppContext.BaseDirectory,"tools/adb.exe"),Path.Combine(Environment.CurrentDirectory,".tools/platform-tools/adb.exe")}.FirstOrDefault(File.Exists)??throw new IOException("发布目录缺少 ADB");
-    private async Task<string> Adb(params string[] args)
+    private Task<string> Adb(params string[] args)=>Adb(CancellationToken.None,args);
+    private async Task<string> Adb(CancellationToken cancel,params string[] args)
     {
         var start=new ProcessStartInfo(AdbPath){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
         foreach(var a in new[]{"-P",adbPort}.Concat(args))start.ArgumentList.Add(a);
         using var process=Process.Start(start)!;var output=process.StandardOutput.ReadToEndAsync();var error=process.StandardError.ReadToEndAsync();
-        try{await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));}catch{process.Kill();throw;}
+        try{await process.WaitForExitAsync(cancel).WaitAsync(TimeSpan.FromSeconds(10),cancel);}catch{if(!process.HasExited)process.Kill();throw;}
         if(process.ExitCode!=0)throw new IOException(await error);return await output;
     }
     private async Task<string[]> UsbDevices()=> (await Adb("devices","-l")).Split('\n').Where(s=>System.Text.RegularExpressions.Regex.IsMatch(s,@"^\S+\s+device\b")&&s.Contains("usb:",StringComparison.OrdinalIgnoreCase)).Select(s=>s.Split((char[]?)null,StringSplitOptions.RemoveEmptyEntries)[0]).ToArray();
-    private async Task<string> UsbSerial()
+    private async Task<string> UsbSerial(CancellationToken cancel=default)
     {
+        var errors=new List<string>();
         foreach(var port in new[]{adbPort,adbPort=="5038"?"5037":"5038"})
         {
             adbPort=port;
-            try{var serial=(await Adb("-d","get-serialno")).Trim();if(serial.Length>0&&serial!="unknown")return serial;}catch(IOException){}
+            try
+            {
+                var deviceState=(await Adb(cancel,"-d","get-state")).Trim();
+                if(deviceState!="device"){errors.Add(deviceState);continue;}
+                var serial=(await Adb(cancel,"-d","get-serialno")).Trim();if(serial.Length>0&&serial!="unknown")return serial;
+            }catch(IOException e){errors.Add(e.Message);}
         }
-        throw new IOException("未发现已授权的 USB 设备，请连接平板并允许 USB 调试。");
+        var detail=string.Join(" ",errors);
+        if(detail.Contains("unauthorized",StringComparison.OrdinalIgnoreCase))throw new IOException("平板尚未授权。解锁 Android，在 USB 调试弹窗中允许这台电脑，然后重试。");
+        if(detail.Contains("offline",StringComparison.OrdinalIgnoreCase))throw new IOException("USB 设备离线。重新插拔数据线，等待平板被系统识别后重试。");
+        if(detail.Contains("more than one",StringComparison.OrdinalIgnoreCase))throw new IOException("检测到多台 USB 设备。首次配对先只连接一台平板，然后重试。");
+        throw new IOException("未发现已授权的 USB 设备。请连接支持数据传输的线缆，开启 USB 调试并解锁平板；必要时更换 USB 接口。");
     }
     private async Task RefreshUsbMappings()
     {
-        if(checkingUsb||state is null)return;checkingUsb=true;
+        if(checkingUsb||state is null||!await usbGate.WaitAsync(0))return;checkingUsb=true;
         try
         {
             // ADB's Windows backend can omit usb:; -d selects a physical USB transport.
@@ -361,15 +363,47 @@ public partial class MainWindow:Window
                 if(!listing.Contains("tcp:"+port))await Adb("-s",serial,"reverse","tcp:"+port,"tcp:"+port);
                 knownUsb.Add(serial);
             }
-        }catch(IOException){}catch(TimeoutException){}finally{checkingUsb=false;}
+        }catch(IOException){}catch(TimeoutException){}finally{checkingUsb=false;usbGate.Release();}
     }
-    private async Task<string> UsbConnect(string invite)
+    private async Task RefreshPairing(CancellationToken cancel)
     {
-        var serial=await UsbSerial();
+        var old=state?["pairing"].S("code");
+        await client.Action("rotatePairing");
+        for(var i=0;i<30;i++)
+        {
+            cancel.ThrowIfCancellationRequested();
+            if(state?["pairing"].S("code") is {Length:>0} current&&current!=old)return;
+            await Task.Delay(100,cancel);
+        }
+        throw new IOException("配对信息尚未刷新。请关闭连接窗口后重试。");
+    }
+    private async Task<string> UsbConnect(Action<string> progress,CancellationToken cancel)
+    {
+        await usbGate.WaitAsync(cancel);
+        try
+        {
+        progress("1 / 3 · 正在检测 USB 调试授权…");
+        var serial=await UsbSerial(cancel);
         var port=state!["pairing"]!.S("port");
-        await Adb("-s",serial,"reverse","tcp:"+port,"tcp:"+port);
-        var started=await Adb("-s",serial,"shell","am","start","-n","com.codelink.app/.MainActivity","--es","invite",invite,"--es","mode","USB");
+        progress("2 / 3 · 设备已找到，正在建立 USB 通道…");
+        await Adb(cancel,"-s",serial,"reverse","tcp:"+port,"tcp:"+port);
+        var installed=await Adb(cancel,"-s",serial,"shell","pm","list","packages","com.codelink.app");
+        if(!installed.Split('\n').Any(line=>line.Trim()=="package:com.codelink.app"))throw new IOException("平板尚未安装 Code Link。请先安装 Release 中的 Android APK，再点击 USB 一键连接。");
+        await RefreshPairing(cancel);
+        var attempt=Guid.NewGuid().ToString("N");
+        var invite=Invite("127.0.0.1",attempt);
+        var started=await Adb(cancel,"-s",serial,"shell","am","start","-n","com.codelink.app/.MainActivity","--es","invite",invite,"--es","mode","USB");
         if(started.Contains("Error"))throw new IOException(started);
-        return "已打开平板。返回面板选择命令行和设备，点击映射。";
+        progress("3 / 3 · 应用已打开，正在等待 Android 确认连接…");
+        for(var i=0;i<60;i++)
+        {
+            cancel.ThrowIfCancellationRequested();
+            var device=state?["devices"]?.AsArray().FirstOrDefault(d=>d.B("online")&&d.S("pairingAttempt")==attempt);
+            if(device is not null)return "USB 已连接 · "+device.S("name")+"\n下一步：在手机或平板选择一个测试终端，发送 echo hello，并确认输出中出现 hello。";
+            await Task.Delay(250,cancel);
+        }
+        throw new IOException("Android 尚未确认连接。请解锁设备，检查应用里的连接提示，并确认电脑和 Android 使用同一版本，然后重试。");
+        }
+        finally{usbGate.Release();}
     }
 }

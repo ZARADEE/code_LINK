@@ -10,32 +10,39 @@ if ($Language -eq 'en') {
 $defaultOutput = if ($Language -eq 'en') { 'dist/desktop-en' } else { 'dist/desktop' }
 $output = if ($env:CODELINK_BUILD_OUTPUT) { Join-Path $root $env:CODELINK_BUILD_OUTPUT } else { Join-Path $root $defaultOutput }
 $adbSource = Join-Path $root '.tools/platform-tools'
+$stage = Join-Path $root ('.local/publish/' + $Language + '/' + [Guid]::NewGuid().ToString('N'))
+$bundle = Join-Path $stage 'bundle'
 
+New-Item -ItemType Directory -Force -Path $bundle | Out-Null
 foreach ($project in @(
-    'desktop/CodeLink.Desktop/CodeLink.Desktop.csproj',
     'desktop/CodeLink.Host/CodeLink.Host.csproj',
     'desktop/CodeLink.Cli/CodeLink.Cli.csproj',
-    'desktop/CodeLink.ConsoleBridge/CodeLink.ConsoleBridge.csproj'
+    'desktop/CodeLink.ConsoleBridge/CodeLink.ConsoleBridge.csproj',
+    # Publish the desktop runtime last: its WindowsBase.dll supersedes the
+    # compatibility facade supplied by the console runtime.
+    'desktop/CodeLink.Desktop/CodeLink.Desktop.csproj'
 )) {
-    & dotnet build (Join-Path $projectRoot $project) --configuration Release
-    if ($LASTEXITCODE -ne 0) { throw "Build failed: $project" }
+    $publish = Join-Path $stage ([IO.Path]::GetFileNameWithoutExtension($project))
+    & dotnet publish (Join-Path $projectRoot $project) --configuration Release --runtime win-x64 --self-contained true --output $publish -p:DebugType=None
+    if ($LASTEXITCODE -ne 0) { throw "Publish failed: $project" }
+    Copy-Item -Path (Join-Path $publish '*') -Destination $bundle -Recurse -Force
 }
 
 New-Item -ItemType Directory -Force -Path $output | Out-Null
 if (-not (Test-Path -LiteralPath (Join-Path $output 'runtime.json'))) {
     [IO.File]::WriteAllText((Join-Path $output 'runtime.json'),'{"instance":"main","dataDirectory":"state"}',[Text.Encoding]::UTF8)
 }
-Copy-Item -Path (Join-Path $projectRoot 'desktop/CodeLink.Desktop/bin/Release/net10.0-windows/*') -Destination $output -Recurse -Force
-Copy-Item -Path (Join-Path $projectRoot 'desktop/CodeLink.Host/bin/Release/net10.0/*') -Destination $output -Recurse -Force
-Copy-Item -Path (Join-Path $projectRoot 'desktop/CodeLink.Cli/bin/Release/net10.0/*') -Destination $output -Recurse -Force
-Copy-Item -Path (Join-Path $projectRoot 'desktop/CodeLink.ConsoleBridge/bin/Release/net10.0/*') -Destination $output -Recurse -Force
 
-$tools = Join-Path $output 'tools'
+$tools = Join-Path $bundle 'tools'
 New-Item -ItemType Directory -Force -Path $tools | Out-Null
 Copy-Item -LiteralPath (Join-Path $adbSource 'adb.exe'), (Join-Path $adbSource 'AdbWinApi.dll'), (Join-Path $adbSource 'AdbWinUsbApi.dll') -Destination $tools -Force
 Copy-Item -LiteralPath (Join-Path $adbSource 'NOTICE.txt') -Destination (Join-Path $tools 'ADB-NOTICE.txt') -Force
-Copy-Item -LiteralPath (Join-Path $root 'LICENSE'), (Join-Path $root 'THIRD_PARTY_NOTICES.md') -Destination $output -Force
-Copy-Item -LiteralPath (Join-Path $root 'licenses') -Destination $output -Recurse -Force
+Copy-Item -LiteralPath (Join-Path $root 'LICENSE'), (Join-Path $root 'THIRD_PARTY_NOTICES.md') -Destination $bundle -Force
+Copy-Item -LiteralPath (Join-Path $root 'licenses') -Destination $bundle -Recurse -Force
+$files = @(Get-ChildItem -LiteralPath $bundle -File -Recurse | ForEach-Object { $_.FullName.Substring($bundle.Length + 1).Replace('\', '/') } | Sort-Object)
+Copy-Item -Path (Join-Path $bundle '*') -Destination $output -Recurse -Force
+# Packaging only consumes files from this build; old runtime files and local state stay out.
+[IO.File]::WriteAllText((Join-Path $output 'build-files.json'), (ConvertTo-Json -InputObject $files), [Text.Encoding]::UTF8)
 [IO.File]::WriteAllText((Join-Path $output 'build-language.txt'),$Language,[Text.Encoding]::UTF8)
 Write-Output "Desktop app: $(Join-Path $output 'CodeLink.exe')"
 Write-Output "Command line: $(Join-Path $output 'clink.exe')"

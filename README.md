@@ -14,6 +14,18 @@
 
 Keep your build, tests or Codex task running on the PC. Use the tablet beside you to read output, send a command, respond to an approval, and get an alert when a task or a whole batch finishes. Connect directly over USB or Bluetooth, with no account or relay server.
 
+## Who is this for?
+
+You develop on Windows, keep Codex, builds or tests running in several terminals, and have an Android tablet beside your desk. Code Link gives those tasks a separate screen so you can keep working without repeatedly bringing terminal windows to the front.
+
+- **Codex needs an answer while you work elsewhere.** Read the prompt on the tablet and respond there. Connect an existing Codex window for terminal input; start with `clink codex` when you want structured approval cards and turn events.
+- **Several independent jobs need watching.** Give each terminal a name. Use A for individual completion reminders, or B for a reminder after every participating job in that round succeeds. Failed or interrupted work stays visible instead of being counted as done.
+- **A spare tablet can stay on the desk.** Connect it by USB, put the terminal dashboard beside your editor, then switch Android apps while the foreground service handles supported alerts. No account, cloud relay or extra monitor is needed.
+
+The strongest supported setup is **Windows + an Android tablet on the same desk**. It combines existing-window capture, local USB/Bluetooth, terminal input and batch reminders. A regular second monitor is useful for full graphical windows; SSH is useful for remote server administration. Choose Code Link when you want this local terminal workflow on a device you already own. Mac creates managed sessions over LAN; iOS is a developer preview, as detailed below.
+
+**[Follow three complete workflows: Codex, parallel jobs and a spare tablet →](https://zaradee.github.io/code_LINK/windows-android-terminal.en.html)**
+
 ## Why use Code Link?
 
 | While the computer works… | On your tablet |
@@ -33,13 +45,13 @@ Existing Windows terminal windows can be connected directly. Managed terminals u
 
 | Your setup | Current experience | Download / setup |
 | --- | --- | --- |
-| **Windows + Android tablet** | Existing terminal capture, input, USB/Bluetooth and Android background alerts; tested on hardware | **[Windows English ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-Windows-v1.3.0-en.zip)** + **[Android English APK](https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-Android-v1.3.0-en.apk)** |
-| **Mac + Android** | Create managed terminal/Codex sessions on Mac; connect over LAN. Physical cross-device acceptance is pending | [Apple silicon ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-macOS-AppleSilicon-v1.3.0-en.zip) / [Intel ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-macOS-Intel-v1.3.0-en.zip) · [Mac guide](docs/APPLE.md) |
+| **Windows + Android tablet** | Existing terminal capture, input, USB/Bluetooth and Android background alerts; tested on hardware | **[Windows English ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Windows-v1.4.0-en.zip)** + **[Android English APK](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Android-v1.4.0-en.apk)** |
+| **Mac + Android** | Create managed terminal/Codex sessions on Mac; connect over LAN. Physical cross-device acceptance is pending | [Apple silicon ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-macOS-AppleSilicon-v1.4.0-en.zip) / [Intel ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-macOS-Intel-v1.4.0-en.zip) · [Mac guide](docs/APPLE.md) |
 | **iPhone / iPad** | Developer preview: simulator or personal device signing; connection pauses in the background | [Apple guide and source](docs/APPLE.md) |
 
-Windows requires the [.NET 10 Desktop Runtime, x64](https://dotnet.microsoft.com/en-us/download/dotnet/10.0). Android requires version 9+; a landscape tablet is the primary layout. Mac packages include the runtime and require macOS 14+. Mac apps are ad-hoc signed and not notarized. **Using the Mac app does not require iPhone signing.**
+Windows x64 packages include the .NET 10 Desktop Runtime; extract the whole ZIP and launch `CodeLink.exe`. Android requires version 9+. Narrow phone windows show a terminal list and a separate detail screen; tablets show both panes when space permits. Rotation preserves each terminal’s unsent draft. Mac packages include the runtime and require macOS 14+. Mac apps are ad-hoc signed and not notarized. **Using the Mac app does not require iPhone signing.**
 
-For Simplified Chinese, download [Windows zh-CN](https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-Windows-v1.3.0-zh-CN.zip) and [Android zh-CN](https://github.com/ZARADEE/code_LINK/releases/download/v1.3.0/CodeLink-Android-v1.3.0-zh-CN.apk). Filename suffixes `-en` and `-zh-CN` identify the interface language. Install either Android edition over the other to keep pairing and settings. [Verify downloads and upgrade](docs/INSTALL.en.md).
+For Simplified Chinese, download [Windows zh-CN](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Windows-v1.4.0-zh-CN.zip) and [Android zh-CN](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Android-v1.4.0-zh-CN.apk). Filename suffixes `-en` and `-zh-CN` identify the interface language. Install either Android edition over the other to keep pairing and settings. [Verify downloads and upgrade](docs/INSTALL.en.md).
 
 ## Get started
 
@@ -47,12 +59,12 @@ Start with **Windows + Android over USB**. Keep both applications open during se
 
 | Step | What to do | You should see |
 | --- | --- | --- |
-| 1. Install | Extract the entire Windows ZIP, install .NET Desktop Runtime, and open `CodeLink.exe`. Install the Android APK | The desktop terminal list and the tablet's **Connect** button |
+| 1. Install | Extract the entire Windows ZIP and open `CodeLink.exe`. Install the Android APK | The desktop terminal list and the tablet's **Connect** button |
 | 2. Authorize the cable | Enable **Developer options → USB debugging** on Android. Connect a data cable, unlock the tablet and approve the computer | The tablet accepts the USB debugging authorization |
-| 3. Pair | In Windows, choose **Pair device → Connect over USB** | **USB connected** on the tablet and an online device in Windows |
+| 3. Pair | In Windows, choose **Pair device → Connect over USB** in the guided connection window | **USB connected** in the Windows wizard after Android confirms the connection |
 | 4. Open a terminal | Select a terminal on the tablet, or select a terminal and device in Windows and choose **Share with device** | The same terminal output on both screens |
 | 5. Try one input | Use a test terminal, send `echo hello`, and press **Enter** if needed | `hello` appears in that terminal |
-| 6. Enable alerts | On Android, open **Background & alerts**, allow banners and background activity, then run a task with a supported completion signal | A completion or attention reminder when applicable |
+| 6. Enable alerts | On Android, open **More → Background & alerts**, allow banners and background activity, then run a task with a supported completion signal | A completion or attention reminder when applicable |
 
 If a step stalls, use the [connection checklist on the website](https://zaradee.github.io/code_LINK/en.html#start) or the troubleshooting below. Hardware validation used a Lenovo Xiaoxin Pad Pro 12.7, Android 14 / ZUI 16. [Acceptance records](research/english-release-acceptance.json).
 
@@ -85,7 +97,7 @@ Completion detection depends on the terminal source. Managed finite commands use
 
 ## Background connection
 
-Open **Background & alerts** and allow notifications, completion banners, and background operation. The connected-device foreground service keeps a quiet ongoing connection notification. Android's notification settings and Do Not Disturb determine whether a banner appears.
+Open **More → Background & alerts** and allow notifications, completion banners, and background operation. The connected-device foreground service keeps a quiet ongoing connection notification. Android's notification settings and Do Not Disturb determine whether a banner appears.
 
 ![English background and notification settings on the tablet](docs/assets/background-settings-en.png)
 
@@ -129,11 +141,11 @@ iOS 17+ is a developer preview with a simulator app, unsigned device archive and
 
 | What you see | Next step |
 | --- | --- |
-| Windows asks for .NET | Install **.NET 10 Desktop Runtime x64**, then reopen `CodeLink.exe` |
+| Windows asks for .NET | Use the complete v1.4.0 ZIP, which includes the runtime. Do not copy out only the EXE. Older packages need .NET 10 Desktop Runtime x64 |
 | Tablet absent or unauthorized | Unlock it, check USB debugging and the computer authorization, and try a data-capable cable. Run `tools\adb.exe -P 5037 devices -l` and repeat on port `5038` if needed |
 | Connected, but no output | Choose a terminal on Android, or select both a terminal and an online device in Windows and share it |
 | Input rejected | Check input control, terminal permissions and unique window titles. Existing Windows Terminal mappings follow the active tab |
-| No completion banner | Check the task's detected status, then **Background & alerts**, system banners and Do Not Disturb. An interactive shell stays running between commands |
+| No completion banner | Check the task's detected status, then **More → Background & alerts**, system banners and Do Not Disturb. An interactive shell stays running between commands |
 | Mac asks about an unidentified developer | Follow **System Settings → Privacy & Security → Open Anyway** after checking the source and checksum; see the Mac guide |
 
 ## Help and development
@@ -148,4 +160,4 @@ Windows / Android and native macOS 14+ / iOS 17+ clients are available. Apple cl
 
 Code is licensed under [MIT](LICENSE). Supplied artwork has [separate terms](assets/README.md); dependencies retain their [original licenses](THIRD_PARTY_NOTICES.md). Maintained by [ZARADEE](https://github.com/ZARADEE), independently of terminal and AI vendors.
 
-English Windows and Android screenshots were captured on connected devices on November 14, 2026; the Chinese notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md) · [English UI acceptance record](research/english-release-acceptance.json). Documentation corresponds to Android 1.3.0.
+English Windows and Android screenshots were captured on connected devices on November 14, 2026; the Chinese notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md) · [English UI acceptance record](research/english-release-acceptance.json). Documentation corresponds to v1.4.0; the existing tablet screenshots show the v1.3.0 interface, which is unchanged on Android.

@@ -36,12 +36,25 @@ jobs:
         run: ./scripts/build-desktop.ps1
       - name: Build English Windows clients
         run: ./scripts/build-desktop.ps1 -Language en
+      - name: Verify bundled Windows runtimes
+        run: |
+          python scripts/test-windows-package.py dist/desktop
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/test-windows-package.py dist/desktop-en
+      - name: Test authenticated pairing confirmation
+        run: dotnet run --project desktop/CodeLink.Smoke/CodeLink.Smoke.csproj --configuration Release -- --pairing-checks
       - name: Build Android test APK
         run: ./scripts/build-android.ps1
       - name: Build English Android test APK
         run: ./scripts/build-android.ps1 -Language en
       - name: Assemble clean packages and checksums
         run: python scripts/package-release.py
+      - name: Launch extracted Windows release ZIPs
+        run: |
+          Get-ChildItem dist/releases/*/CodeLink-Windows-*.zip | ForEach-Object {
+            python scripts/test-windows-package.py $_.FullName
+            if ($LASTEXITCODE -ne 0) { throw "Packaged runtime validation failed: $_" }
+          }
       - uses: actions/upload-artifact@v4
         with:
           name: CodeLink-test-packages

@@ -4,7 +4,7 @@ Download from [Code Link Releases](https://github.com/ZARADEE/code_LINK/releases
 
 ## Windows and Android
 
-1. Download `CodeLink-Windows-v1.4.0-en.zip` and `CodeLink-Android-v1.4.0-en.apk`.
+1. Download `CodeLink-Windows-v1.4.1-en.zip` and `CodeLink-Android-v1.4.1-en.apk`.
 2. The Windows runtime is included. Extract the entire ZIP and open `CodeLink.exe`.
 3. Install the APK on Android 9 or newer and allow notifications. Phone windows use a list/detail flow with a Back to list button. Tablets use two panes when at least 600dp of width and 480dp of height are available; split-screen adapts to the remaining window.
 4. Enable USB debugging on Android, connect a data cable, unlock the device and authorize your computer.
@@ -12,6 +12,15 @@ Download from [Code Link Releases](https://github.com/ZARADEE/code_LINK/releases
 6. Send a short command and check the output. Use **More → Background & alerts** on Android to allow completion banners and background activity. Keep the Windows tray application running.
 
 Group A alerts after each task completes. Group B alerts when all tasks in the current batch finish successfully. Approvals, failures and interruptions are handled separately. An idle terminal is not automatically treated as a finished task.
+
+## Bluetooth
+
+1. Pair Windows and Android in their system Bluetooth settings and keep both Code Link apps open.
+2. If already paired in Code Link, choose **More → Bluetooth** on Android and select the PC. Existing USB app pairing can be reused.
+3. For first-time app pairing, choose **Pair device → Bluetooth** in Windows to expand the existing pairing section. On Android choose **Connect → Bluetooth**, scan or paste the invitation, allow **Nearby devices**, and select the paired PC.
+4. Wait for **Bluetooth connected**, select a test terminal, send `echo hello` and check its output.
+
+Bluetooth requires no prior USB connection, USB debugging, Wi-Fi or PAN. The device picker links to system Bluetooth settings; return after pairing to refresh. Permission denial offers app settings, and an expired invitation can be refreshed in the Windows pairing window.
 
 ## Switch languages or upgrade
 
@@ -26,8 +35,8 @@ The language applies to Code Link's interface and messages. Terminal output, fil
 Compare these results with `SHA256SUMS.txt` from the same release:
 
 ```powershell
-Get-FileHash .\CodeLink-Windows-v1.4.0-en.zip -Algorithm SHA256
-Get-FileHash .\CodeLink-Android-v1.4.0-en.apk -Algorithm SHA256
+Get-FileHash .\CodeLink-Windows-v1.4.1-en.zip -Algorithm SHA256
+Get-FileHash .\CodeLink-Android-v1.4.1-en.apk -Algorithm SHA256
 ```
 
 The APK uses a development signing certificate. Windows executables do not have a commercial code-signing certificate. Source builds and CI test APKs may use a different Android signing key, so they cannot replace the published APK without a matching key.

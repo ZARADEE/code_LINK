@@ -25,7 +25,7 @@ if folder.is_file():
                 assert path.suffix.lower() not in {'.pfx', '.key', '.keystore', '.pdb'}, entry.filename
             package.extractall(destination)
         assert json.loads((destination / 'runtime.json').read_text()) == {'instance':'main','dataDirectory':'state'}
-        result = subprocess.run([sys.executable, str(Path(__file__).resolve()), str(destination)], timeout=90)
+        result = subprocess.run([sys.executable, str(Path(__file__).resolve()), str(destination)], timeout=120)
         raise SystemExit(result.returncode)
 
 for app in ('CodeLink', 'CodeLink.Host', 'clink', 'CodeLink.ConsoleBridge'):
@@ -90,6 +90,18 @@ with tempfile.TemporaryDirectory(prefix='codelink-package-') as temporary:
                                 env=env, capture_output=True, timeout=10, creationflags=flags)
         response = json.loads(bridge.stdout)
         assert response.get('ok') is False and response.get('error'), 'Console bridge did not reject an invalid target'
+        language_file = folder / 'build-language.txt'
+        if not language_file.is_file():
+            language_file = folder / 'LANGUAGE.txt'
+        language = language_file.read_text(encoding='utf-8-sig').strip()
+        assert language in ('zh-CN', 'en'), 'Package language is missing or invalid'
+        wizard = subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+                                 str(Path(__file__).with_name('test-bluetooth-wizard.ps1')),
+                                 '-DesktopPid', str(desktop.pid), '-Language', language],
+                                capture_output=True, encoding='utf-8', errors='replace',
+                                timeout=45, creationflags=flags)
+        print(wizard.stdout, end='')
+        assert wizard.returncode == 0, wizard.stderr
     finally:
         if desktop and desktop.poll() is None:
             desktop.terminate()

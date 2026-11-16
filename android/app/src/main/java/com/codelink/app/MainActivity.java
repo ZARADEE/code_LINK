@@ -11,13 +11,14 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
  private LinearLayout sessionPane,detailPane,appHeader;private View keyStrip,detailActions;private ScrollView requestScroll;
  private boolean dualPane=false,detailOpen=false,keepAwake=true;private int requestCount=0;private final Bundle drafts=new Bundle();
  private View layoutRoot;private android.view.ViewTreeObserver.OnGlobalLayoutListener layoutListener;
+ private AlertDialog connectionSetup;private boolean bluetoothScan=false;
  private void detachLayoutListener(){if(layoutRoot!=null&&layoutListener!=null&&layoutRoot.getViewTreeObserver().isAlive())layoutRoot.getViewTreeObserver().removeOnGlobalLayoutListener(layoutListener);layoutRoot=null;layoutListener=null;}
  private String selected="",approvalsSignature="",sessionSignature="",currentKind="",fullText="";private JSONObject lastState;private boolean connected=false,controller=false,terminalReady=false,building=false;
- public void onCreate(Bundle saved){super.onCreate(saved);runtime=LinkRuntime.get(this);link=runtime.link;presentation=runtime.presentation;reminders=runtime.reminders;groupTab=presentation.getString("tab","B");keepAwake=presentation.getBoolean("keepAwake",true);if(keepAwake)getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);if(saved!=null){selected=saved.getString("selected","");detailOpen=saved.getBoolean("detailOpen");Bundle prior=saved.getBundle("drafts");if(prior!=null)drafts.putAll(prior);}buildUi();handleIntent(getIntent());if(saved==null)showSplash();if(Build.VERSION.SDK_INT>=33&&checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},100);if(getIntent().getStringExtra("invite")==null&&getIntent().getStringExtra("btAddress")==null)runtime.ensureStarted();}
+ public void onCreate(Bundle saved){super.onCreate(saved);runtime=LinkRuntime.get(this);link=runtime.link;presentation=runtime.presentation;reminders=runtime.reminders;groupTab=presentation.getString("tab","B");keepAwake=presentation.getBoolean("keepAwake",true);if(keepAwake)getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);if(saved!=null){bluetoothScan=saved.getBoolean("bluetoothScan");selected=saved.getString("selected","");detailOpen=saved.getBoolean("detailOpen");Bundle prior=saved.getBundle("drafts");if(prior!=null)drafts.putAll(prior);}buildUi();handleIntent(getIntent());if(saved==null)showSplash();if(Build.VERSION.SDK_INT>=33&&checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},100);if(getIntent().getStringExtra("invite")==null&&getIntent().getStringExtra("btAddress")==null)runtime.ensureStarted();}
  protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);handleIntent(intent);if(observing&&lastState!=null)consumeNotificationTarget();}
- private void handleIntent(Intent intent){if(intent==null)return;String notice=intent.getStringExtra("notice-session");if(notice!=null){notificationTarget=notice;intent.removeExtra("notice-session");}String invite=intent.getStringExtra("invite");try{if(invite!=null&&!invite.isEmpty()){link.invite(invite);String mode=intent.getStringExtra("mode");if(mode!=null)link.mode=mode;link.save();runtime.start();}String bt=intent.getStringExtra("btAddress");if(bt!=null){link.btAddress=bt;link.mode="Bluetooth";link.save();runtime.start();}}catch(Exception e){toast(e.getMessage());}}
+ private void handleIntent(Intent intent){if(intent==null)return;String notice=intent.getStringExtra("notice-session");if(notice!=null){notificationTarget=notice;intent.removeExtra("notice-session");}String invite=intent.getStringExtra("invite"),bt=intent.getStringExtra("btAddress");try{if(invite!=null&&!invite.isEmpty()){link.invite(invite);String mode=intent.getStringExtra("mode");if(mode!=null)link.mode=mode;link.save();}if(bt!=null){link.btAddress=bt;link.mode="Bluetooth";link.save();}if(invite!=null||bt!=null){if(link.mode.equals("Bluetooth")&&bt==null)bluetoothDialog();else runtime.start();}}catch(Exception e){toast(e.getMessage());}}
  public void onConfigurationChanged(Configuration c){super.onConfigurationChanged(c);buildUi();JSONObject snapshot=runtime.snapshot();if(snapshot!=null)applyState(snapshot);}
- protected void onSaveInstanceState(Bundle saved){saveDraft();saved.putBundle("drafts",drafts);saved.putString("selected",selected);saved.putBoolean("detailOpen",detailOpen);super.onSaveInstanceState(saved);}
+ protected void onSaveInstanceState(Bundle saved){saveDraft();saved.putBoolean("bluetoothScan",bluetoothScan);saved.putBundle("drafts",drafts);saved.putString("selected",selected);saved.putBoolean("detailOpen",detailOpen);super.onSaveInstanceState(saved);}
  private void saveDraft(){if(input!=null&&!selected.isEmpty())drafts.putString(selected,input.getText().toString());}
  private void showSessionList(){detailOpen=false;((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(input.getWindowToken(),0);input.clearFocus();updatePanes();}
  private void updatePanes(){sessionPane.setVisibility(dualPane||!detailOpen?View.VISIBLE:View.GONE);detailPane.setVisibility(dualPane||detailOpen?View.VISIBLE:View.GONE);}
@@ -173,11 +174,58 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
  private void answerQuestions(JSONObject request){JSONArray questions=request.optJSONObject("parameters").optJSONArray("questions");if(questions==null)return;LinearLayout panel=new LinearLayout(this);panel.setOrientation(1);panel.setPadding(dp(20),0,dp(20),0);Map<String,EditText> answers=new LinkedHashMap<>();for(int i=0;i<questions.length();i++){JSONObject q=questions.optJSONObject(i);if(q==null)continue;panel.addView(text(q.optString("question"),16,INK));EditText field=new EditText(this);field.setTextSize(15);if(q.optBoolean("isSecret"))field.setInputType(129);panel.addView(field);answers.put(q.optString("id"),field);JSONArray options=q.optJSONArray("options");if(options!=null)for(int j=0;j<options.length();j++){JSONObject option=options.optJSONObject(j);if(option!=null)panel.addView(button(option.optString("label"),()->field.setText(option.optString("label"))));}}
   ScrollView scroll=new ScrollView(this);scroll.addView(panel);AlertDialog dialog=new AlertDialog.Builder(this).setTitle("需要你的回答").setView(scroll).setPositiveButton("提交",null).setNegativeButton("稍后",null).create();dialog.setOnShowListener(d->dialog.getButton(-1).setOnClickListener(v->{try{JSONObject values=new JSONObject();for(Map.Entry<String,EditText> a:answers.entrySet())values.put(a.getKey(),new JSONObject().put("answers",new JSONArray().put(a.getValue().getText().toString())));approve(request,"",new JSONObject().put("answers",values));dialog.dismiss();}catch(Exception e){toast(e.getMessage());}}));dialog.show();}
  private void answerForm(JSONObject request){JSONObject params=request.optJSONObject("parameters");if(params!=null)FormDialog.show(this,params,response->approve(request,"",response));}
- private void connectionDialog(){LinearLayout panel=new LinearLayout(this);panel.setOrientation(1);panel.setPadding(dp(20),dp(6),dp(20),dp(8));panel.addView(text("电脑 → 连接设备，扫描二维码或粘贴连接信息。",14,INK));EditText invite=new EditText(this);invite.setHint("codelink:...");invite.setTextSize(12);invite.setMinLines(3);panel.addView(invite);Button scan=button("扫描二维码",()->{if(checkSelfPermission(Manifest.permission.CAMERA)!=PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{Manifest.permission.CAMERA},102);return;}startActivityForResult(new Intent(this,ScanActivity.class),200);});panel.addView(scan);
-  Spinner modes=new Spinner(this);modes.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,new String[]{"USB","Wi-Fi"}));modes.setSelection(link.mode.equals("Wi-Fi")?1:0);panel.addView(modes);TextView hint=text("USB 连接后电脑会自动填入地址，无需手动输入。",12,GREEN);panel.addView(hint);
-  AlertDialog dialog=new AlertDialog.Builder(this).setTitle("连接电脑").setView(scrollable(panel)).setPositiveButton("连接",null).setNegativeButton("取消",null).setNeutralButton("断开连接",(d,w)->{runtime.disconnect();status("未连接",false);}).create();dialog.setOnShowListener(d->dialog.getButton(-1).setOnClickListener(v->{try{if(invite.length()>0)link.invite(invite.getText().toString().trim());link.mode=modes.getSelectedItem().toString();link.save();runtime.start();dialog.dismiss();}catch(Exception e){toast(e.getMessage());}}));dialog.show();}
- private void bluetoothDialog(){if(Build.VERSION.SDK_INT>=31&&(checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!=0||checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!=0)){requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN},101);return;}try{BluetoothAdapter adapter=((BluetoothManager)getSystemService(BLUETOOTH_SERVICE)).getAdapter();if(adapter==null||!adapter.isEnabled()){toast("蓝牙不可用，请在系统设置中开启蓝牙。");return;}ArrayList<BluetoothDevice> devices=new ArrayList<>(adapter.getBondedDevices());String[] names=new String[devices.size()];for(int i=0;i<names.length;i++)names[i]=devices.get(i).getName()+"\n"+devices.get(i).getAddress();if(names.length==0){toast("请先在系统设置中配对电脑。");return;}new AlertDialog.Builder(this).setTitle("选择配对的电脑").setItems(names,(d,w)->{link.btAddress=devices.get(w).getAddress();link.mode="Bluetooth";link.save();runtime.start();}).setNegativeButton("取消",null).show();}catch(Exception e){toast(e.getMessage());}}
- protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(request==200&&result==RESULT_OK&&data!=null)try{link.invite(data.getStringExtra("invite"));runtime.start();toast("已从扫码结果连接电脑。");}catch(Exception e){toast(e.getMessage());}}
+ private void connectionDialog(){connectionDialog(link.mode);}
+ private void connectionDialog(String initialMode){
+  if(connectionSetup!=null)connectionSetup.dismiss();
+  LinearLayout panel=new LinearLayout(this);panel.setOrientation(1);panel.setPadding(dp(20),dp(6),dp(20),dp(8));
+  panel.addView(text("电脑 → 连接设备，扫描二维码或粘贴连接信息。",14,INK));
+  Spinner modes=new Spinner(this);modes.setContentDescription("connection-transport");modes.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,new String[]{"USB","蓝牙","Wi-Fi"}));modes.setSelection(initialMode.equals("Bluetooth")?1:initialMode.equals("Wi-Fi")?2:0);panel.addView(modes);
+  TextView hint=text("",12,GREEN);panel.addView(hint);
+  modes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){public void onNothingSelected(AdapterView<?> p){}public void onItemSelected(AdapterView<?> p,View v,int position,long id){hint.setText(position==1?"先在系统蓝牙设置中配对电脑。首次应用配对请扫码或粘贴信息；已配对过可直接点连接。无需 USB 或 Wi-Fi。":position==0?"USB 连接后电脑会自动填入地址，无需手动输入。":"扫描电脑局域网地址对应的二维码，两端需能通过网络互访。");}});
+  EditText invite=new EditText(this);invite.setHint("codelink:...");invite.setContentDescription("connection-invitation");invite.setTextSize(12);invite.setMinLines(3);panel.addView(invite);
+  panel.addView(button("扫描二维码",()->{bluetoothScan=modes.getSelectedItemPosition()==1;scanConnection();}));
+  AlertDialog dialog=new AlertDialog.Builder(this).setTitle("连接电脑").setView(scrollable(panel)).setPositiveButton("连接",null).setNegativeButton("取消",null).setNeutralButton("断开连接",(d,w)->{runtime.disconnect();status("未连接",false);}).create();
+  connectionSetup=dialog;dialog.setOnDismissListener(d->{if(connectionSetup==dialog)connectionSetup=null;});
+  dialog.setOnShowListener(d->dialog.getButton(-1).setOnClickListener(v->{try{
+   int choice=modes.getSelectedItemPosition();boolean imported=invite.length()>0;
+   if(imported)link.invite(invite.getText().toString().trim());
+   if(!imported||choice==1)link.mode=choice==1?"Bluetooth":choice==2?"Wi-Fi":"USB";
+   if(link.pin.isEmpty()){toast("请先扫描或粘贴电脑的配对信息。");return;}
+   link.save();dialog.dismiss();if(link.mode.equals("Bluetooth"))bluetoothDialog();else runtime.start();
+  }catch(Exception e){toast(e.getMessage());}}));dialog.show();
+ }
+ private void scanConnection(){
+  if(checkSelfPermission(Manifest.permission.CAMERA)!=PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{Manifest.permission.CAMERA},102);return;}
+  if(connectionSetup!=null)connectionSetup.dismiss();startActivityForResult(new Intent(this,ScanActivity.class),200);
+ }
+ private void bluetoothSettings(){try{startActivityForResult(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS),201);}catch(Exception e){toast(e.getMessage());}}
+ private void bluetoothDialog(){
+  if(link.pin.isEmpty()){connectionDialog("Bluetooth");return;}
+  if(Build.VERSION.SDK_INT>=31&&(checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!=0||checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!=0)){requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT,Manifest.permission.BLUETOOTH_SCAN},101);return;}
+  try{
+   BluetoothManager manager=(BluetoothManager)getSystemService(BLUETOOTH_SERVICE);BluetoothAdapter adapter=manager==null?null:manager.getAdapter();
+   if(adapter==null){toast("此设备不支持蓝牙，请使用 USB 或 Wi-Fi。");return;}
+   if(!adapter.isEnabled()){new AlertDialog.Builder(this).setTitle("蓝牙连接").setMessage("蓝牙尚未开启。请在系统设置中开启并配对电脑，再返回继续。").setPositiveButton("打开蓝牙设置",(d,w)->bluetoothSettings()).setNegativeButton("取消",null).show();return;}
+   ArrayList<BluetoothDevice> devices=new ArrayList<>(adapter.getBondedDevices());Collections.sort(devices,(a,b)->String.valueOf(a.getName()).compareToIgnoreCase(String.valueOf(b.getName())));
+   String[] names=new String[devices.size()];for(int i=0;i<names.length;i++)names[i]=(devices.get(i).getName()==null?"蓝牙设备":devices.get(i).getName())+"\n"+devices.get(i).getAddress();
+   AlertDialog.Builder picker=new AlertDialog.Builder(this).setTitle("选择配对的电脑").setNegativeButton("取消",null).setNeutralButton("打开蓝牙设置",(d,w)->bluetoothSettings());
+   if(names.length==0)picker.setMessage("尚无已配对的设备。请先在系统蓝牙设置中配对电脑，再返回刷新。").setPositiveButton("刷新设备",(d,w)->bluetoothDialog());
+   else picker.setItems(names,(d,w)->{link.btAddress=devices.get(w).getAddress();link.mode="Bluetooth";link.save();runtime.start();});
+   picker.show();
+  }catch(Exception e){toast(e.getMessage());}
+ }
+ @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] results){
+  super.onRequestPermissionsResult(request,permissions,results);
+  boolean granted=results.length>0;for(int result:results)granted&=result==PackageManager.PERMISSION_GRANTED;
+  if(request==101){if(granted)bluetoothDialog();else new AlertDialog.Builder(this).setTitle("需要附近的设备权限").setMessage("允许附近的设备权限后才能连接已配对的电脑。可在应用设置的权限中开启。").setPositiveButton("打开应用设置",(d,w)->{try{startActivityForResult(new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,android.net.Uri.parse("package:"+getPackageName())),201);}catch(Exception e){toast(e.getMessage());}}).setNegativeButton("取消",null).show();}
+  if(request==102){if(granted)scanConnection();else toast("相机权限未开启，也可以粘贴电脑的配对信息。");}
+ }
+ protected void onActivityResult(int request,int result,Intent data){
+  super.onActivityResult(request,result,data);
+  if(request==201){bluetoothDialog();return;}
+  if(request==200&&result==RESULT_OK&&data!=null)try{link.invite(data.getStringExtra("invite"));if(bluetoothScan)link.mode="Bluetooth";link.save();if(link.mode.equals("Bluetooth"))bluetoothDialog();else runtime.start();}catch(Exception e){toast(e.getMessage());}
+  if(request==200)bluetoothScan=false;
+ }
  private void backgroundSettings(){
   NotificationManager nm=getSystemService(NotificationManager.class);PowerManager pm=getSystemService(PowerManager.class);
   NotificationChannel channel=nm.getNotificationChannel(LinkNotifications.COMPLETED);boolean high=channel!=null&&channel.getImportance()>=NotificationManager.IMPORTANCE_HIGH;
@@ -193,6 +241,6 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
  private void toast(String message){Toast.makeText(this,message==null?"操作失败":UiMessages.server(message),Toast.LENGTH_LONG).show();}
  protected void onStart(){super.onStart();observing=true;runtime.attach(this);}
  protected void onStop(){observing=false;runtime.detach(this);super.onStop();}
- protected void onDestroy(){observing=false;runtime.detach(this);detachLayoutListener();handler.removeCallbacksAndMessages(null);io.shutdownNow();if(terminal!=null)terminal.destroy();super.onDestroy();}
+ protected void onDestroy(){if(connectionSetup!=null)connectionSetup.dismiss();observing=false;runtime.detach(this);detachLayoutListener();handler.removeCallbacksAndMessages(null);io.shutdownNow();if(terminal!=null)terminal.destroy();super.onDestroy();}
 }
 

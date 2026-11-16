@@ -39,7 +39,7 @@
     "description": "Turn an Android tablet into a local Windows terminal dashboard with terminal input, Codex approvals and task alerts. Mac managed sessions and iOS developer preview also available.",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Windows x64; macOS 14 or later; Android 9 or later; iOS 17 or later",
-    "softwareVersion": "1.4.0",
+    "softwareVersion": "1.4.1",
     "inLanguage": ["zh-CN", "en"],
     "downloadUrl": "https://github.com/ZARADEE/code_LINK/releases/latest",
     "releaseNotes": "https://github.com/ZARADEE/code_LINK/blob/main/CHANGELOG.md",
@@ -78,7 +78,7 @@
       <figure><a href="assets/android-en.png"><img src="assets/android-en.png" width="1600" height="880" alt="English tablet screenshot from November 14, 2026 showing USB connected and Windows receiving the value 12345 sent from Android" loading="lazy"></a><figcaption>Actual USB connection and input. Open the image at full size. Local paths, computer names and private window titles are blurred.</figcaption></figure>
     </section>
     <section class="wrap split" id="start">
-      <div><p class="eyebrow">START WITH USB</p><h2>Connect with a data cable.</h2><p>You need Windows x64 and Android 9 or later. The Windows v1.4.0 ZIP includes the runtime. Landscape tablets are the primary layout.</p><a class="text-link" href="windows-android-terminal.en.html">See three complete workflows →</a></div>
+      <div><p class="eyebrow">START WITH USB</p><h2>Connect with a data cable.</h2><p>You need Windows x64 and Android 9 or later. The Windows v1.4.1 ZIP includes the runtime. Landscape tablets are the primary layout.</p><a class="text-link" href="windows-android-terminal.en.html">See three complete workflows →</a></div>
       <ol class="steps">
         <li><strong>Install both clients</strong><p>Extract the complete Windows ZIP and run CodeLink.exe. Install the APK on Android and allow notifications.</p></li>
         <li><strong>Authorize USB debugging</strong><p>Enable Developer options and USB debugging on Android. Connect a data cable, unlock the tablet and authorize your computer.</p></li>
@@ -87,7 +87,8 @@
     </section>
     <section class="wrap details"><h2>Built for your desk, your terminals and a tablet you already own</h2><p>Use it when Codex needs your decision while the editor is in front, when independent builds and tests run in parallel, or when a spare tablet can stay beside your PC. Existing Windows terminal windows can be connected directly; USB keeps setup local.</p><p><a href="windows-android-terminal.en.html">Follow the Codex, parallel-job and spare-tablet workflows →</a></p></section>
     <section class="wrap setup" aria-labelledby="setup-title">
-      <h2 id="setup-title">Your first connection, one step at a time</h2>
+      <h2 id="setup-title">USB connection checklist</h2>
+      <p>Bluetooth is also supported: pair in system settings, then choose More → Bluetooth on Android. For first-time app pairing, choose Pair device → Bluetooth in Windows and scan the invitation; no prior USB connection is required. <a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/INSTALL.en.md#bluetooth">Bluetooth instructions →</a></p>
       <p>Check off each step as you complete it. This checklist stays on this page; it does not inspect your devices.</p>
       <p class="setup-count" aria-live="polite">0 / 5 steps checked</p>
       <progress class="setup-progress" max="5" value="0" aria-label="Setup checklist progress"></progress>
@@ -107,15 +108,15 @@
         <p id="download-note" aria-live="polite"></p>
         <div id="download-links" class="actions"></div>
       </div>
-      <p>Apple clients use LAN connections. Read the <a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md">macOS / iOS guide</a>; verify Apple packages with <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/APPLE-SHA256SUMS.txt">APPLE-SHA256SUMS.txt</a>.</p>
-      <div class="table-scroll"><table><caption>Code Link v1.4.0 official downloads</caption><thead><tr><th scope="col">Platform</th><th scope="col">Download</th><th scope="col">Requirements</th></tr></thead><tbody>
-        <tr><th scope="row">Windows x64</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Windows-v1.4.0-en.zip">Windows ZIP ↗</a></td><td>Runtime included; extract all files</td></tr>
-        <tr><th scope="row">Android 9+</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Android-v1.4.0-en.apk">Android APK ↗</a></td><td>Allow sideloading; phone list/detail and tablet two-pane layouts</td></tr>
-        <tr><th scope="row">Simplified Chinese</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Windows-v1.4.0-zh-CN.zip">Windows zh-CN ↗</a> / <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Android-v1.4.0-zh-CN.apk">Android zh-CN ↗</a></td><td>Use en for English; language variants share the same app identity</td></tr>
-        <tr><th scope="row">macOS 14+</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-macOS-AppleSilicon-v1.4.0-en.zip">Apple silicon ↗</a> / <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-macOS-Intel-v1.4.0-en.zip">Intel ↗</a></td><td>Runtime included; not notarized</td></tr>
-        <tr><th scope="row">iOS / iPadOS 17+</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-iOS-Simulator-v1.4.0-en.zip">Simulator ↗</a> / <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Apple-Source-v1.4.0-en.zip">Xcode source ↗</a></td><td>Simulator or personal signing; no directly installable IPA; connection pauses in background</td></tr>
+      <p>Apple clients use LAN connections. Read the <a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md">macOS / iOS guide</a>; verify Apple packages with <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/APPLE-SHA256SUMS.txt">APPLE-SHA256SUMS.txt</a>.</p>
+      <div class="table-scroll"><table><caption>Code Link v1.4.1 official downloads</caption><thead><tr><th scope="col">Platform</th><th scope="col">Download</th><th scope="col">Requirements</th></tr></thead><tbody>
+        <tr><th scope="row">Windows x64</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Windows-v1.4.1-en.zip">Windows ZIP ↗</a></td><td>Runtime included; extract all files</td></tr>
+        <tr><th scope="row">Android 9+</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Android-v1.4.1-en.apk">Android APK ↗</a></td><td>Allow sideloading; phone list/detail and tablet two-pane layouts</td></tr>
+        <tr><th scope="row">Simplified Chinese</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Windows-v1.4.1-zh-CN.zip">Windows zh-CN ↗</a> / <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Android-v1.4.1-zh-CN.apk">Android zh-CN ↗</a></td><td>Use en for English; language variants share the same app identity</td></tr>
+        <tr><th scope="row">macOS 14+</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-macOS-AppleSilicon-v1.4.1-en.zip">Apple silicon ↗</a> / <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-macOS-Intel-v1.4.1-en.zip">Intel ↗</a></td><td>Runtime included; not notarized</td></tr>
+        <tr><th scope="row">iOS / iPadOS 17+</th><td><a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-iOS-Simulator-v1.4.1-en.zip">Simulator ↗</a> / <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Apple-Source-v1.4.1-en.zip">Xcode source ↗</a></td><td>Simulator or personal signing; no directly installable IPA; connection pauses in background</td></tr>
       </tbody></table></div>
-      <p>The Android APK uses a development signing key; Windows executables are unsigned. Compare your downloads with <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/SHA256SUMS.txt">SHA256SUMS.txt</a>. See the <a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/INSTALL.en.md">installation guide</a> for details.</p>
+      <p>The Android APK uses a development signing key; Windows executables are unsigned. Compare your downloads with <a href="https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/SHA256SUMS.txt">SHA256SUMS.txt</a>. See the <a href="https://github.com/ZARADEE/code_LINK/blob/main/docs/INSTALL.en.md">installation guide</a> for details.</p>
       <h3>Choose by what you need</h3><div class="table-scroll"><table><caption>Platform capabilities differ</caption><thead><tr><th>Need</th><th>Windows + Android</th><th>Mac / iOS</th></tr></thead><tbody><tr><th>Connect an existing terminal window</th><td>Supported; Windows Terminal follows the active tab</td><td>Mac manages sessions created in Code Link</td></tr><tr><th>Alerts after switching apps</th><td>Android foreground service; background and notification permission required</td><td>iOS pauses in the background and reconnects on return</td></tr><tr><th>Connection</th><td>USB, classic Bluetooth, LAN</td><td>LAN; physical cross-device acceptance pending</td></tr></tbody></table></div>
       <h2 id="apple">Mac managed terminals · iOS developer preview</h2>
       <figure><a href="assets/apple-overview.png"><img src="assets/apple-overview.png" width="1800" height="1030" alt="Native macOS application and iPhone and iPad simulators connected to a real terminal over local TLS" loading="lazy"></a><figcaption>Actual running applications. iPhone and iPad are simulators; device installation needs personal signing. iOS pauses its connection in the background.</figcaption></figure>

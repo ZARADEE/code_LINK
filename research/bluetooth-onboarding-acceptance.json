@@ -1,0 +1,128 @@
+{
+  "checkedAt": "2026-11-16T05:35:06.720105+00:00",
+  "baseCommit": "5db5cdf16072402689668bdb52c8673dd4b4fb1c",
+  "status": "Local Bluetooth preview validated; no release tag created",
+  "scope": "Complete the existing Windows/Android Bluetooth onboarding flow using the existing RFCOMM transport and device authentication.",
+  "builds": {
+    "windows": [
+      "zh-CN",
+      "en"
+    ],
+    "windowsIncludesRuntime": true,
+    "android": [
+      "zh-CN",
+      "en"
+    ],
+    "androidSignatureVerified": true,
+    "applicationVersion": "1.4.0"
+  },
+  "desktopChecks": {
+    "languages": [
+      "zh-CN",
+      "en"
+    ],
+    "realWindow": true,
+    "standaloneHostAndCli": true,
+    "consoleBridgeRejectsInvalidTarget": true,
+    "bluetoothEntryOpensExistingPairingSection": true,
+    "bluetoothInvitationTransport": true,
+    "offlineBluetoothNotReportedAsSuccess": true,
+    "refreshChangesCodeAndKeepsHostIdentity": true,
+    "switchBackToUsb": true
+  },
+  "regressions": {
+    "englishTranslations": 331,
+    "documentationAndSiteMetadata": true,
+    "terminalActivityCases": 17,
+    "authenticatedPairingAndLegacyReconnect": true,
+    "androidRemindersAndOutputCache": true
+  },
+  "physicalChecks": [
+    {
+      "date": "2026-11-16T05:29:41.054768+00:00",
+      "device": "Lenovo TB371FC, Android 14",
+      "passed": true,
+      "checks": [
+        "Existing connection dialog explains Bluetooth without requiring USB",
+        "Denied Bluetooth permission shows a recoverable explanation",
+        "Permission grant automatically resumes the existing paired-device picker",
+        "Fresh app identity authenticates directly over Bluetooth without a USB Code Link connection",
+        "Desktop confirms the authenticated Bluetooth transport",
+        "Bluetooth input reaches the mapped Windows terminal",
+        "Existing More > Bluetooth reconnect reuses app trust without rescanning",
+        "Reconnect preserves control and each input is delivered once",
+        "Bluetooth invitation stays Bluetooth even when the dialog initially selects USB",
+        "Camera permission grant continues to the existing scanner"
+      ],
+      "scope": "Dedicated fresh app identity on the physical tablet, existing Windows RFCOMM host. USB is used for test automation; Code Link traffic for this identity is Bluetooth. Invitation paste and scanner permission continuation tested; optical QR capture not exercised.",
+      "window": "360dp simulated phone",
+      "language": "zh-CN"
+    },
+    {
+      "date": "2026-11-16T05:33:38.926683+00:00",
+      "device": "Lenovo TB371FC, Android 14",
+      "passed": true,
+      "checks": [
+        "Existing connection dialog explains Bluetooth without requiring USB",
+        "Denied Bluetooth permission shows a recoverable explanation",
+        "Permission grant automatically resumes the existing paired-device picker",
+        "Fresh app identity authenticates directly over Bluetooth without a USB Code Link connection",
+        "Desktop confirms the authenticated Bluetooth transport",
+        "Bluetooth input reaches the mapped Windows terminal",
+        "Existing More > Bluetooth reconnect reuses app trust without rescanning",
+        "Reconnect preserves control and each input is delivered once",
+        "Bluetooth invitation stays Bluetooth even when the dialog initially selects USB",
+        "Camera permission grant continues to the existing scanner"
+      ],
+      "scope": "Dedicated fresh app identity on the physical tablet, existing Windows RFCOMM host. USB is used for test automation; Code Link traffic for this identity is Bluetooth. Invitation paste and scanner permission continuation tested; optical QR capture not exercised.",
+      "window": "native tablet",
+      "language": "en"
+    }
+  ],
+  "limits": [
+    "Phone coverage uses a 360dp window on the physical tablet; no physical phone was tested.",
+    "Invitation paste and camera-permission continuation were tested; optical QR capture was not exercised.",
+    "Bluetooth screen-off behavior and long-duration connections were not tested in this iteration."
+  ],
+  "cleanup": {
+    "testAppRemoved": true,
+    "testHostAndDesktopStopped": true,
+    "physicalDisplayRestored": "1840x2944 at 340dpi; no overrides",
+    "originalInputMethodRestored": true,
+    "originalAppDataPreserved": true
+  },
+  "artifacts": [
+    {
+      "name": "CodeLink-Windows-v1.4.0-bluetooth-preview-zh-CN.zip",
+      "bytes": 80457019,
+      "sha256": "5bc27662f41a4eef87a3dffaba0b1b93a12aa997d1f11d65896615604fc2801a"
+    },
+    {
+      "name": "CodeLink-Android-v1.4.0-bluetooth-preview-zh-CN.apk",
+      "bytes": 1700647,
+      "sha256": "8e1cbf6a5b23226c7a106a707ac3f65073ce98757a7c693a36c73a51baf2c89d"
+    },
+    {
+      "name": "CodeLink-Windows-v1.4.0-bluetooth-preview-en.zip",
+      "bytes": 80458824,
+      "sha256": "7fa1592f1d53dd83ad3aee0a33744fb79ee13115cf7dfbcde0aa13c231e9ae9d"
+    },
+    {
+      "name": "CodeLink-Android-v1.4.0-bluetooth-preview-en.apk",
+      "bytes": 1704743,
+      "sha256": "fb950299dcdc5da5e05e98c1396346a52126a9a5cd8e9a6ffdf9ef0787997ae1"
+    }
+  ],
+  "sourceSha256": {
+    "android/app/src/main/java/com/codelink/app/LinkConnection.java": "7d666e19e079d923cc01df8a61d868707793960dd78c42c519a4de5d48e3949e",
+    "android/app/src/main/java/com/codelink/app/MainActivity.java": "5247c88986ed5a9e2cfd2dad44b4a1cd4ec4cadc80b716d58267b20a3bb49275",
+    "desktop/CodeLink.Desktop/MainWindow.xaml.cs": "a3898129db206443272c05dde15f35867dee400bdd4adad047814266e396d34d",
+    "desktop/CodeLink.Desktop/PairDeviceWindow.cs": "2fd3d3077bd97c00a77041dc05726f27818a97f855b5263c3652d25e57a0f989",
+    "localization/en.json": "088c918114965a8e4744bb9b680ec8e2d0f2c53ab098d8e578a8a9198139d2d8",
+    "site/en.html": "523a47459bcdf1d59cbe00e13601d9bea92602112fcc260b39a54d53d57a0b72",
+    "site/guide.js": "23b7452694b62e596962a3d4dfee7ecefb57d1dc4145c2b7ac1822dca0bfd1ae",
+    "site/index.html": "530435185ae60d9d85fa9e74b7b3eaa7d2a06214d850d7f9987f544fb01c19b2",
+    "scripts/test-windows-package.py": "1487aedb774ddddfce51610d72823bee7b55ca7491255875d5d51e2817df6a23",
+    "scripts/test-bluetooth-wizard.ps1": "378d12cf209b12f8293079d2f62e6fd2f8c2e0c8fc7abe3c88dacca81102728c"
+  }
+}

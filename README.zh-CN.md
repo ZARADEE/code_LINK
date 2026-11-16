@@ -60,8 +60,8 @@
 
 | 你的设备 | 当前可用的方式 | 从这里开始 |
 | --- | --- | --- |
-| Windows + Android 平板 | 已有终端同步、输入、USB / 蓝牙和 Android 后台提醒；已有真机验收 | [下载中文 Windows 包](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Windows-v1.4.0-zh-CN.zip) + [Android APK](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Android-v1.4.0-zh-CN.apk) |
-| Mac + Android | 在 Mac 创建托管终端或 Codex 会话，通过局域网连接；跨设备真机验收待完成 | [Apple silicon](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-macOS-AppleSilicon-v1.4.0-en.zip) / [Intel](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-macOS-Intel-v1.4.0-en.zip) · [Mac 说明](docs/APPLE.md) |
+| Windows + Android 平板 | 已有终端同步、输入、USB / 蓝牙和 Android 后台提醒；已有真机验收 | [下载中文 Windows 包](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Windows-v1.4.1-zh-CN.zip) + [Android APK](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Android-v1.4.1-zh-CN.apk) |
+| Mac + Android | 在 Mac 创建托管终端或 Codex 会话，通过局域网连接；跨设备真机验收待完成 | [Apple silicon](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-macOS-AppleSilicon-v1.4.1-en.zip) / [Intel](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-macOS-Intel-v1.4.1-en.zip) · [Mac 说明](docs/APPLE.md) |
 | iPhone / iPad | 开发预览，提供模拟器包与自行签名源码；后台暂停连接 | [Apple 安装说明](docs/APPLE.md) |
 
 Mac 用户直接下载 Mac 应用即可，iOS 真机签名只涉及安装到 iPhone / iPad。Mac 当前管理 Code Link 内创建的终端，Windows 还支持接入已有窗口。
@@ -70,7 +70,7 @@ Mac 用户直接下载 Mac 应用即可，iOS 真机签名只涉及安装到 iPh
 
 ## 开始使用
 
-首次连接推荐使用 **USB 数据线**。
+支持 **USB 和蓝牙**。下面的快速上手采用 USB；也可直接按下文“蓝牙连接”完成配对，无需先接数据线。
 
 ### 1. 下载安装
 
@@ -78,14 +78,14 @@ Mac 用户直接下载 Mac 应用即可，iOS 真机签名只涉及安装到 iPh
 
 | 客户端 | 下载文件 | 安装方法 |
 | --- | --- | --- |
-| Windows | `CodeLink-Windows-v1.4.0-zh-CN.zip` | 解压并保留完整目录，双击 `CodeLink.exe` |
-| Android | `CodeLink-Android-v1.4.0-zh-CN.apk` | 复制到平板后安装，按系统提示允许该来源安装应用 |
-| Windows 英文版 | `CodeLink-Windows-v1.4.0-en.zip` | 英文界面、托盘菜单、错误提示与 CLI 帮助 |
-| Android 英文版 | `CodeLink-Android-v1.4.0-en.apk` | 英文界面、通知和设置；可覆盖中文版并保留应用数据 |
-| macOS 14+ | `CodeLink-macOS-AppleSilicon-v1.4.0-en.zip` / `CodeLink-macOS-Intel-v1.4.0-en.zip` | 解压并放入 Applications，参见 [Apple 指南](docs/APPLE.md) |
-| iOS / iPadOS 17+ | `CodeLink-iOS-Simulator-v1.4.0-en.zip` / `CodeLink-Apple-Source-v1.4.0-en.zip` | Mac 模拟器运行，或用自己的 Apple 账号在 Xcode 签名；非直接安装包 |
+| Windows | `CodeLink-Windows-v1.4.1-zh-CN.zip` | 解压并保留完整目录，双击 `CodeLink.exe` |
+| Android | `CodeLink-Android-v1.4.1-zh-CN.apk` | 复制到平板后安装，按系统提示允许该来源安装应用 |
+| Windows 英文版 | `CodeLink-Windows-v1.4.1-en.zip` | 英文界面、托盘菜单、错误提示与 CLI 帮助 |
+| Android 英文版 | `CodeLink-Android-v1.4.1-en.apk` | 英文界面、通知和设置；可覆盖中文版并保留应用数据 |
+| macOS 14+ | `CodeLink-macOS-AppleSilicon-v1.4.1-en.zip` / `CodeLink-macOS-Intel-v1.4.1-en.zip` | 解压并放入 Applications，参见 [Apple 指南](docs/APPLE.md) |
+| iOS / iPadOS 17+ | `CodeLink-iOS-Simulator-v1.4.1-en.zip` / `CodeLink-Apple-Source-v1.4.1-en.zip` | Mac 模拟器运行，或用自己的 Apple 账号在 Xcode 签名；非直接安装包 |
 
-v1.4.0 的 Windows x64 包已包含 .NET 10 桌面运行时，无需另行安装；请完整解压后运行 `CodeLink.exe`。Android 最低安装版本为 9，窄屏手机使用列表／详情切换，宽度足够的平板同时显示两栏；旋转和调整窗口大小会保留各终端的输入草稿。
+v1.4.1 的 Windows x64 包已包含 .NET 10 桌面运行时，无需另行安装；请完整解压后运行 `CodeLink.exe`。Android 最低安装版本为 9，窄屏手机使用列表／详情切换，宽度足够的平板同时显示两栏；旋转和调整窗口大小会保留各终端的输入草稿。
 
 Release 同时提供 `SHA256SUMS.txt`，可按[安装说明](docs/INSTALL.md)核对下载。当前 Android 包使用开发签名，Windows 程序尚无商业代码签名；Windows / Android 提供简体中文与英文包，文件名以 zh-CN 或 en 标注。Apple 下载另附 `APPLE-SHA256SUMS.txt`。
 
@@ -168,9 +168,14 @@ B 组在全部完成时才同时标红标签和本轮成员。逐个点击查看
 | **同一局域网 / Wi-Fi** | 两端网络互通，电脑端允许局域网连接 | 功能已实现，真机直连仍待验收 |
 
 <details>
-<summary><strong>如何切换到蓝牙</strong></summary>
+<summary><strong>蓝牙连接与切换</strong></summary>
 
-先在 Windows 和 Android 系统蓝牙设置中完成配对。首次使用可通过 USB 一键连接完成 Code Link 的应用配对，再在平板上点击**蓝牙连接**，选择已配对的电脑。
+1. 在 Windows 和 Android 系统蓝牙设置中完成设备配对，并保持两端 Code Link 打开。
+2. 如果已经通过 Code Link 配对过，Android 点击 **更多 → 蓝牙连接**，允许“附近的设备”权限并选择电脑，即可切换。
+3. 首次应用配对时，Windows 点击 **连接设备 → 蓝牙连接**，原有配对区域会展开。Android 点击 **连接电脑 → 蓝牙**，扫码或粘贴电脑的配对信息，再选择已配对的电脑。
+4. 确认 Android 显示“蓝牙已连接”，Windows 配对窗口也会显示实际通过蓝牙连接的设备。打开测试终端并发送 `echo hello` 检查输入。
+
+蓝牙首次应用配对不要求先使用 USB。授权被拒绝时可从提示打开应用设置；找不到电脑时，从设备选择窗口进入系统蓝牙设置，配对后返回刷新。配对码过期时，在 Windows 刷新后重新扫码。
 
 蓝牙使用设备间直连，**不需要加入个人局域网 PAN**。终端内容较多时，优先使用 USB。
 
@@ -287,4 +292,4 @@ macOS 提供 Apple silicon 和 Intel 包，内含 .NET 运行时，尚未进行 
 
 维护者为 [ZARADEE](https://github.com/ZARADEE)。本项目为独立开发的终端伴随工具。
 
-*Windows 与平板主界面于 2026-11-14 实际连接后拍摄，通知来自既有真机记录；规则图为说明示意。本机路径、设备名和私人窗口标题已模糊。[图片来源](docs/assets/README.md)。README 对应 Android 1.4.0。*
+*Windows 与平板主界面于 2026-11-14 实际连接后拍摄，通知来自既有真机记录；规则图为说明示意。本机路径、设备名和私人窗口标题已模糊。[图片来源](docs/assets/README.md)。README 对应 Android 1.4.1。*

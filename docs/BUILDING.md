@@ -1,6 +1,6 @@
 # 从源码构建
 
-构建环境为 Windows x64。v1.4.0 的便携包已经包含 .NET 桌面运行时，用户无需额外安装；修改源码则需要下列开发工具。
+构建环境为 Windows x64。v1.4.1 的便携包已经包含 .NET 桌面运行时，用户无需额外安装；修改源码则需要下列开发工具。
 
 | 工具 | 用途 |
 | --- | --- |
@@ -77,7 +77,7 @@ Android 布局验收脚本为 `scripts/test-adaptive-layout.py`，需要 Pillow�
 
 ## 发布包
 
-构建两端后运行 `python scripts/package-release.py`，在 `dist/releases/v1.4.0` 生成 Windows ZIP、Android APK 与 `SHA256SUMS.txt`。脚本只打包应用文件，重新生成默认 `runtime.json`，排除本机配对、状态和调试文件。
+构建两端后运行 `python scripts/package-release.py`，在 `dist/releases/v1.4.1` 生成 Windows ZIP、Android APK 与 `SHA256SUMS.txt`。脚本只打包应用文件，重新生成默认 `runtime.json`，排除本机配对、状态和调试文件。
 
 `v*` 标签或手动运行 **Build release packages** 会生成 GitHub Actions 测试产物。CI 每次生成的 Android 调试密钥不同，产物不会自动覆盖公开 Release。维护者发布升级 APK 时应沿用发布密钥，并在 Release 中记录证书指纹和安装限制。
 

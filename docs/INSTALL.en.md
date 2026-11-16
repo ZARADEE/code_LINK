@@ -4,7 +4,7 @@ Download from [Code Link Releases](https://github.com/ZARADEE/code_LINK/releases
 
 ## Windows and Android
 
-1. Download `CodeLink-Windows-v1.4.0-en.zip` and `CodeLink-Android-v1.4.0-en.apk`.
+1. Download `CodeLink-Windows-v1.4.1-en.zip` and `CodeLink-Android-v1.4.1-en.apk`.
 2. The Windows runtime is included. Extract the entire ZIP and open `CodeLink.exe`.
 3. Install the APK on Android 9 or newer and allow notifications. Phone windows use a list/detail flow with a Back to list button. Tablets use two panes when at least 600dp of width and 480dp of height are available; split-screen adapts to the remaining window.
 4. Enable USB debugging on Android, connect a data cable, unlock the device and authorize your computer.
@@ -35,8 +35,8 @@ The language applies to Code Link's interface and messages. Terminal output, fil
 Compare these results with `SHA256SUMS.txt` from the same release:
 
 ```powershell
-Get-FileHash .\CodeLink-Windows-v1.4.0-en.zip -Algorithm SHA256
-Get-FileHash .\CodeLink-Android-v1.4.0-en.apk -Algorithm SHA256
+Get-FileHash .\CodeLink-Windows-v1.4.1-en.zip -Algorithm SHA256
+Get-FileHash .\CodeLink-Android-v1.4.1-en.apk -Algorithm SHA256
 ```
 
 The APK uses a development signing certificate. Windows executables do not have a commercial code-signing certificate. Source builds and CI test APKs may use a different Android signing key, so they cannot replace the published APK without a matching key.

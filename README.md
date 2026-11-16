@@ -45,13 +45,13 @@ Existing Windows terminal windows can be connected directly. Managed terminals u
 
 | Your setup | Current experience | Download / setup |
 | --- | --- | --- |
-| **Windows + Android tablet** | Existing terminal capture, input, USB/Bluetooth and Android background alerts; tested on hardware | **[Windows English ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Windows-v1.4.0-en.zip)** + **[Android English APK](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Android-v1.4.0-en.apk)** |
-| **Mac + Android** | Create managed terminal/Codex sessions on Mac; connect over LAN. Physical cross-device acceptance is pending | [Apple silicon ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-macOS-AppleSilicon-v1.4.0-en.zip) / [Intel ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-macOS-Intel-v1.4.0-en.zip) · [Mac guide](docs/APPLE.md) |
+| **Windows + Android tablet** | Existing terminal capture, input, USB/Bluetooth and Android background alerts; tested on hardware | **[Windows English ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Windows-v1.4.1-en.zip)** + **[Android English APK](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Android-v1.4.1-en.apk)** |
+| **Mac + Android** | Create managed terminal/Codex sessions on Mac; connect over LAN. Physical cross-device acceptance is pending | [Apple silicon ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-macOS-AppleSilicon-v1.4.1-en.zip) / [Intel ZIP](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-macOS-Intel-v1.4.1-en.zip) · [Mac guide](docs/APPLE.md) |
 | **iPhone / iPad** | Developer preview: simulator or personal device signing; connection pauses in the background | [Apple guide and source](docs/APPLE.md) |
 
 Windows x64 packages include the .NET 10 Desktop Runtime; extract the whole ZIP and launch `CodeLink.exe`. Android requires version 9+. Narrow phone windows show a terminal list and a separate detail screen; tablets show both panes when space permits. Rotation preserves each terminal’s unsent draft. Mac packages include the runtime and require macOS 14+. Mac apps are ad-hoc signed and not notarized. **Using the Mac app does not require iPhone signing.**
 
-For Simplified Chinese, download [Windows zh-CN](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Windows-v1.4.0-zh-CN.zip) and [Android zh-CN](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.0/CodeLink-Android-v1.4.0-zh-CN.apk). Filename suffixes `-en` and `-zh-CN` identify the interface language. Install either Android edition over the other to keep pairing and settings. [Verify downloads and upgrade](docs/INSTALL.en.md).
+For Simplified Chinese, download [Windows zh-CN](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Windows-v1.4.1-zh-CN.zip) and [Android zh-CN](https://github.com/ZARADEE/code_LINK/releases/download/v1.4.1/CodeLink-Android-v1.4.1-zh-CN.apk). Filename suffixes `-en` and `-zh-CN` identify the interface language. Install either Android edition over the other to keep pairing and settings. [Verify downloads and upgrade](docs/INSTALL.en.md).
 
 ## Get started
 
@@ -143,7 +143,7 @@ iOS 17+ is a developer preview with a simulator app, unsigned device archive and
 
 | What you see | Next step |
 | --- | --- |
-| Windows asks for .NET | Use the complete v1.4.0 ZIP, which includes the runtime. Do not copy out only the EXE. Older packages need .NET 10 Desktop Runtime x64 |
+| Windows asks for .NET | Use the complete v1.4.1 ZIP, which includes the runtime. Do not copy out only the EXE. Older packages need .NET 10 Desktop Runtime x64 |
 | Tablet absent or unauthorized | Unlock it, check USB debugging and the computer authorization, and try a data-capable cable. Run `tools\adb.exe -P 5037 devices -l` and repeat on port `5038` if needed |
 | Connected, but no output | Choose a terminal on Android, or select both a terminal and an online device in Windows and share it |
 | Input rejected | Check input control, terminal permissions and unique window titles. Existing Windows Terminal mappings follow the active tab |
@@ -162,4 +162,4 @@ Windows / Android and native macOS 14+ / iOS 17+ clients are available. Apple cl
 
 Code is licensed under [MIT](LICENSE). Supplied artwork has [separate terms](assets/README.md); dependencies retain their [original licenses](THIRD_PARTY_NOTICES.md). Maintained by [ZARADEE](https://github.com/ZARADEE), independently of terminal and AI vendors.
 
-English Windows and Android screenshots were captured on connected devices on November 14, 2026; the Chinese notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md) · [English UI acceptance record](research/english-release-acceptance.json). Documentation corresponds to v1.4.0; the existing tablet screenshots show the v1.3.0 interface, which is unchanged on Android.
+English Windows and Android screenshots were captured on connected devices on November 14, 2026; the Chinese notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md) · [English UI acceptance record](research/english-release-acceptance.json). Documentation corresponds to v1.4.1; the existing tablet screenshots show the v1.3.0 interface, which is unchanged on Android.

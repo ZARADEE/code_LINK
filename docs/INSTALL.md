@@ -8,8 +8,8 @@ macOS / iOS 用户请看 [Apple 安装指南](APPLE.md)。下列 USB 与 APK 步
 
 仅从 [ZARADEE/code_LINK Releases](https://github.com/ZARADEE/code_LINK/releases/latest) 下载 Windows ZIP、Android APK 和 `SHA256SUMS.txt`。
 
-1. Windows x64 完整解压 ZIP，运行 `CodeLink.exe`。v1.4.0 已包含 .NET 桌面运行时，无需额外安装；请保留 EXE 旁的全部文件。
-2. Android 9 或以上安装 `CodeLink-Android-v1.4.0-zh-CN.apk`，允许该安装来源，打开 App 并允许通知。
+1. Windows x64 完整解压 ZIP，运行 `CodeLink.exe`。v1.4.1 已包含 .NET 桌面运行时，无需额外安装；请保留 EXE 旁的全部文件。
+2. Android 9 或以上安装 `CodeLink-Android-v1.4.1-zh-CN.apk`，允许该安装来源，打开 App 并允许通知。
 3. 平板开启开发者选项和 USB 调试，接上支持数据传输的线，解锁并允许电脑的调试授权。
 4. 电脑点击 **连接设备 → USB 一键连接**。平板显示已连接后，点击列表里的终端；也可在电脑选中终端和设备，再点 **映射到移动端**。
 5. 运行一条测试任务，检查输出和输入。需要完成提醒时，在 **更多 → 后台与通知** 中允许横幅和后台运行。
@@ -32,8 +32,8 @@ macOS / iOS 用户请看 [Apple 安装指南](APPLE.md)。下列 USB 与 APK 步
 在下载目录运行 PowerShell，将输出与同一 Release 的 `SHA256SUMS.txt` 比较。
 
 ```powershell
-Get-FileHash .\CodeLink-Windows-v1.4.0-zh-CN.zip -Algorithm SHA256
-Get-FileHash .\CodeLink-Android-v1.4.0-zh-CN.apk -Algorithm SHA256
+Get-FileHash .\CodeLink-Windows-v1.4.1-zh-CN.zip -Algorithm SHA256
+Get-FileHash .\CodeLink-Android-v1.4.1-zh-CN.apk -Algorithm SHA256
 ```
 
 配对会允许操作所选终端，只配对自己的设备。发布包首次运行会在解压目录生成 `state`，升级前保留自己的状态目录，不要分享它。
@@ -43,7 +43,7 @@ Get-FileHash .\CodeLink-Android-v1.4.0-zh-CN.apk -Algorithm SHA256
 ## English quick start
 
 1. Download the Windows ZIP and Android APK from the official release above. Compare `Get-FileHash -Algorithm SHA256` with `SHA256SUMS.txt`.
-2. Extract the full Windows ZIP and run `CodeLink.exe`; the runtime is included in v1.4.0. Install the APK on Android 9+.
+2. Extract the full Windows ZIP and run `CodeLink.exe`; the runtime is included in v1.4.1. Install the APK on Android 9+.
 3. For USB, enable Android USB debugging, connect a data cable, unlock the device, and authorize your computer. For Bluetooth, follow the [Bluetooth instructions](INSTALL.en.md#bluetooth); a USB connection is not required.
 4. Open both apps. On Windows choose **连接设备 → USB 一键连接** (Connect device → USB quick connect), then select a terminal on Android.
 5. Allow notifications and background operation in **更多 → 后台与通知**. Keep the Windows tray app running.

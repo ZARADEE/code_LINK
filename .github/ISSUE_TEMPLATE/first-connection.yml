@@ -25,7 +25,7 @@ body:
     id: setup
     attributes:
       label: Devices and versions / 设备与版本
-      placeholder: Windows 11, Lenovo tablet, Android 14, Code Link v1.4.0 en, USB
+      placeholder: Windows 11, Lenovo tablet, Android 14, Code Link v1.4.1 en, USB
     validations:
       required: true
   - type: textarea

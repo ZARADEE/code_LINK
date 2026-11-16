@@ -1,6 +1,6 @@
 # 版本记录
 
-## Unreleased
+## v1.4.1 ? 2026-11-16
 
 - Complete the existing Windows and Android Bluetooth connection flow: expose Bluetooth in the connection dialog and expand the existing desktop pairing section.
 - Resume device selection after Nearby devices permission is granted, resume scanning after camera permission is granted, and provide settings links when permission or system pairing is missing.

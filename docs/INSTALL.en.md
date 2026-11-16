@@ -13,6 +13,15 @@ Download from [Code Link Releases](https://github.com/ZARADEE/code_LINK/releases
 
 Group A alerts after each task completes. Group B alerts when all tasks in the current batch finish successfully. Approvals, failures and interruptions are handled separately. An idle terminal is not automatically treated as a finished task.
 
+## Bluetooth
+
+1. Pair Windows and Android in their system Bluetooth settings and keep both Code Link apps open.
+2. If already paired in Code Link, choose **More → Bluetooth** on Android and select the PC. Existing USB app pairing can be reused.
+3. For first-time app pairing, choose **Pair device → Bluetooth** in Windows to expand the existing pairing section. On Android choose **Connect → Bluetooth**, scan or paste the invitation, allow **Nearby devices**, and select the paired PC.
+4. Wait for **Bluetooth connected**, select a test terminal, send `echo hello` and check its output.
+
+Bluetooth requires no prior USB connection, USB debugging, Wi-Fi or PAN. The device picker links to system Bluetooth settings; return after pairing to refresh. Permission denial offers app settings, and an expired invitation can be refreshed in the Windows pairing window.
+
 ## Switch languages or upgrade
 
 The Chinese and English APKs use the same app identity and release signing certificate. Install the other language over the existing app to keep pairing and group settings; do not uninstall first. They are language variants of one application and cannot be installed side by side.

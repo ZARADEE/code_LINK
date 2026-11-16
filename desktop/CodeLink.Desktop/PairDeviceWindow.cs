@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -16,9 +17,9 @@ namespace CodeLink.Desktop;
 
 internal sealed class PairDeviceWindow : Window
 {
-    public PairDeviceWindow(Window owner, Func<string, string> invitation,
+    public PairDeviceWindow(Window owner, Func<string, string, string> invitation,
         Func<bool, Task> enableLan, Func<Action<string>, CancellationToken, Task<string>> connectUsb,
-        Func<int> onlineCount, Func<Task> refreshPairing)
+        Func<int> onlineCount, Func<string> bluetoothStatus, Func<string[]> bluetoothDevices, Func<Task> refreshPairing)
     {
         Owner = owner;
         Title = "首次连接与设备配对";
@@ -41,6 +42,11 @@ internal sealed class PairDeviceWindow : Window
         }
 
         Text("连接你的 Android 手机或平板", 23).FontWeight = FontWeights.Bold;
+        Text("可以使用 USB 或蓝牙连接。已有应用配对可直接切换蓝牙；首次蓝牙连接可扫描下方配对二维码，无需先接 USB。");
+        var bluetooth = new Button { Content = "蓝牙连接", MinHeight = 40, Margin = new Thickness(0, 0, 0, 12) };
+        AutomationProperties.SetAutomationId(bluetooth, "PairBluetooth");
+        panel.Children.Add(bluetooth);
+        Text("通过 USB 连接", 16).FontWeight = FontWeights.Bold;
         Text("1. 安装 Android APK，开启开发者选项和 USB 调试。\n2. 用数据线连接并解锁设备，允许这台电脑进行 USB 调试。\n3. 点击下方按钮，等待 USB 已连接，再在 Android 选择一个终端。");
 
         var online = Text("", 13);
@@ -81,24 +87,36 @@ internal sealed class PairDeviceWindow : Window
         panel.Children.Add(help);
 
         var advancedPanel = new StackPanel();
-        var advanced = new Expander { Header = "蓝牙初次配对 / 局域网与二维码", Content = advancedPanel };
+        var advanced = new Expander { Header = "蓝牙 / 局域网与二维码", Content = advancedPanel };
         panel.Children.Add(advanced);
         var addresses = NetworkInterface.GetAllNetworkInterfaces()
             .Where(n => n.OperationalStatus == OperationalStatus.Up && n.NetworkInterfaceType != NetworkInterfaceType.Loopback)
             .SelectMany(n => n.GetIPProperties().UnicastAddresses)
             .Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork && !a.Address.ToString().StartsWith("169.254"))
             .Select(a => a.Address.ToString()).Distinct();
-        var combo = new ComboBox { ItemsSource = new[] { "USB / 蓝牙初次配对" }.Concat(addresses).ToArray(),
+        var combo = new ComboBox { ItemsSource = new[] { "USB", "蓝牙" }.Concat(addresses).ToArray(),
             SelectedIndex = 0, Margin = new Thickness(0, 12, 0, 12) };
+        AutomationProperties.SetAutomationId(combo, "PairTransport");
         advancedPanel.Children.Add(combo);
+        var bluetoothInfo = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12), Visibility = Visibility.Collapsed };
+        AutomationProperties.SetAutomationId(bluetoothInfo, "PairBluetoothStatus");
+        advancedPanel.Children.Add(bluetoothInfo);
+        void RefreshBluetooth()
+        {
+            var devices = bluetoothDevices();
+            bluetoothInfo.Text = "电脑蓝牙服务：" + bluetoothStatus() + "\n" + (devices.Length == 0 ? "尚无通过蓝牙连接的设备。" : "蓝牙已连接 · " + string.Join("、", devices));
+        }
+        timer.Tick += (_, _) => { if (combo.SelectedIndex == 1) RefreshBluetooth(); };
+        bluetooth.Click += (_, _) => { advanced.IsExpanded = true; combo.SelectedIndex = 1; advanced.BringIntoView(); };
         var qr = new Image { Width = 200, Height = 200 };
         advancedPanel.Children.Add(qr);
         var invite = new TextBox { IsReadOnly = true, TextWrapping = TextWrapping.Wrap,
             Height = 80, FontSize = 11, Margin = new Thickness(0, 10, 0, 10) };
+        AutomationProperties.SetAutomationId(invite, "PairInvitation");
         advancedPanel.Children.Add(invite);
         void RefreshInvitation()
         {
-            invite.Text = invitation(combo.SelectedIndex == 0 ? "127.0.0.1" : (string)combo.SelectedItem);
+            invite.Text = invitation(combo.SelectedIndex < 2 ? "127.0.0.1" : (string)combo.SelectedItem, combo.SelectedIndex == 1 ? "Bluetooth" : combo.SelectedIndex == 0 ? "USB" : "Wi-Fi");
             using var generator = new QRCodeGenerator();
             using var data = generator.CreateQrCode(invite.Text, QRCodeGenerator.ECCLevel.M);
             using var png = new PngByteQRCode(data);
@@ -112,13 +130,16 @@ internal sealed class PairDeviceWindow : Window
         refreshQr = RefreshInvitation;
         combo.SelectionChanged += async (_, _) =>
         {
-            try { await enableLan(combo.SelectedIndex > 0); RefreshInvitation(); }
+            bluetoothInfo.Visibility = combo.SelectedIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
+            RefreshBluetooth();
+            try { if (combo.SelectedIndex > 1) await enableLan(true); RefreshInvitation(); }
             catch (Exception error) { status.Text = error.Message; }
         };
         var copy = new Button { Content = "复制配对信息" };
         copy.Click += (_, _) => Clipboard.SetText(invite.Text);
         advancedPanel.Children.Add(copy);
         var refresh = new Button { Content = "刷新配对码", Margin = new Thickness(0, 8, 0, 0) };
+        AutomationProperties.SetAutomationId(refresh, "PairRefresh");
         refresh.Click += async (_, _) =>
         {
             refresh.IsEnabled = false;
@@ -127,7 +148,7 @@ internal sealed class PairDeviceWindow : Window
             finally { refresh.IsEnabled = true; }
         };
         advancedPanel.Children.Add(refresh);
-        advancedPanel.Children.Add(new TextBlock { Text = "蓝牙先在系统中配对，并用 USB 建立应用信任。局域网请选择电脑的可达地址，再在移动端扫码。配对信息包含临时凭据，请勿公开。",
+        advancedPanel.Children.Add(new TextBlock { Text = "蓝牙：先在两端系统设置中完成蓝牙配对。Android 点“连接电脑 → 蓝牙”或“更多 → 蓝牙连接”，选择已配对的电脑。首次应用配对可扫码或粘贴上方信息，允许“附近的设备”权限后继续；已通过 USB 配对过的设备可直接切换，无需再次扫码。\n蓝牙无需 USB 调试、Wi-Fi 或个人局域网 PAN。电脑蓝牙服务不可用时，开启蓝牙后重启 Code Link 代理。\n局域网：请选择电脑的可达地址，再在移动端扫码。配对信息包含临时凭据，请勿公开。",
             TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 10, 0, 0) });
         var done = new Button { Content = "返回面板，选择终端与设备", Margin = new Thickness(0, 18, 0, 0) };
         done.Click += (_, _) => Close();

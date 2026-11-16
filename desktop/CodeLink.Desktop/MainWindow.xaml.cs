@@ -301,21 +301,23 @@ public partial class MainWindow:Window
     }
     private async Task Run(Func<Task> action){try{await action();}catch(Exception e){Footer.Text=e.Message;}}
 
-    private string Invite(string address,string attempt="")
+    private string Invite(string address,string attempt="",string transport="")
     {
         var p=state?["pairing"]??throw new IOException("代理尚未就绪");
-        return "codelink:"+Convert.ToBase64String(Encoding.UTF8.GetBytes(J.Stringify(new{host=address,port=int.Parse(p.S("port")),pin=p.S("fingerprint"),code=p.S("code"),attempt}))).TrimEnd('=').Replace('+','-').Replace('/','_');
+        return "codelink:"+Convert.ToBase64String(Encoding.UTF8.GetBytes(J.Stringify(new{host=address,port=int.Parse(p.S("port")),pin=p.S("fingerprint"),code=p.S("code"),attempt,transport}))).TrimEnd('=').Replace('+','-').Replace('/','_');
     }
     private async void PairDevice(object sender,RoutedEventArgs e)
     {
         await Run(async()=>
         {
             if(state is null)throw new IOException("代理尚未就绪");
-            await client.Action("rotatePairing");await Task.Delay(250);
-            new PairDeviceWindow(this,address=>Invite(address),
+            await RefreshPairing(CancellationToken.None);
+            new PairDeviceWindow(this,(address,transport)=>Invite(address,transport:transport),
                 async enabled=>{await client.Action("settings",new{lan=enabled||state.B("lan")});},
                 (progress,cancel)=>UsbConnect(progress,cancel),
                 ()=>state?["devices"]?.AsArray().Count(d=>d.B("online"))??0,
+                ()=>UiMessages.Server(state.S("bluetooth")),
+                ()=>state?["devices"]?.AsArray().Where(d=>d.B("online")&&d.S("transport")=="Bluetooth").Select(d=>d.S("name")).ToArray()??Array.Empty<string>(),
                 ()=>RefreshPairing(CancellationToken.None)).ShowDialog();
         });
     }

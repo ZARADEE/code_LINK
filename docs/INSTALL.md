@@ -2,7 +2,7 @@
 
 macOS / iOS 用户请看 [Apple 安装指南](APPLE.md)。下列 USB 与 APK 步骤适用于 Windows + Android。
 
-电脑继续运行任务，在 Android 查看终端、发送输入并接收完成提醒。首次使用推荐 USB 数据线。
+电脑继续运行任务，在 Android 查看终端、发送输入并接收完成提醒。支持 USB 或蓝牙；下面先介绍 USB，蓝牙步骤见本页下一节。
 
 ## 下载和运行
 
@@ -17,6 +17,15 @@ macOS / iOS 用户请看 [Apple 安装指南](APPLE.md)。下列 USB 与 APK 步
 文件名后缀 `zh-CN` 表示简体中文，`en` 表示英文。两种 Android 包使用相同应用 ID 与发布证书，可直接覆盖切换语言并保留配对、分组；它们不能并排安装。Windows 切换语言前先处理正在运行的任务并退出应用和主机，替换应用文件时保留 `state`。英文操作说明见 [English installation](INSTALL.en.md)。
 
 手机窄屏在列表与终端详情间切换，点击“返回列表”切换任务。可用窗口至少 600dp 宽、480dp 高时使用平板双栏，分屏时随窗口调整；旋转保留各终端草稿。Android APK 使用开发签名，Windows 程序尚无商业代码签名。更换 Android 签名需要卸载旧包，卸载会清除本地配对与分组。下载页会保留本次 APK 的证书指纹。
+
+## 蓝牙连接
+
+1. 在两端系统蓝牙设置中配对电脑和 Android，打开两端 Code Link。
+2. 已有应用配对时，在 Android 点 **更多 → 蓝牙连接**，选择电脑；原有 USB 配对也可直接复用。
+3. 首次应用配对时，Windows 点 **连接设备 → 蓝牙连接**，Android 点 **连接电脑 → 蓝牙**，扫码或粘贴 Windows 的配对信息。允许“附近的设备”权限后，选择已配对的电脑。
+4. 等待“蓝牙已连接”，选择测试终端，发送 `echo hello` 并检查输出。
+
+蓝牙无需先接 USB，也无需 USB 调试、Wi-Fi 或 PAN。没有已配对的电脑时可从选择窗口打开系统蓝牙设置，返回后继续。权限被拒绝时按提示打开应用权限；配对码过期则在 Windows 刷新并重新扫码。
 
 ## 核对下载文件
 
@@ -35,7 +44,7 @@ Get-FileHash .\CodeLink-Android-v1.4.0-zh-CN.apk -Algorithm SHA256
 
 1. Download the Windows ZIP and Android APK from the official release above. Compare `Get-FileHash -Algorithm SHA256` with `SHA256SUMS.txt`.
 2. Extract the full Windows ZIP and run `CodeLink.exe`; the runtime is included in v1.4.0. Install the APK on Android 9+.
-3. Enable Android USB debugging, connect a data cable, unlock the device, and authorize your computer.
+3. For USB, enable Android USB debugging, connect a data cable, unlock the device, and authorize your computer. For Bluetooth, follow the [Bluetooth instructions](INSTALL.en.md#bluetooth); a USB connection is not required.
 4. Open both apps. On Windows choose **连接设备 → USB 一键连接** (Connect device → USB quick connect), then select a terminal on Android.
 5. Allow notifications and background operation in **更多 → 后台与通知**. Keep the Windows tray app running.
 

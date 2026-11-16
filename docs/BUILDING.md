@@ -55,6 +55,8 @@ CI 在 Windows runner 中执行桌面和 APK 构建、Java 行为测试、终端
 
 v1.4 新增 `python scripts/test-windows-package.py dist/desktop`，验证包内运行时、真实 WPF 窗口、CLI/代理通信和输入桥接；参数也可传入发布 ZIP，以验证用户下载并解压后的内容。打包读取本轮构建生成的 `build-files.json`，排除残留文件与本机状态。
 
+该检查还会通过 `scripts/test-bluetooth-wizard.ps1` 操作隔离的配对窗口，验证蓝牙入口、二维码连接方式、离线提示、配对码刷新以及切回 USB。对 `dist/desktop-en` 运行相同命令可检查英文包。此项不需要蓝牙硬件；Android 权限、实际蓝牙传输与重连仍由真机验收覆盖。
+
 `dotnet run --project desktop/CodeLink.Smoke/CodeLink.Smoke.csproj --configuration Release -- --pairing-checks` 验证配对确认仅在认证后出现，并检查旧版客户端重连兼容性。
 
 Android 布局验收脚本为 `scripts/test-adaptive-layout.py`，需要 Pillow、已授权测试设备、运行中的测试代理，以及已构建的 `CodeLink.Smoke`。例如 `python scripts/test-adaptive-layout.py --serial YOUR_SERIAL --instance YOUR_TEST_INSTANCE`。脚本创建专用终端，临时调整窗口尺寸、旋转、字体与输入法，完成后恢复设置。手机窗口覆盖不能代替实体手机兼容性测试。Windows 向导可用 `scripts/test-connection-wizard.ps1 -DesktopPid YOUR_TEST_PID` 检查两次真实 USB 配对；两项设备测试均不在无设备 CI 上执行。

@@ -1,5 +1,13 @@
 # 版本记录
 
+## Unreleased
+
+- Complete the existing Windows and Android Bluetooth connection flow: expose Bluetooth in the connection dialog and expand the existing desktop pairing section.
+- Resume device selection after Nearby devices permission is granted, resume scanning after camera permission is granted, and provide settings links when permission or system pairing is missing.
+- Preserve the Bluetooth transport when importing pairing information, while accepting older USB and LAN invitations.
+- Show authenticated Bluetooth devices separately from the overall online count, and clarify that Bluetooth pairing does not require USB.
+- Add bilingual desktop wizard checks to the isolated Windows package test.
+
 ## v1.4.0 — 2026-11-15
 
 - Windows English and Chinese packages now include the .NET Desktop Runtime.

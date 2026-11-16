@@ -55,7 +55,7 @@ For Simplified Chinese, download [Windows zh-CN](https://github.com/ZARADEE/code
 
 ## Get started
 
-Start with **Windows + Android over USB**. Keep both applications open during setup.
+Windows + Android supports **USB and Bluetooth**. The steps below use USB; Bluetooth setup is described under [Connection options](#connection-options). Keep both applications open during setup.
 
 | Step | What to do | You should see |
 | --- | --- | --- |
@@ -110,10 +110,12 @@ USB background delivery, A/B banners, screen-off notifications, and content rest
 | Transport | Setup | Current validation |
 | --- | --- | --- |
 | USB | USB debugging and computer authorization; ADB reverse + TLS | Recommended first connection; tested on hardware |
-| Bluetooth | Pair in system settings, establish app trust over USB, then choose Bluetooth in the app | RFCOMM input and reconnection tested; PAN is not required |
+| Bluetooth | System pairing plus Code Link app trust; no prior USB connection required | RFCOMM input and reconnection tested; PAN is not required |
 | Local network | Enable LAN access, pair using connection details or QR; TCP connectivity required | Implemented; hardware acceptance pending |
 
 Code Link's connection stays local. A task running inside the terminal may still use its own internet connection.
+
+For Bluetooth, pair the devices in system settings. Existing Code Link pairing can be reused through **More → Bluetooth** on Android. For first-time app pairing, choose **Pair device → Bluetooth** in Windows and **Connect → Bluetooth** on Android, scan or paste the invitation, allow Nearby devices, then select the paired PC. Neither USB nor Wi-Fi is required. [Bluetooth setup and troubleshooting](docs/INSTALL.en.md#bluetooth).
 
 ## Launch managed terminals
 

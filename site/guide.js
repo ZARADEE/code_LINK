@@ -18,7 +18,7 @@
       };
       const lang = language.value;
       if (platform.value === 'windows-android') {
-        note.textContent = text('Windows x64 + Android 9+. The Windows runtime is included; extract the whole ZIP. Start with USB; both clients are required.', 'Windows x64 + Android 9 以上。Windows 已包含运行时，请完整解压。首次推荐 USB，两端都需要安装。');
+        note.textContent = text('Windows x64 + Android 9+. The Windows runtime is included; extract the whole ZIP. Use USB or Bluetooth; both clients are required.', 'Windows x64 + Android 9 以上。Windows 已包含运行时，请完整解压。支持 USB 或蓝牙，两端都需要安装。');
         add('Windows · ' + lang, `CodeLink-Windows-v1.4.0-${lang}.zip`);
         add('Android · ' + lang, `CodeLink-Android-v1.4.0-${lang}.apk`);
       } else if (platform.value === 'mac-android') {

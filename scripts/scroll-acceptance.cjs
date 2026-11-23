@@ -11,10 +11,10 @@ const root=path.resolve(__dirname,'..'),file=path.join(root,'.local/scroll-test-
   fs.writeFileSync(path.join(root,'.local/scroll-managed-session.json'),JSON.stringify({sessionId:created.sessionId}));
   console.log('Disposable managed terminal mapped.');
  }else if(op==='cleanup-all'){
-  for(const s of client.state.sessions.filter(s=>['CODELINK_SCROLL_TEST','CODELINK_SCROLL_ALT','CODELINK_SCROLL_MANAGED','CODELINK_CLICK_TEST'].includes(s.name)))await client.action('delete',{sessionId:s.id});
+  for(const s of client.state.sessions.filter(s=>['CODELINK_SCROLL_TEST','CODELINK_SCROLL_ALT','CODELINK_SCROLL_MANAGED','CODELINK_CLICK_TEST','CODELINK_PHONE_UI_TEST'].includes(s.name)))await client.action('delete',{sessionId:s.id});
   console.log('Disposable test mappings removed.');
  }else if(op==='setup'){
-  const name=process.argv.includes('--click')?'CODELINK_CLICK_TEST':process.argv.includes('--alt')?'CODELINK_SCROLL_ALT':'CODELINK_SCROLL_TEST';
+  const name=process.argv.includes('--reminder')?'CODELINK_PHONE_UI_TEST':process.argv.includes('--click')?'CODELINK_CLICK_TEST':process.argv.includes('--alt')?'CODELINK_SCROLL_ALT':'CODELINK_SCROLL_TEST';
   const command=client.state.commands.find(c=>c.name===name);if(!command)throw Error('Disposable terminal not discovered');
   const device=testDevice();
   const created=await client.action('observe',{processId:command.processId,windowHandle:command.windowHandle,name});

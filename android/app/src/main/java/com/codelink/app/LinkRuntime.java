@@ -56,7 +56,7 @@ public final class LinkRuntime implements LinkConnection.Listener {
   List<ReminderState.Notice> events=reminders.update(items,true);save();
   if(!oldBatch.equals(reminders.batchNoticeKey()))notices.cancel(oldBatch);notices.prune(reminders);
   for(ReminderState.Notice n:events){JSONObject target=targets.get(n.id);String name=n.id.equals("@B")?"B 组":target==null?"命令行":displayName(target);notices.show(n,name);
-   try{JSONObject event=new JSONObject().put("type","notice").put("text",name+" · "+LinkNotifications.label(n.kind));for(LinkConnection.Listener l:new ArrayList<>(listeners))l.message(event);}catch(JSONException ignored){}
+   try{JSONObject event=new JSONObject().put("type","notice").put("sessionId",n.id).put("noticeKey",n.key).put("text",name+" · "+LinkNotifications.label(n.kind));for(LinkConnection.Listener l:new ArrayList<>(listeners))l.message(event);}catch(JSONException ignored){}
   }
  }
  public void acknowledge(String id){JSONObject s=SessionCatalog.session(state,id);if(s!=null)id=SessionCatalog.reminderId(s);String oldBatch=reminders.batchNoticeKey();ReminderState.Notice n=reminders.unread(id);if(n!=null)notices.cancel(n.key);reminders.acknowledge(id);afterAcknowledgement(oldBatch);}

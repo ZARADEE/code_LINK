@@ -89,6 +89,8 @@ External windows synchronize readable text and spacing. Full colors and graphica
 
 Remote scrolling and taps support a single Windows Terminal pane. Ordinary history uses its scrollbar; full-screen programs must support mouse interaction and have a restored window. Tap a visible **Back to bottom** prompt, or use Code Link's **Back to latest** shortcut when that prompt is present. Swipes do not send clicks. Local browsing leaves the PC viewport alone and preserves your reading position as new output arrives. [Behavior and tested scope](docs/REMOTE.md#移动端查看与滚动).
 
+On a phone, tap **Full screen** at the top right for a larger landscape terminal. **Back** at the top left restores the previous layout and orientation, keeping the session and draft. Input and Back to latest remain available. When an approval or question is handled on the PC, the source preview automatically clears its mobile reminder and system notification after the updated state arrives.
+
 ## A/B completion reminders
 
 | Group | When it alerts | How it clears |

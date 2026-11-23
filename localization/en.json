@@ -381,5 +381,8 @@
   "该终端程序尚未启用鼠标交互。": "This terminal program has not enabled mouse interaction.",
   "终端尺寸已变化，请等待更新后重新点击。": "The terminal size changed. Wait for the update, then tap again.",
   "终端点击未完整送达。": "The terminal click was not fully delivered.",
-  "请等滚动停止后再点击终端内容。": "Wait for scrolling to stop before tapping terminal content."
+  "请等滚动停止后再点击终端内容。": "Wait for scrolling to stop before tapping terminal content.",
+  "全屏": "Full screen",
+  "返回": "Back",
+  "输入": "Input"
 }

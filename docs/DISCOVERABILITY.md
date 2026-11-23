@@ -2,12 +2,12 @@
 
 ## GitHub 入口
 
-About 使用英文用途说明，主页指向[英文项目站](https://zaradee.github.io/code_LINK/en.html)，站内可切换中文。搜索分类使用 Topics，版本管理使用 `v1.4.1` 这类 Git 标签。当前 Topics 优先描述终端伴侣、本地连接和实际平台。
+About 使用英文用途说明，主页指向[英文项目站](https://zaradee.github.io/code_LINK/en.html)，站内可切换中文。搜索分类使用 Topics，版本管理使用 `v2.0.0` 这类 Git 标签。当前 Topics 描述终端伴侣、互联网远程、本地备用连接和实际平台。
 
 ```text
 android android-tablet windows macos ios terminal terminal-companion
 terminal-monitor remote-terminal remote-control codex codex-cli powershell
-developer-tools productivity usb bluetooth local-first task-management notifications
+developer-tools usb bluetooth task-management notifications iroh nat-traversal
 ```
 
 README 将用途、真实截图和下载放在前面；构建、贡献、安全、路线图与安装文档提供进一步入口。Topics 帮助 GitHub 分类，README 正文提供用户真正会搜索的用途与操作说明。

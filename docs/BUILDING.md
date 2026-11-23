@@ -2,7 +2,7 @@
 
 Windows / Android 远程功能新增 Rust 通信库。准备原有工具后先运行 `./scripts/setup-remote.ps1`，再执行下方构建命令。工具链复用、NDK 校验和验收方法见 [远程连接方案](REMOTE.md)。已在本机复用 Rust 1.100.0；Android 新构建面向 ARM64。
 
-构建环境为 Windows x64。v1.4.1 的便携包已经包含 .NET 桌面运行时，用户无需额外安装；修改源码则需要下列开发工具。
+构建环境为 Windows x64。v2.0.0 的便携包已经包含 .NET 桌面运行时，用户无需额外安装；修改源码则需要下列开发工具。
 
 | 工具 | 用途 |
 | --- | --- |
@@ -37,7 +37,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android.ps1
 
 输出分别为 `dist/desktop/CodeLink.exe`、`dist/desktop/clink.exe` 和 `dist/CodeLink-Android-zh-CN.apk`。桌面便携包必须保留整个输出目录。首次运行时，本机状态保存在该目录下的 `state`；不要把它打包或提交到仓库。
 
-Android 当前直接使用 `aapt`、`javac`、`d8`、`zipalign`、`apksigner` 构建，尚未迁移到 Gradle。构建脚本会生成本机调试签名文件 `.local/CodeLink.debug.keystore`。公开的 1.2.0 APK 也使用开发签名，适合侧载测试；本地新生成的签名不能覆盖另一签名的安装包。需要切换签名时先卸载，卸载会清除平板上的配对、分组和已读记录。密钥不随源码分发。
+Android 当前直接使用 `aapt`、`javac`、`d8`、`zipalign`、`apksigner` 构建，尚未迁移到 Gradle。构建脚本会生成本机调试签名文件 `.local/CodeLink.debug.keystore`。官方 2.0.0 APK 沿用原有开发签名；本地新生成的密钥和 CI 临时密钥不能覆盖官方安装包。需要切换签名时先卸载，卸载会清除平板上的配对、分组和已读记录。密钥不随源码分发。
 
 USB 安装需要已授权的 Android 设备：
 
@@ -87,7 +87,7 @@ Android 布局验收脚本为 `scripts/test-adaptive-layout.py`，需要 Pillow�
 
 ## 发布包
 
-构建两端后运行 `python scripts/package-release.py`，在 `dist/releases/v1.4.1` 生成 Windows ZIP、Android APK 与 `SHA256SUMS.txt`。脚本只打包应用文件，重新生成默认 `runtime.json`，排除本机配对、状态和调试文件。
+构建两端后运行 `python scripts/package-release.py`，在 `dist/releases/v2.0.0` 生成 Windows ZIP、Android APK 与 `SHA256SUMS.txt`。脚本只打包应用文件，重新生成默认 `runtime.json`，排除本机配对、状态和调试文件。
 
 `v*` 标签或手动运行 **Build release packages** 会生成 GitHub Actions 测试产物。CI 每次生成的 Android 调试密钥不同，产物不会自动覆盖公开 Release。维护者发布升级 APK 时应沿用发布密钥，并在 Release 中记录证书指纹和安装限制。
 

@@ -1,5 +1,13 @@
 # 开发记录
 
+## 2.0.0 · 2026-11-23
+
+Windows 与 Android 发布包内嵌 iroh 远程连接，电脑继续作为任务服务器。已完成手机移动数据、平板热点与电脑校园网之间的输入、滑动、点击和横屏全屏验收；平板拔线熄屏完成提醒由用户确认。电脑解决授权后同步撤回移动端提示，历史授权文字不再盖过新的运行状态。
+
+中英文文档与下载入口统一为 2.0；Apple 保留 LAN 与开发预览范围。验收见 [远程](../research/remote-acceptance.json)、[手机交互](../research/phone-terminal-acceptance.json)与[全屏和提醒](../research/phone-ui-acceptance.json)。8 小时远程持续连接、跨运营商和更多厂商后台策略待验证。
+
+## 历史记录
+
 目标：Windows 原生托盘工具、Android 安装包、USB / 局域网 / 蓝牙、托管 Codex 与终端、移动端通知和交互。
 
 用户已授权直接安装到 USB 连接的 TB371FC 平板并进行测试。

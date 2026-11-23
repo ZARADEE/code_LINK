@@ -9,14 +9,14 @@ body:
     id: versions
     attributes:
       label: 系统与应用版本 / Versions
-      placeholder: macOS 14 arm64 + iOS 17; 或 Windows 11 + Android 14; Code Link 1.4.1
+      placeholder: macOS 14 arm64 + iOS 17; 或 Windows 11 + Android 14; Code Link 2.0.0
     validations:
       required: true
   - type: dropdown
     id: transport
     attributes:
       label: 连接方式 / Transport
-      options: [USB, Bluetooth, LAN, Remote / 远程源码预览, 不涉及连接 / Not applicable]
+      options: [USB, Bluetooth, LAN, Remote / 互联网远程, 不涉及连接 / Not applicable]
     validations:
       required: true
   - type: input

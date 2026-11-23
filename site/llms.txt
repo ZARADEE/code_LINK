@@ -1,8 +1,8 @@
 # Code Link
 
-> A local terminal companion for Windows, macOS, Android and iOS, maintained by ZARADEE.
+> Code Link 2.0 brings Windows terminals to Android phones and tablets over the internet. Your PC is the server. Maintained by ZARADEE.
 
-Monitor Windows terminal output, send text and keys, respond to approvals, and receive individual (A) or grouped (B) completion notifications from an Android tablet. USB and Bluetooth transports work locally without a relay server. The current Android release is 1.4.1. Windows / Android offer zh-CN and en packages; Apple clients use English. Package filenames identify the language.
+Monitor Windows terminal output, scroll, tap interactive terminal buttons, open landscape fullscreen, send text and keys, handle approvals, and receive individual (A) or grouped (B) completion notifications on Android. Internet access uses encrypted iroh connections with direct paths where possible and free public relay fallback. No server rental or separate phone VPN is required. The PC must stay on and awake. USB, Bluetooth and LAN remain available. The current release is 2.0.0. Windows / Android offer zh-CN and en packages; Apple clients use English. Package filenames identify the language.
 
 ## Project resources
 
@@ -15,6 +15,7 @@ Monitor Windows terminal output, send text and keys, respond to approvals, and r
 - [Chinese user guide](https://github.com/ZARADEE/code_LINK/blob/main/README.zh-CN.md): installation, pairing, reminders and troubleshooting.
 - [English user guide](https://github.com/ZARADEE/code_LINK/blob/main/README.md): supported workflows and limitations.
 - [Downloads](https://github.com/ZARADEE/code_LINK/releases/latest): Windows ZIP, Android APK, Apple silicon / Intel Mac apps, iOS simulator, unsigned device archive and Xcode source.
+- [Remote access](https://github.com/ZARADEE/code_LINK/blob/main/docs/REMOTE.md): architecture, pairing, relay behavior and acceptance evidence.
 - [Apple guide](https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md): macOS and iOS setup, personal signing, LAN and background limitations.
 - [Build guide](https://github.com/ZARADEE/code_LINK/blob/main/docs/BUILDING.md): development prerequisites and commands.
 - [Implementation](https://github.com/ZARADEE/code_LINK/blob/main/docs/implementation.zh-CN.md): architecture and hardware validation.
@@ -28,7 +29,7 @@ Public website pages contain static HTML, canonical and hreflang links, and Soft
 
 ## Scope
 
-Targets: Windows x64, Android 9+, macOS 14+ and iOS / iPadOS 17+. Existing Windows Terminal mappings follow the active tab. External terminal completion detection requires supported screen markers; structured Codex events are available through clink codex. LAN is implemented but hardware acceptance is pending. Apple clients use local TLS; macOS runs managed PTYs and local Codex sessions. iOS pauses in the background. There is no signed iPhone IPA or TestFlight release; a simulator app and personal-signing source are provided. Mac apps are ad-hoc signed and not notarized. Linux and WSL remain unvalidated. Code uses MIT; supplied artwork and third-party components have separate terms.
+Targets: Windows x64, Android 9+ ARM64, macOS 14+ and iOS / iPadOS 17+. Existing Windows Terminal mappings follow the active tab. External terminal completion detection requires supported screen markers; structured Codex events are available through clink codex. Remote access has been verified between a campus-network PC and Android on a hotspot or cellular data, including an unplugged screen-off completion alert. Overnight reliability has not been validated. LAN is implemented but hardware acceptance is pending. Apple clients use local TLS; macOS runs managed PTYs and local Codex sessions. iOS pauses in the background. There is no signed iPhone IPA or TestFlight release; a simulator app and personal-signing source are provided. Mac apps are ad-hoc signed and not notarized. Linux and WSL remain unvalidated. Code uses MIT; supplied artwork and third-party components have separate terms.
 
 ## Complete workflows
 

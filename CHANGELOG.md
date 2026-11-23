@@ -1,7 +1,10 @@
 # 版本记录
 
-## Unreleased — remote access
+## 2.0.0 — 2026-11-23
 
+The PC is now an internet-accessible terminal host for Android phones and tablets. Windows and Android include the remote transport in their downloadable packages; USB, Bluetooth and LAN remain available.
+
+- Rewrite the bilingual README, installation guides and website around the complete 2.0 workflow; align application versions, downloads and release metadata.
 - Add a landscape full-screen terminal with return, input and latest-output controls. Clear obsolete Android authorization/question reminders and system notifications when the PC reports that work has resumed; retain unresolved requests through unknown/offline states.
 - Forward Android taps to matching Windows Terminal text cells, with control and stale-content checks. Recognize the full-screen `New activity · ↓ Back to bottom · esc` prompt from the latest-output shortcut, and validate swipes and clicks on an Android 16 phone over cellular data.
 - Add Android terminal swipes, a local history mode that preserves reading position, and a back-to-latest control. Synchronize existing Windows Terminal history scrollbars and full-screen mouse-wheel input with a separate visible-viewport snapshot; retain controller authorization for desktop scrolling.
@@ -11,7 +14,7 @@
 - Verify physical PAD input over a phone hotspot while Windows stays on campus networking, and completion notifications after unplugging USB and turning the screen off. Overnight stability remains pending.
 - Reuse an existing Windows Rust/MSVC toolchain without modifying it; add verified Android native inputs and packaged dependency notices. See [remote design and acceptance](docs/REMOTE.md).
 
-## v1.4.1 ? 2026-11-16
+## v1.4.1 — 2026-11-16
 
 - Complete the existing Windows and Android Bluetooth connection flow: expose Bluetooth in the connection dialog and expand the existing desktop pairing section.
 - Resume device selection after Nearby devices permission is granted, resume scanning after camera permission is granted, and provide settings links when permission or system pairing is missing.

@@ -28,6 +28,8 @@ public sealed class HostConfig
     public List<DeviceRecord> Devices { get; set; } = [];
     public string CodexPath { get; set; } = "";
     public bool LanEnabled { get; set; }
+    public bool RemoteEnabled { get; set; }
+    public string RemoteIdentity { get; set; } = "";
     public bool BluetoothEnabled { get; set; } = true;
 }
 public sealed class HostStorage
@@ -44,6 +46,7 @@ public sealed class HostStorage
         var file = Path.Combine(DirectoryPath, "host.json");
         Config = File.Exists(file) ? JsonSerializer.Deserialize<HostConfig>(File.ReadAllText(file))! : new();
         Config.CertificatePassword=WindowsSecret.Unprotect(Config.CertificatePassword);
+        if(Config.RemoteIdentity.Length>0)Config.RemoteIdentity=WindowsSecret.Unprotect(Config.RemoteIdentity);
         foreach(var device in Config.Devices)device.Key=WindowsSecret.Unprotect(device.Key);
         var pfx = Path.Combine(DirectoryPath, "host.pfx");
         if (!File.Exists(pfx))
@@ -64,6 +67,7 @@ public sealed class HostStorage
         {
             var secured=JsonSerializer.Deserialize<HostConfig>(JsonSerializer.Serialize(Config))!;
             secured.CertificatePassword=WindowsSecret.Protect(secured.CertificatePassword);
+            if(secured.RemoteIdentity.Length>0)secured.RemoteIdentity=WindowsSecret.Protect(secured.RemoteIdentity);
             foreach(var device in secured.Devices)device.Key=WindowsSecret.Protect(device.Key);
             var file=Path.Combine(DirectoryPath,"host.json");File.WriteAllText(file+".tmp",JsonSerializer.Serialize(secured));File.Move(file+".tmp",file,true);
         }
@@ -85,6 +89,9 @@ public sealed class ObserverInput
     public string Id {get;init;}=Guid.NewGuid().ToString("N");
     public string Text {get;init;}="";
     public bool Raw {get;init;}
+    public string Operation {get;init;}="input";
+    public int Lines {get;init;}
+    public bool Latest {get;init;}
     public string DeviceId {get;init;}="";
     public bool Claimed {get;set;}
     public DateTime Expires {get;init;}=DateTime.UtcNow.AddSeconds(15);
@@ -107,6 +114,7 @@ public sealed class Session
     public HashSet<string> Devices { get; set; } = [];
     public List<Approval> Approvals { get; } = [];
     public string Output { get; private set; } = "";
+    public string ViewportOutput { get; set; } = "";
     public long OutputRevision { get; private set; }
     public Queue<string> InputQueue { get; } = [];
     public List<ObserverInput> ObserverInputs { get; } = [];
@@ -114,7 +122,7 @@ public sealed class Session
     public object Gate { get; } = new();
     public void Append(string text) { lock(Gate) { Output += text; if(Output.Length>120000)Output=Output[^100000..]; OutputRevision++; } }
     public void ReplaceOutput(string text) { lock(Gate) { Output=text.Length>120000?text[^120000..]:text;OutputRevision++; } }
-    public object[] PendingInputs(){lock(Gate)return ObserverInputs.Where(input=>!input.Claimed&&input.Expires>DateTime.UtcNow).Select(input=>(object)new{sessionId=Id,processId=ObservedProcessId,windowHandle=ObservedWindowHandle,input.Id,input.Text,input.Raw}).ToArray();}
+    public object[] PendingInputs(){lock(Gate)return ObserverInputs.Where(input=>!input.Claimed&&input.Expires>DateTime.UtcNow).Select(input=>(object)new{sessionId=Id,processId=ObservedProcessId,windowHandle=ObservedWindowHandle,input.Id,input.Text,input.Raw,input.Operation,input.Lines,input.Latest}).ToArray();}
     public object Snapshot(bool includeOutput) { lock(Gate) return new { Id, Name, Kind, Cwd, Status, ThreadId, TurnId, ActivityCycle=Activity.Cycle, ActivityRevision=Activity.Revision, StatusSource=Kind=="observer"?Activity.Source:"protocol", FrontendPid, ObservedProcessId, ObservedWindowHandle, ProcessId=Terminal?.ProcessId??0, Controller, Devices = Devices.ToArray(), Queued=InputQueue.Count, OutputRevision, Output=includeOutput?Output:"", approvals=Approvals.Select(a=>new {a.Id,a.Method,a.Summary,a.Parameters,a.Resolving}).ToArray() }; }
 }
 

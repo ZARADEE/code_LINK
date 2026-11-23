@@ -1,10 +1,1 @@
-* text=auto
-*.md text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
-*.java text eol=lf
-*.cs text eol=lf
-*.png binary
-*.jpg binary
-*.gif binary
-*.ico binary
+licenses/remote-third-party.txt linguist-generated=true

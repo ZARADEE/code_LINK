@@ -1,6 +1,9 @@
-param([ValidateSet('zh-CN','en')][string]$Language='zh-CN')
+param([ValidateSet('zh-CN','en')][string]$Language='zh-CN',[switch]$SkipNativeBuild)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
+if(-not $SkipNativeBuild){ & (Join-Path $PSScriptRoot 'build-remote.ps1') -Platform Windows }
+$remoteLibrary = Join-Path $root '.local/remote-native/windows/codelink_remote.dll'
+if(-not(Test-Path $remoteLibrary)){throw 'Missing Windows remote library'}
 $projectRoot = $root
 if ($Language -eq 'en') {
     & python (Join-Path $PSScriptRoot 'localize-sources.py') generate
@@ -34,6 +37,7 @@ if (-not (Test-Path -LiteralPath (Join-Path $output 'runtime.json'))) {
 }
 
 $tools = Join-Path $bundle 'tools'
+Copy-Item -LiteralPath $remoteLibrary -Destination $bundle -Force
 New-Item -ItemType Directory -Force -Path $tools | Out-Null
 Copy-Item -LiteralPath (Join-Path $adbSource 'adb.exe'), (Join-Path $adbSource 'AdbWinApi.dll'), (Join-Path $adbSource 'AdbWinUsbApi.dll') -Destination $tools -Force
 Copy-Item -LiteralPath (Join-Path $adbSource 'NOTICE.txt') -Destination (Join-Path $tools 'ADB-NOTICE.txt') -Force

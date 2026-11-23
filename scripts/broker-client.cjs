@@ -1,9 +1,9 @@
 const net = require('node:net');
 const crypto = require('node:crypto');
 class BrokerClient {
-  constructor() { this.state = null; this.outputs = new Map(); this.pending = new Map(); this.buffer = Buffer.alloc(0); }
+  constructor(instance = process.env.CODELINK_INSTANCE || '') { this.instance = instance; this.state = null; this.outputs = new Map(); this.pending = new Map(); this.buffer = Buffer.alloc(0); }
   async connect() {
-    this.socket = net.createConnection('\\\\.\\pipe\\CodeLink.Local.v1');
+    this.socket = net.createConnection('\\\\.\\pipe\\CodeLink.Local.v1' + (this.instance ? '.' + this.instance : ''));
     this.socket.on('data', data => {
       this.buffer = Buffer.concat([this.buffer, data]);
       while (this.buffer.length >= 4 && this.buffer.length >= this.buffer.readUInt32BE(0) + 4) {

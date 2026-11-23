@@ -12,6 +12,8 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
  private boolean dualPane=false,detailOpen=false,keepAwake=true;private int requestCount=0;private final Bundle drafts=new Bundle();
  private View layoutRoot;private android.view.ViewTreeObserver.OnGlobalLayoutListener layoutListener;
  private AlertDialog connectionSetup;private boolean bluetoothScan=false;
+ private Button scrollMode,scrollLatest;private LinearLayout scrollControls;private boolean desktopScroll=true;
+ private int pendingScrollLines;private boolean pendingScrollLatest;private String scrollSession="",scrollRequest="";private volatile long scrollEpoch;
  private void detachLayoutListener(){if(layoutRoot!=null&&layoutListener!=null&&layoutRoot.getViewTreeObserver().isAlive())layoutRoot.getViewTreeObserver().removeOnGlobalLayoutListener(layoutListener);layoutRoot=null;layoutListener=null;}
  private String selected="",approvalsSignature="",sessionSignature="",currentKind="",fullText="";private JSONObject lastState;private boolean connected=false,controller=false,terminalReady=false,building=false;
  public void onCreate(Bundle saved){super.onCreate(saved);runtime=LinkRuntime.get(this);link=runtime.link;presentation=runtime.presentation;reminders=runtime.reminders;groupTab=presentation.getString("tab","B");keepAwake=presentation.getBoolean("keepAwake",true);if(keepAwake)getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);if(saved!=null){bluetoothScan=saved.getBoolean("bluetoothScan");selected=saved.getString("selected","");detailOpen=saved.getBoolean("detailOpen");Bundle prior=saved.getBundle("drafts");if(prior!=null)drafts.putAll(prior);}buildUi();handleIntent(getIntent());if(saved==null)showSplash();if(Build.VERSION.SDK_INT>=33&&checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},100);if(getIntent().getStringExtra("invite")==null&&getIntent().getStringExtra("btAddress")==null)runtime.ensureStarted();}
@@ -80,10 +82,15 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
   outputFrame=new FrameLayout(this);outputFrame.setBackground(bg(DARK,10));detailPane.addView(outputFrame,new LinearLayout.LayoutParams(-1,0,1));
   outputScroll=new ScrollView(this);outputScroll.setFillViewport(true);output=new TextView(this);output.setTextColor(0xffe4ebdd);output.setTextSize(14);output.setTypeface(Typeface.MONOSPACE);output.setTextIsSelectable(true);output.setPadding(dp(12),dp(12),dp(12),dp(12));output.setContentDescription("session-output");outputScroll.addView(output,new ScrollView.LayoutParams(-1,-2));outputFrame.addView(outputScroll,new FrameLayout.LayoutParams(-1,-1));
   terminal=new WebView(this);terminal.setBackgroundColor(DARK);terminal.getSettings().setJavaScriptEnabled(true);terminal.getSettings().setAllowFileAccess(false);terminal.getSettings().setAllowContentAccess(false);terminal.addJavascriptInterface(new TerminalBridge(),"CodeLink");
-  terminal.setWebViewClient(new WebViewClient(){public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){return true;}public void onPageFinished(WebView view,String url){terminalReady=true;if(currentKind.equals("terminal"))terminal.evaluateJavascript("appendTerminal("+JSONObject.quote(fullText)+",true)",null);else if(currentKind.equals("observer"))terminal.evaluateJavascript("showWindowText("+JSONObject.quote(fullText)+")",null);}});
+  terminal.setWebViewClient(new WebViewClient(){public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){return true;}public void onPageFinished(WebView view,String url){terminalReady=true;configureTerminalScroll();if(currentKind.equals("terminal"))terminal.evaluateJavascript("appendTerminal("+JSONObject.quote(fullText)+",true)",null);else if(currentKind.equals("observer"))renderWindowText();}});
   terminal.loadUrl("file:///android_asset/terminal.html");terminal.setVisibility(View.GONE);outputFrame.addView(terminal,new FrameLayout.LayoutParams(-1,-1));
+  terminal.setContentDescription("terminal-output-view");
+  scrollControls=new LinearLayout(this);scrollControls.setGravity(Gravity.CENTER_VERTICAL);
+  scrollMode=button("滑动：同步电脑",()->{desktopScroll=!desktopScroll;clearScroll();configureTerminalScroll();});scrollMode.setContentDescription("terminal-scroll-mode");scrollControls.addView(scrollMode,new LinearLayout.LayoutParams(0,dp(40),1));
+  scrollLatest=button("回到最新",()->{if(terminalReady)terminal.evaluateJavascript("scrollLatest()",null);});scrollLatest.setContentDescription("terminal-scroll-latest");scrollControls.addView(scrollLatest,new LinearLayout.LayoutParams(-2,dp(40)));
+  detailPane.addView(scrollControls,new LinearLayout.LayoutParams(-1,-2));scrollControls.setVisibility(View.GONE);
   approvals=new LinearLayout(this);approvals.setOrientation(1);requestScroll=new ScrollView(this);requestScroll.setFillViewport(false);requestScroll.addView(approvals);detailPane.addView(requestScroll,new LinearLayout.LayoutParams(-1,0));requestCount=0;
-  banner=text("完全本地连接 · 不经过云端中继",12,GREEN);banner.setMaxLines(2);banner.setEllipsize(android.text.TextUtils.TruncateAt.END);banner.setPadding(0,dp(6),0,dp(6));banner.setContentDescription("activity-banner");detailPane.addView(banner);
+  banner=text("连接电脑后同步终端内容",12,GREEN);banner.setMaxLines(2);banner.setEllipsize(android.text.TextUtils.TruncateAt.END);banner.setPadding(0,dp(6),0,dp(6));banner.setContentDescription("activity-banner");detailPane.addView(banner);
   LinearLayout composer=new LinearLayout(this);composer.setGravity(Gravity.CENTER_VERTICAL);input=new EditText(this);input.setHint("输入下一项任务或终端命令");input.setTextSize(14);input.setTextColor(INK);input.setBackground(bg(-1,8));input.setPadding(dp(12),dp(8),dp(12),dp(8));input.setMinHeight(dp(48));input.setMinLines(dualPane?2:1);input.setMaxLines(dualPane?4:3);input.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE|android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);input.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);input.setContentDescription("command-input");input.setText(draft);input.setSelection(input.length());input.setEnabled(connected&&controller);composer.addView(input,new LinearLayout.LayoutParams(0,-2,1));
   Button send=button("发送",()->sendInput());send.setContentDescription("send-command");send.setBackground(bg(YELLOW,8));LinearLayout.LayoutParams bp=(LinearLayout.LayoutParams)send.getLayoutParams();bp.setMargins(dp(8),0,0,0);composer.addView(send,bp);detailPane.addView(composer,new LinearLayout.LayoutParams(-1,-2));
   terminalKeys=new LinearLayout(this);String[] labels={"Enter","Esc","Tab","Ctrl+C","↑","↓","←","→"};String[] codes={"\r","\u001b","\t","\u0003","\u001b[A","\u001b[B","\u001b[D","\u001b[C"};
@@ -112,15 +119,17 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
   menu.getMenu().add("中断").setEnabled(active&&controller&&connected).setOnMenuItemClickListener(i->{action("interrupt",fields());return true;});menu.show();
  }
  private void showSplash(){FrameLayout overlay=new FrameLayout(this);overlay.setBackgroundColor(CREAM);LinearLayout panel=new LinearLayout(this);panel.setOrientation(1);panel.setGravity(Gravity.CENTER);ImageView animation=new ImageView(this);LinearLayout.LayoutParams imageSize=new LinearLayout.LayoutParams(dp(Math.min(360,getResources().getConfiguration().screenWidthDp-32)),dp(220));panel.addView(animation,imageSize);TextView label=text("Code Link",30,INK);label.setGravity(Gravity.CENTER);panel.addView(label);TextView note=text("连接你的另一块屏幕",14,GREEN);note.setGravity(Gravity.CENTER);note.setPadding(0,dp(14),0,0);panel.addView(note);overlay.addView(panel,new FrameLayout.LayoutParams(-1,-1));addContentView(overlay,new ViewGroup.LayoutParams(-1,-1));try{byte[] bytes;try(java.io.InputStream in=getAssets().open("startup.gif");java.io.ByteArrayOutputStream out=new java.io.ByteArrayOutputStream()){byte[] b=new byte[8192];int n;while((n=in.read(b))>0)out.write(b,0,n);bytes=out.toByteArray();}Drawable d=ImageDecoder.decodeDrawable(ImageDecoder.createSource(java.nio.ByteBuffer.wrap(bytes)));animation.setImageDrawable(d);if(d instanceof AnimatedImageDrawable)((AnimatedImageDrawable)d).start();}catch(Exception ignored){}handler.postDelayed(()->{ViewGroup p=(ViewGroup)overlay.getParent();if(p!=null)p.removeView(overlay);},2400);}
- public void status(String text,boolean online){runOnUiThread(()->{if(!observing)return;connected=online;connectionStatus.setText(text);connectionStatus.setTextColor(online?GREEN:0xffa35a33);input.setEnabled(online&&controller);if(online)banner.setText("已连接电脑，状态已同步");if(!online){input.setEnabled(false);banner.setText("连接恢复后同步状态，电脑上的任务继续运行");}});}
- public void message(JSONObject message){runOnUiThread(()->{if(!observing)return;String type=message.optString("type");if(type.equals("state"))applyState(message);else if(type.equals("notice")){banner.setText(UiMessages.server(message.optString("text")));}else if(type.equals("result")){JSONObject result=message.optJSONObject("result");if(result!=null&&!result.optBoolean("ok")){banner.setText(UiMessages.server(result.optString("error")));toast(result.optString("error"));}else if(result!=null&&result.optBoolean("queued"))banner.setText("任务已排队，当前回合结束后开始");else banner.setText("操作已确认");}});}
+ public void status(String text,boolean online){runOnUiThread(()->{if(!observing)return;connected=online;connectionStatus.setText(text);connectionStatus.setTextColor(online?GREEN:0xffa35a33);input.setEnabled(online&&controller);if(online)banner.setText("已连接电脑，状态已同步");if(!online){clearScroll();input.setEnabled(false);banner.setText("连接恢复后同步状态，电脑上的任务继续运行");}configureTerminalScroll();});}
+ public void message(JSONObject message){runOnUiThread(()->{if(!observing)return;String type=message.optString("type");if(type.equals("state"))applyState(message);else if(type.equals("notice")){banner.setText(UiMessages.server(message.optString("text")));}else if(type.equals("result")){if(scrollResult(message))return;JSONObject result=message.optJSONObject("result");if(result!=null&&!result.optBoolean("ok")){banner.setText(UiMessages.server(result.optString("error")));toast(result.optString("error"));}else if(result!=null&&result.optBoolean("queued"))banner.setText("任务已排队，当前回合结束后开始");else banner.setText("操作已确认");}});}
  private void applyState(JSONObject state){lastState=state;JSONArray sessions=state.optJSONArray("sessions");if(sessions==null)return;String previous=selected;String next=state.optString("selected");if(!previous.equals(next))saveDraft();selected=next;JSONObject active=null;for(int i=0;i<sessions.length();i++){JSONObject item=sessions.optJSONObject(i);if(item!=null&&item.optString("id").equals(selected))active=item;}
   if(!selected.equals(previous)){input.setText(drafts.getString(selected,""));input.setSelection(input.length());if(active!=null){detailOpen=true;groupTab=groupOf(active);presentation.edit().putString("tab",groupTab).apply();}}
   if(active==null)detailOpen=false;updatePanes();
   consumeNotificationTarget();renderSessions();
   boolean reset=state.optBoolean("reset")||!previous.equals(selected);String chunk=state.optString("output");if(reset)fullText=chunk;else fullText+=chunk;if(fullText.length()>120000)fullText=fullText.substring(fullText.length()-100000);
   currentKind=active==null?"":active.optString("kind");boolean isTerminal=currentKind.equals("terminal");keyStrip.setVisibility(isTerminal||currentKind.equals("observer")?View.VISIBLE:View.GONE);terminal.setVisibility(isTerminal||currentKind.equals("observer")?View.VISIBLE:View.GONE);outputScroll.setVisibility(isTerminal||currentKind.equals("observer")?View.GONE:View.VISIBLE);
-  if(currentKind.equals("observer")){if(terminalReady&&(!chunk.isEmpty()||reset))terminal.evaluateJavascript("showWindowText("+JSONObject.quote(fullText)+")",null);}else if(isTerminal){if(terminalReady&&(!chunk.isEmpty()||reset))terminal.evaluateJavascript("appendTerminal("+JSONObject.quote(chunk)+","+reset+")",null);}else{boolean follow=reset||outputScroll.getChildAt(0).getHeight()-outputScroll.getHeight()-outputScroll.getScrollY()<dp(80);if(reset)output.setText(strip(chunk));else if(!chunk.isEmpty())output.append(strip(chunk));if(output.length()>120000)output.setText(output.getText().subSequence(output.length()-100000,output.length()));if(follow)outputScroll.post(()->outputScroll.fullScroll(View.FOCUS_DOWN));}
+  if(!selected.equals(previous))clearScroll();
+  controller=active!=null&&link.deviceId.equals(active.optString("controller"));configureTerminalScroll();
+  if(currentKind.equals("observer")){if(terminalReady)renderWindowText();}else if(isTerminal){if(terminalReady&&(!chunk.isEmpty()||reset))terminal.evaluateJavascript("appendTerminal("+JSONObject.quote(chunk)+","+reset+")",null);}else{boolean follow=reset||outputScroll.getChildAt(0).getHeight()-outputScroll.getHeight()-outputScroll.getScrollY()<dp(80);if(reset)output.setText(strip(chunk));else if(!chunk.isEmpty())output.append(strip(chunk));if(output.length()>120000)output.setText(output.getText().subSequence(output.length()-100000,output.length()));if(follow)outputScroll.post(()->outputScroll.fullScroll(View.FOCUS_DOWN));}
   if(active==null){title.setText("选择电脑映射的命令行");subtitle.setText("在电脑上选择窗口，点击映射到移动端");controller=false;}else{title.setText(displayName(active));controller=link.deviceId.equals(active.optString("controller"));subtitle.setText(label(active.optString("status"))+(currentKind.equals("observer")?" · 窗口识别":"")+"  ·  "+(controller?"可操作":"未分配输入")+(currentKind.equals("observer")?"":"  ·  "+active.optString("cwd")));}
   input.setEnabled(connected&&controller);input.setHint(controller?"输入下一项任务或终端命令":"请在电脑映射此命令行");
   JSONArray requests=active==null?new JSONArray():active.optJSONArray("approvals");if(requests==null)requests=new JSONArray();String reqSignature=requests.toString()+selected;
@@ -158,7 +167,42 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
  private void action(String action,JSONObject fields){if(!connected){toast("当前未连接电脑");return;}io.execute(()->{try{link.action(action,fields);}catch(Exception e){runOnUiThread(()->toast(e.getMessage()));}});}
  private void watch(String id){if(id.equals(selected)){detailOpen=true;updatePanes();}acknowledge(id);io.execute(()->{try{link.send(new JSONObject().put("type","watch").put("sessionId",id));}catch(Exception e){runOnUiThread(()->toast(e.getMessage()));}});}
  private void sendInput(){String value=input.getText().toString();if(value.isEmpty()||!controller||!connected)return;try{action("input",fields().put("text",value));input.setText("");drafts.remove(selected);}catch(Exception e){toast(e.getMessage());}}
- public final class TerminalBridge{@JavascriptInterface public void keys(String value){if(controller&&connected)try{action("input",fields().put("text",value).put("raw",true));}catch(Exception ignored){}}}
+ private void renderWindowText(){terminal.evaluateJavascript("showWindowText("+JSONObject.quote(fullText)+","+JSONObject.quote(lastState==null?fullText:lastState.optString("viewport",fullText))+")",null);}
+ private void configureTerminalScroll(){
+  if(scrollControls==null)return;boolean observer=currentKind.equals("observer");
+  scrollControls.setVisibility(observer||currentKind.equals("terminal")?View.VISIBLE:View.GONE);
+  scrollMode.setVisibility(observer?View.VISIBLE:View.GONE);scrollMode.setEnabled(controller&&connected);
+  boolean sync=observer&&desktopScroll&&controller&&connected;
+  scrollMode.setText(sync?"滑动：同步电脑":"滑动：本地查看");
+  if(terminalReady)terminal.evaluateJavascript("configureTerminal("+JSONObject.quote(selected)+","+observer+","+sync+")",null);
+ }
+ private void clearScroll(){scrollEpoch++;scrollSession="";scrollRequest="";pendingScrollLines=0;pendingScrollLatest=false;handler.removeCallbacks(flushScroll);}
+ private final Runnable flushScroll=()->flushDesktopScroll();
+ private void requestScroll(String sessionId,int lines,boolean latest){
+  if(!observing||!connected||!controller||!desktopScroll||!currentKind.equals("observer")||!selected.equals(sessionId))return;
+  scrollSession=sessionId;pendingScrollLines=Math.max(-72,Math.min(72,pendingScrollLines+Math.max(-36,Math.min(36,lines))));
+  if(latest){pendingScrollLatest=true;pendingScrollLines=0;}
+  handler.removeCallbacks(flushScroll);handler.postDelayed(flushScroll,100);
+ }
+ private void flushDesktopScroll(){
+  if(!scrollRequest.isEmpty()||scrollSession.isEmpty()||(!pendingScrollLatest&&pendingScrollLines==0))return;
+  if(!observing||!connected||!controller||!desktopScroll||!selected.equals(scrollSession)){clearScroll();return;}
+  final String id=UUID.randomUUID().toString(),sessionId=scrollSession;final long epoch=scrollEpoch;
+  final int lines=Math.max(-36,Math.min(36,pendingScrollLines));final boolean latest=pendingScrollLatest;
+  pendingScrollLines-=lines;pendingScrollLatest=false;scrollRequest=id;
+  io.execute(()->{try{if(epoch==scrollEpoch)link.send(new JSONObject().put("type","action").put("id",id).put("action","scroll").put("sessionId",sessionId).put("lines",lines).put("latest",latest));}catch(Exception error){handler.post(()->{if(scrollRequest.equals(id)){clearScroll();banner.setText(error.getMessage());}});}});
+  handler.postDelayed(()->{if(scrollRequest.equals(id)){clearScroll();banner.setText("电脑滚动未及时响应，请重试或切换本地查看。");}},16000);
+ }
+ private boolean scrollResult(JSONObject message){
+  if(!message.optString("id").equals(scrollRequest)||scrollRequest.isEmpty())return false;
+  scrollRequest="";JSONObject result=message.optJSONObject("result");
+  if(result==null||!result.optBoolean("ok")){clearScroll();banner.setText(result==null?"电脑滚动未及时响应，请重试或切换本地查看。":UiMessages.server(result.optString("error")));}
+  else{banner.setText("已滚动电脑窗口 · 下滑查看前文，上滑查看后文");handler.post(flushScroll);}return true;
+ }
+ public final class TerminalBridge{
+  @JavascriptInterface public void keys(String value){if(controller&&connected)try{action("input",fields().put("text",value).put("raw",true));}catch(Exception ignored){}}
+  @JavascriptInterface public void scroll(String sessionId,int lines,boolean latest){handler.post(()->requestScroll(sessionId,lines,latest));}
+ }
  private void addRequest(JSONObject request){try{request.put("_sessionId",selected);}catch(Exception ignored){}LinearLayout card=new LinearLayout(this);card.setOrientation(1);card.setPadding(dp(12),dp(10),dp(12),dp(10));card.setBackground(bg(0xfffff2ca,8));TextView heading=text(UiMessages.server(request.optString("summary")),16,INK);card.addView(heading);JSONObject params=request.optJSONObject("parameters");String details=params==null?"":params.optString("command",params.optString("reason",params.toString()));TextView detail=text(details,12,INK);detail.setMaxLines(2);card.addView(detail);LinearLayout row=new LinearLayout(this);card.addView(row);row.addView(button("查看并处理",()->showRequest(request)));approvals.addView(card);}
  private void showRequest(JSONObject request){if(!controller){toast("请先在电脑映射此命令行");return;}String method=request.optString("method");JSONObject params=request.optJSONObject("parameters");if(method.contains("requestUserInput")){answerQuestions(request);return;}if(method.contains("elicitation")){answerForm(request);return;}
   LinearLayout content=new LinearLayout(this);content.setOrientation(1);content.setPadding(dp(18),dp(5),dp(18),dp(8));TextView detail=text(params==null?"":pretty(params),14,INK);detail.setTextIsSelectable(true);content.addView(detail);ScrollView scroll=new ScrollView(this);scroll.addView(content);
@@ -179,9 +223,9 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
   if(connectionSetup!=null)connectionSetup.dismiss();
   LinearLayout panel=new LinearLayout(this);panel.setOrientation(1);panel.setPadding(dp(20),dp(6),dp(20),dp(8));
   panel.addView(text("电脑 → 连接设备，扫描二维码或粘贴连接信息。",14,INK));
-  Spinner modes=new Spinner(this);modes.setContentDescription("connection-transport");modes.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,new String[]{"USB","蓝牙","Wi-Fi"}));modes.setSelection(initialMode.equals("Bluetooth")?1:initialMode.equals("Wi-Fi")?2:0);panel.addView(modes);
+  Spinner modes=new Spinner(this);modes.setContentDescription("connection-transport");modes.setAdapter(new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,new String[]{"USB","蓝牙","Wi-Fi","远程"}));modes.setSelection(initialMode.equals("Bluetooth")?1:initialMode.equals("Wi-Fi")?2:initialMode.equals("Remote")?3:0);panel.addView(modes);
   TextView hint=text("",12,GREEN);panel.addView(hint);
-  modes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){public void onNothingSelected(AdapterView<?> p){}public void onItemSelected(AdapterView<?> p,View v,int position,long id){hint.setText(position==1?"先在系统蓝牙设置中配对电脑。首次应用配对请扫码或粘贴信息；已配对过可直接点连接。无需 USB 或 Wi-Fi。":position==0?"USB 连接后电脑会自动填入地址，无需手动输入。":"扫描电脑局域网地址对应的二维码，两端需能通过网络互访。");}});
+  modes.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){public void onNothingSelected(AdapterView<?> p){}public void onItemSelected(AdapterView<?> p,View v,int position,long id){hint.setText(position==3?"在电脑开启远程连接，扫描远程二维码。配对后可通过不同网络连接；电脑需保持开机、不睡眠。":position==1?"先在系统蓝牙设置中配对电脑。首次应用配对请扫码或粘贴信息；已配对过可直接点连接。无需 USB 或 Wi-Fi。":position==0?"USB 连接后电脑会自动填入地址，无需手动输入。":"扫描电脑局域网地址对应的二维码，两端需能通过网络互访。");}});
   EditText invite=new EditText(this);invite.setHint("codelink:...");invite.setContentDescription("connection-invitation");invite.setTextSize(12);invite.setMinLines(3);panel.addView(invite);
   panel.addView(button("扫描二维码",()->{bluetoothScan=modes.getSelectedItemPosition()==1;scanConnection();}));
   AlertDialog dialog=new AlertDialog.Builder(this).setTitle("连接电脑").setView(scrollable(panel)).setPositiveButton("连接",null).setNegativeButton("取消",null).setNeutralButton("断开连接",(d,w)->{runtime.disconnect();status("未连接",false);}).create();
@@ -189,7 +233,7 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
   dialog.setOnShowListener(d->dialog.getButton(-1).setOnClickListener(v->{try{
    int choice=modes.getSelectedItemPosition();boolean imported=invite.length()>0;
    if(imported)link.invite(invite.getText().toString().trim());
-   if(!imported||choice==1)link.mode=choice==1?"Bluetooth":choice==2?"Wi-Fi":"USB";
+   if(!imported||choice==1)link.mode=choice==1?"Bluetooth":choice==2?"Wi-Fi":choice==3?"Remote":"USB";
    if(link.pin.isEmpty()){toast("请先扫描或粘贴电脑的配对信息。");return;}
    link.save();dialog.dismiss();if(link.mode.equals("Bluetooth"))bluetoothDialog();else runtime.start();
   }catch(Exception e){toast(e.getMessage());}}));dialog.show();
@@ -240,7 +284,7 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
  private ScrollView scrollable(View child){ScrollView scroll=new ScrollView(this);scroll.addView(child);return scroll;}
  private void toast(String message){Toast.makeText(this,message==null?"操作失败":UiMessages.server(message),Toast.LENGTH_LONG).show();}
  protected void onStart(){super.onStart();observing=true;runtime.attach(this);}
- protected void onStop(){observing=false;runtime.detach(this);super.onStop();}
+ protected void onStop(){observing=false;clearScroll();runtime.detach(this);super.onStop();}
  protected void onDestroy(){if(connectionSetup!=null)connectionSetup.dismiss();observing=false;runtime.detach(this);detachLayoutListener();handler.removeCallbacksAndMessages(null);io.shutdownNow();if(terminal!=null)terminal.destroy();super.onDestroy();}
 }
 

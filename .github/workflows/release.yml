@@ -10,7 +10,7 @@ jobs:
     # Apple-only rebuild tags are published by apple.yml; retain the Android key.
     if: ${{ !contains(github.ref_name, '-apple.') }}
     runs-on: windows-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -32,6 +32,12 @@ jobs:
           if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$($manifest.manifest.versionName)") { throw 'Tag differs from Android version' }
       - name: Fetch verified build tools
         run: python scripts/setup-tools.py
+      - name: Install Rust for remote transport
+        run: rustup toolchain install 1.100.0 --profile minimal --no-self-update
+      - name: Select Rust and prepare Android native tools
+        run: |
+          rustup default 1.100.0
+          ./scripts/setup-remote.ps1
       - name: Build Windows clients
         run: ./scripts/build-desktop.ps1
       - name: Build English Windows clients

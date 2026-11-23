@@ -16,7 +16,7 @@ body:
     id: transport
     attributes:
       label: 连接方式 / Transport
-      options: [USB, Bluetooth, LAN, 不涉及连接 / Not applicable]
+      options: [USB, Bluetooth, LAN, Remote / 远程源码预览, 不涉及连接 / Not applicable]
     validations:
       required: true
   - type: input

@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-23",
+  "device": "Lenovo TB371FC / Android 14",
+  "transport": "Remote",
+  "network": "PAD on phone hotspot; PC on campus Wi-Fi; USB for ADB gestures only",
+  "fullScreen": {
+    "before": 188,
+    "afterDown": 179,
+    "afterUp": 188,
+    "receivedRealMouseReports": true,
+    "viewportSynced": true
+  },
+  "normalHistory": {
+    "before": 212,
+    "afterDown": 203,
+    "afterUp": 212,
+    "latest": 212,
+    "localModeLeavesDesktopUnchanged": true,
+    "viewportSynced": true
+  },
+  "actualPath": "relay",
+  "passed": true
+}

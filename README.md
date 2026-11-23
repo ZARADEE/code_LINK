@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/assets/logo.png" width="72" alt="Code Link icon"></p>
 <h1 align="center">Code Link</h1>
 <p align="center"><strong>Turn your Android tablet into a dashboard for Windows terminal tasks.</strong></p>
-<p align="center">Local connection · Terminal input · Codex approvals · Individual and batch alerts</p>
+<p align="center">Local and remote access · Terminal input · Codex approvals · Individual and batch alerts</p>
 <p align="center"><strong>English</strong> · <a href="README.zh-CN.md">简体中文</a></p>
 <p align="center">
 <a href="https://github.com/ZARADEE/code_LINK/releases/latest"><img src="https://img.shields.io/github/v/release/ZARADEE/code_LINK?label=release&amp;color=52745b" alt="Latest release"></a>
@@ -12,7 +12,9 @@
 
 ![English Code Link running on Windows and a physical Android tablet](docs/assets/overview-en.png)
 
-Keep your build, tests or Codex task running on the PC. Use the tablet beside you to read output, send a command, respond to an approval, and get an alert when a task or a whole batch finishes. Connect directly over USB or Bluetooth, with no account or relay server.
+Keep your build, tests or Codex task running on the PC. Use the tablet to read output, send a command, respond to an approval, and get an alert when a task or a whole batch finishes. USB and Bluetooth connect locally without an account or relay server.
+
+**New in current source builds: remote access and swipe browsing.** Keep the server on your Windows x64 PC and connect from Android ARM64 over the internet. iroh tries a direct connection and falls back to a free public relay; no rented server or mobile VPN is required. Swipe through terminal history, scroll the PC window, or browse locally on the tablet. Cross-network input, scrolling and unplugged, screen-off completion alerts have passed physical-device checks. Overnight stability remains to be tested. The download links below still point to stable v1.4.1; [build and try the remote preview](docs/REMOTE.md).
 
 ## Who is this for?
 
@@ -21,6 +23,7 @@ You develop on Windows, keep Codex, builds or tests running in several terminals
 - **Codex needs an answer while you work elsewhere.** Read the prompt on the tablet and respond there. Connect an existing Codex window for terminal input; start with `clink codex` when you want structured approval cards and turn events.
 - **Several independent jobs need watching.** Give each terminal a name. Use A for individual completion reminders, or B for a reminder after every participating job in that round succeeds. Failed or interrupted work stays visible instead of being counted as done.
 - **A spare tablet can stay on the desk.** Connect it by USB, put the terminal dashboard beside your editor, then switch Android apps while the foreground service handles supported alerts. No account, cloud relay or extra monitor is needed.
+- **You need to check a task away from the PC.** In the source preview, leave the PC awake and open Code Link on another network. The task continues on your own computer.
 
 The strongest supported setup is **Windows + an Android tablet on the same desk**. It combines existing-window capture, local USB/Bluetooth, terminal input and batch reminders. A regular second monitor is useful for full graphical windows; SSH is useful for remote server administration. Choose Code Link when you want this local terminal workflow on a device you already own. Mac creates managed sessions over LAN; iOS is a developer preview, as detailed below.
 
@@ -34,6 +37,7 @@ The strongest supported setup is **Windows + an Android tablet on the same desk*
 | Several tasks run in parallel | Name them, group them, and follow individual or batch completion |
 | Codex needs your decision | Answer the original terminal prompt, or use structured cards with `clink codex` |
 | You switch to another Android app | Receive completion and attention notifications through the background service |
+| You need earlier output | In the source preview, swipe to browse history or scroll the mapped PC terminal |
 
 Existing Windows terminal windows can be connected directly. Managed terminals use a PTY; `clink codex` adds structured turn and approval events. [How task completion is detected](#ab-completion-reminders).
 
@@ -74,6 +78,7 @@ If a step stalls, use the [connection checklist on the website](https://zaradee.
 
 - Monitor detected PowerShell, Command Prompt, Windows Terminal, and Codex windows.
 - Send text, Enter, Esc, Tab, arrow keys, or Ctrl+C from the tablet.
+- In current source builds, swipe down for earlier output and up for later output. Choose **Swipe: scroll PC** or **Swipe: browse locally**, and use **Back to latest** to resume following ordinary terminal history.
 - Respond to terminal prompts, or use structured Codex approval cards through `clink codex`.
 - Rename terminals on the tablet and organize them into A/B tabs.
 - Keep receiving updates in the background, with system completion banners.
@@ -81,6 +86,8 @@ If a step stalls, use the [connection checklist on the website](https://zaradee.
 Existing Windows Terminal mappings follow the **active tab of that window**. Use separate windows to monitor several tabs independently. Higher-privilege terminals, ambiguous window titles, or unsupported console interfaces can prevent input; the app shows the reason.
 
 External windows synchronize readable text and spacing. Full colors and graphical cursor effects are not reproduced. Output caching is limited to approximately 120,000 characters.
+
+Remote scrolling currently supports a single Windows Terminal pane. Ordinary history uses its scrollbar; full-screen programs receive mouse-wheel events and must support scrolling themselves. Keep those windows restored for full-screen scrolling. Local browsing leaves the PC viewport alone and preserves your reading position as new output arrives. [Behavior and tested scope](docs/REMOTE.md#移动端查看与滚动).
 
 ## A/B completion reminders
 
@@ -101,7 +108,7 @@ Open **More → Background & alerts** and allow notifications, completion banner
 
 ![English background and notification settings on the tablet](docs/assets/background-settings-en.png)
 
-Keep the Windows tray app running. Force-stopping the Android app, stopping its foreground service, unplugging the cable, or sleeping the PC affects live updates. Reconnection restores current state without automatically replaying unacknowledged input.
+Keep the Windows tray app running. Force-stopping Android, stopping its foreground service or sleeping the PC affects live updates. Unplugging the cable interrupts USB mode; remote mode works without the cable. Reconnection restores current state without automatically replaying unacknowledged input.
 
 USB background delivery, A/B banners, screen-off notifications, and content restoration were tested on the tablet, including one **89-minute continuous USB connection**. Bluetooth input and reconnection were also tested; Bluetooth screen-off behavior and LAN device-to-device operation still need further validation.
 
@@ -112,8 +119,21 @@ USB background delivery, A/B banners, screen-off notifications, and content rest
 | USB | USB debugging and computer authorization; ADB reverse + TLS | Recommended first connection; tested on hardware |
 | Bluetooth | System pairing plus Code Link app trust; no prior USB connection required | RFCOMM input and reconnection tested; PAN is not required |
 | Local network | Enable LAN access, pair using connection details or QR; TCP connectivity required | Implemented; hardware acceptance pending |
+| Internet remote access, source preview | Windows x64 + Android ARM64, PC awake and online | Cross-network input, swipes and screen-off alerts tested through a free public relay |
 
-Code Link's connection stays local. A task running inside the terminal may still use its own internet connection.
+USB, Bluetooth and LAN remain available for nearby use. Terminal tasks keep using the PC's own network connection.
+
+<details>
+<summary><strong>Remote access with your PC as the server</strong></summary>
+
+1. [Build the current preview](docs/REMOTE.md#构建与复用工具链) for Windows and Android.
+2. In the Windows pairing window, enable remote access and wait for the endpoint to become ready.
+3. On Android, choose **Connect → Scan QR** and scan the remote invitation. It expires after 10 minutes; paired devices reconnect with their saved credentials.
+4. Move the mobile device to another Wi-Fi network, a hotspot or cellular data. Keep the PC online, awake and running Code Link.
+
+A direct connection sends encrypted traffic between your devices over the internet; it does not require Bluetooth range or a shared LAN. If the networks prevent direct access, a public relay forwards encrypted traffic. Tasks still run on your PC. The public relay is free, shared and rate limited, with no uptime guarantee. [Design and acceptance evidence](docs/REMOTE.md).
+
+</details>
 
 For Bluetooth, pair the devices in system settings. Existing Code Link pairing can be reused through **More → Bluetooth** on Android. For first-time app pairing, choose **Pair device → Bluetooth** in Windows and **Connect → Bluetooth** on Android, scan or paste the invitation, allow Nearby devices, then select the paired PC. Neither USB nor Wi-Fi is required. [Bluetooth setup and troubleshooting](docs/INSTALL.en.md#bluetooth).
 
@@ -162,4 +182,4 @@ Windows / Android and native macOS 14+ / iOS 17+ clients are available. Apple cl
 
 Code is licensed under [MIT](LICENSE). Supplied artwork has [separate terms](assets/README.md); dependencies retain their [original licenses](THIRD_PARTY_NOTICES.md). Maintained by [ZARADEE](https://github.com/ZARADEE), independently of terminal and AI vendors.
 
-English Windows and Android screenshots were captured on connected devices on November 14, 2026; the Chinese notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md) · [English UI acceptance record](research/english-release-acceptance.json). Documentation corresponds to v1.4.1; the existing tablet screenshots show the v1.3.0 interface, which is unchanged on Android.
+English Windows and Android screenshots were captured on connected devices on November 14, 2026; the Chinese notification banners come from earlier hardware validation. Local paths, computer names and private window titles are blurred. [Image provenance](docs/assets/README.md) · [English UI acceptance record](research/english-release-acceptance.json). Screenshots illustrate the released interface; remote access and swipe controls are described separately as source-preview features.

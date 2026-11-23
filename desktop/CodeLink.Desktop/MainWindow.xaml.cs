@@ -33,6 +33,7 @@ public partial class MainWindow:Window
     private readonly SemaphoreSlim externalInputGate=new(1);
     private bool observing;
     private readonly Dictionary<string,DateTime> observationSent=new();
+    private readonly Dictionary<string,string> observedViewports=new();
     private readonly Forms.NotifyIcon tray;
     private readonly DispatcherTimer scanTimer=new(){Interval=TimeSpan.FromSeconds(5)};
     private readonly DispatcherTimer usbTimer=new(){Interval=TimeSpan.FromSeconds(5)};
@@ -137,12 +138,20 @@ public partial class MainWindow:Window
             var error="";
             try
             {
+                if(input.S("operation")=="scroll")
+                {
+                    await Task.Run(()=>WindowScroll.Apply(int.Parse(input.S("processId")),long.Parse(input.S("windowHandle")),int.Parse(input.S("lines","0")),input.B("latest")));
+                    await RefreshSelectedExternalOutput();
+                }
+                else
+                {
                 var start=new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory,"CodeLink.ConsoleBridge.exe")){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true,StandardInputEncoding=new UTF8Encoding(false),StandardOutputEncoding=Encoding.UTF8};
                 using var process=Process.Start(start)??throw new IOException("无法启动终端输入连接器");
                 await process.StandardInput.WriteAsync(input.ToJsonString());process.StandardInput.Close();
                 var output=process.StandardOutput.ReadToEndAsync();
                 try{await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));}catch{process.Kill();throw;}
                 var result=JsonNode.Parse(await output);if(!result.B("ok"))throw new IOException(result.S("error","终端未确认输入"));
+                }
             }
             catch(Exception e){error=e.Message;}
             await Run(()=>client.Action("observerInputResult",new{sessionId=input.S("sessionId"),requestId=input.S("id"),error}));
@@ -219,7 +228,7 @@ public partial class MainWindow:Window
         catch(Exception e){Footer.Text="扫描失败："+e.Message;}
         finally{rendering=false;scanning=false;}
     }
-    private static string ReadTerminalWindow(long handle)
+    private static string ReadTerminalWindow(long handle,bool visibleOnly=false)
     {
         try
         {
@@ -230,7 +239,7 @@ public partial class MainWindow:Window
             for(var i=0;i<found.Count;i++)
                 if(found[i].TryGetCurrentPattern(TextPattern.Pattern,out var pattern)&&pattern is TextPattern text)
                 {
-                    var value=text.DocumentRange.GetText(-1).TrimEnd('\0');
+                    var value=(visibleOnly?string.Join("",text.GetVisibleRanges().Select(range=>range.GetText(-1))):text.DocumentRange.GetText(-1)).TrimEnd('\0');
                     if(value.Length>120000)value=value[^120000..];
                     if(value.Length>best.Length)best=value;
                 }
@@ -260,8 +269,12 @@ public partial class MainWindow:Window
                 var catalogKey=target.Pid+":"+target.Handle;
                 if(changed||!observationSent.TryGetValue(catalogKey,out var last)||DateTime.UtcNow-last>TimeSpan.FromSeconds(2))
                 {await Run(()=>client.Action("observeCatalog",new{key=catalogKey,text=snapshot}));observationSent[catalogKey]=DateTime.UtcNow;}
-                if(target.Id.Length>0&&(changed||!observationSent.TryGetValue(target.Id,out var sent)||DateTime.UtcNow-sent>TimeSpan.FromSeconds(2)))
-                {await Run(()=>client.Action("observeOutput",new{sessionId=target.Id,processId=target.Pid,windowHandle=target.Handle,text=snapshot}));observationSent[target.Id]=DateTime.UtcNow;}
+                if(target.Id.Length>0)
+                {
+                    var viewport=await Task.Run(()=>ReadTerminalWindow(target.Handle,true));
+                    if(changed||!observedViewports.TryGetValue(target.Id,out var previousViewport)||previousViewport!=viewport||!observationSent.TryGetValue(target.Id,out var sent)||DateTime.UtcNow-sent>TimeSpan.FromSeconds(2))
+                    {await Run(()=>client.Action("observeOutput",new{sessionId=target.Id,processId=target.Pid,windowHandle=target.Handle,text=snapshot,viewport}));observationSent[target.Id]=DateTime.UtcNow;observedViewports[target.Id]=viewport;}
+                }
             }
         }
         catch(Exception e){Footer.Text="读取终端失败："+e.Message;}
@@ -304,6 +317,12 @@ public partial class MainWindow:Window
     private string Invite(string address,string attempt="",string transport="")
     {
         var p=state?["pairing"]??throw new IOException("代理尚未就绪");
+        if(transport=="Remote")
+        {
+            var remote=state?["remote"];
+            if(!remote.B("enabled")||!remote.B("relayOnline"))throw new IOException("远程入口尚未就绪，请稍候。");
+            return "codelink:"+Convert.ToBase64String(Encoding.UTF8.GetBytes(J.Stringify(new{host="127.0.0.1",port=int.Parse(p.S("port")),pin=p.S("fingerprint"),code=p.S("remoteCode"),attempt,transport,remoteProtocol=1,endpoint=remote.S("endpoint"),relays=remote?["relays"]?.DeepClone()}))).TrimEnd('=').Replace('+','-').Replace('/','_');
+        }
         return "codelink:"+Convert.ToBase64String(Encoding.UTF8.GetBytes(J.Stringify(new{host=address,port=int.Parse(p.S("port")),pin=p.S("fingerprint"),code=p.S("code"),attempt,transport}))).TrimEnd('=').Replace('+','-').Replace('/','_');
     }
     private async void PairDevice(object sender,RoutedEventArgs e)
@@ -318,7 +337,9 @@ public partial class MainWindow:Window
                 ()=>state?["devices"]?.AsArray().Count(d=>d.B("online"))??0,
                 ()=>UiMessages.Server(state.S("bluetooth")),
                 ()=>state?["devices"]?.AsArray().Where(d=>d.B("online")&&d.S("transport")=="Bluetooth").Select(d=>d.S("name")).ToArray()??Array.Empty<string>(),
-                ()=>RefreshPairing(CancellationToken.None)).ShowDialog();
+                ()=>RefreshPairing(CancellationToken.None),
+                async enabled=>{var result=await client.Action("remoteAccess",new{enabled});if(!result.B("ok"))throw new IOException(result.S("error"));},
+                ()=>state?["remote"]).ShowDialog();
         });
     }
     private string AdbPath=>new[]{Path.Combine(AppContext.BaseDirectory,"tools/adb.exe"),Path.Combine(Environment.CurrentDirectory,".tools/platform-tools/adb.exe")}.FirstOrDefault(File.Exists)??throw new IOException("发布目录缺少 ADB");

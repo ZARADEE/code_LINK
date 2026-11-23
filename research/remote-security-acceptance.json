@@ -1,0 +1,11 @@
+{
+  "tlsPinMismatchRejected": true,
+  "localSixDigitCodeRejectedRemotely": true,
+  "randomRemoteInvitationAccepted": true,
+  "remoteCannotChangeHostAccessSettings": true,
+  "revocationDisconnectsActivePeer": true,
+  "revokedCredentialCannotReconnect": true,
+  "hostIdentityProtectedAtRest": true,
+  "actualPath": "relay",
+  "passed": true
+}

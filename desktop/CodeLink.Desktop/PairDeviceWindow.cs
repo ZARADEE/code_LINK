@@ -19,7 +19,8 @@ internal sealed class PairDeviceWindow : Window
 {
     public PairDeviceWindow(Window owner, Func<string, string, string> invitation,
         Func<bool, Task> enableLan, Func<Action<string>, CancellationToken, Task<string>> connectUsb,
-        Func<int> onlineCount, Func<string> bluetoothStatus, Func<string[]> bluetoothDevices, Func<Task> refreshPairing)
+        Func<int> onlineCount, Func<string> bluetoothStatus, Func<string[]> bluetoothDevices, Func<Task> refreshPairing,
+        Func<bool, Task> enableRemote, Func<System.Text.Json.Nodes.JsonNode?> remoteState)
     {
         Owner = owner;
         Title = "首次连接与设备配对";
@@ -42,7 +43,56 @@ internal sealed class PairDeviceWindow : Window
         }
 
         Text("连接你的 Android 手机或平板", 23).FontWeight = FontWeights.Bold;
-        Text("可以使用 USB 或蓝牙连接。已有应用配对可直接切换蓝牙；首次蓝牙连接可扫描下方配对二维码，无需先接 USB。");
+        Text("远程连接可在不同网络下访问这台电脑。首次配对后，手机只需打开 Code Link；电脑需保持开机、不睡眠。");
+        var remotePanel = new StackPanel { Margin = new Thickness(0, 0, 0, 20) };
+        panel.Children.Add(remotePanel);
+        var remoteToggle = new Button { Content = "开启远程连接", MinHeight = 40 };
+        AutomationProperties.SetAutomationId(remoteToggle, "PairRemoteToggle");
+        remotePanel.Children.Add(remoteToggle);
+        var remoteStatus = new TextBlock { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 8) };
+        AutomationProperties.SetAutomationId(remoteStatus, "PairRemoteStatus");
+        remotePanel.Children.Add(remoteStatus);
+        remotePanel.Children.Add(new TextBlock { Text = "优先直连，必要时使用免费公共中继。无需租服务器或安装 VPN；公共中继有限流且没有可用性保证。", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10) });
+        var remoteQr = new Image { Width = 240, Height = 240, Visibility = Visibility.Collapsed };
+        remotePanel.Children.Add(remoteQr);
+        var remoteInvite = new TextBox { IsReadOnly = true, TextWrapping = TextWrapping.Wrap, Height = 65, FontSize = 11, Visibility = Visibility.Collapsed };
+        AutomationProperties.SetAutomationId(remoteInvite, "PairRemoteInvitation");
+        remotePanel.Children.Add(remoteInvite);
+        var remoteCopy = new Button { Content = "复制远程配对信息", Visibility = Visibility.Collapsed, Margin = new Thickness(0, 8, 0, 0) };
+        remoteCopy.Click += (_, _) => Clipboard.SetText(remoteInvite.Text);
+        remotePanel.Children.Add(remoteCopy);
+        var remoteRefresh = new Button { Content = "刷新远程配对码", Margin = new Thickness(0, 8, 0, 0), Visibility = Visibility.Collapsed };
+        AutomationProperties.SetAutomationId(remoteRefresh, "PairRemoteRefresh");
+        remoteRefresh.Click += async (_, _) =>
+        {
+            remoteRefresh.IsEnabled = false;
+            try { await refreshPairing(); }
+            catch(Exception error) { remoteStatus.Text = error.Message; }
+            finally { remoteRefresh.IsEnabled = true; }
+        };
+        remotePanel.Children.Add(remoteRefresh);
+        remoteToggle.Click += async (_, _) =>
+        {
+            remoteToggle.IsEnabled = false;
+            try { await enableRemote(!remoteState().B("enabled")); }
+            catch(Exception error) { remoteStatus.Text = error.Message; }
+            finally { remoteToggle.IsEnabled = true; }
+        };
+        void RefreshRemote()
+        {
+            var remote = remoteState();var enabled = remote.B("enabled");
+            remoteToggle.Content = enabled ? "关闭远程连接" : "开启远程连接";
+            remoteStatus.Text = remote.S("state") == "error" ? remote.S("error") : !enabled ? "远程连接已关闭。" : remote.B("relayOnline") ? "远程入口已就绪，使用 Android 的“连接电脑 → 扫描二维码”配对。" : "正在连接远程网络…";
+            var ready = enabled && remote.B("relayOnline");
+            remoteQr.Visibility = remoteInvite.Visibility = remoteCopy.Visibility = remoteRefresh.Visibility = ready ? Visibility.Visible : Visibility.Collapsed;
+            if(!ready)return;
+            var value = invitation("127.0.0.1", "Remote");
+            if(value == remoteInvite.Text)return;
+            remoteInvite.Text = value;
+            using var generator = new QRCodeGenerator();using var data = generator.CreateQrCode(value, QRCodeGenerator.ECCLevel.M);using var png = new PngByteQRCode(data);
+            var bitmap = new BitmapImage();bitmap.BeginInit();bitmap.StreamSource = new MemoryStream(png.GetGraphic(6));bitmap.CacheOption = BitmapCacheOption.OnLoad;bitmap.EndInit();remoteQr.Source = bitmap;
+        }
+        Text("近距离备用连接", 18).FontWeight = FontWeights.Bold;
         var bluetooth = new Button { Content = "蓝牙连接", MinHeight = 40, Margin = new Thickness(0, 0, 0, 12) };
         AutomationProperties.SetAutomationId(bluetooth, "PairBluetooth");
         panel.Children.Add(bluetooth);
@@ -52,8 +102,8 @@ internal sealed class PairDeviceWindow : Window
         var online = Text("", 13);
         var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         void RefreshStatus() => online.Text = "桌面当前看到的在线设备数：" + onlineCount();
-        timer.Tick += (_, _) => RefreshStatus();
-        Loaded += (_, _) => { RefreshStatus(); timer.Start(); };
+        timer.Tick += (_, _) => { RefreshStatus(); RefreshRemote(); };
+        Loaded += (_, _) => { RefreshStatus(); RefreshRemote(); timer.Start(); };
         Closed += (_, _) => { timer.Stop(); lifetime.Cancel(); };
 
         var status = Text("等待连接。请保持电脑和 Android 应用都在运行。", 14);

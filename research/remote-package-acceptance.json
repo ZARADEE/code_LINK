@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-23",
+  "artifacts": [
+    {
+      "file": "CodeLink-Windows-remote-zh-CN.zip",
+      "bytes": 84501027,
+      "sha256": "0ae5833b1287bd8ce4b6aa38bb1b7fba5b162ca4abb6f30e4df84ee07e6a7cc5"
+    },
+    {
+      "file": "CodeLink-Android-remote-zh-CN.apk",
+      "bytes": 5858323,
+      "sha256": "85e77bf8c58aa3bb87e2a80859c452d5cb001b63372f6221ca198ff2f56ed2ef"
+    },
+    {
+      "file": "CodeLink-Windows-remote-en.zip",
+      "bytes": 84503920,
+      "sha256": "7958aa997abe08ad31687aca52079ecff3f8b9febb99b67717d7607ff898aabb"
+    },
+    {
+      "file": "CodeLink-Android-remote-en.apk",
+      "bytes": 5862419,
+      "sha256": "ee156ae62a98eb4c58d371ed755520da63574a925bb95c67d0ccb28624c9b6ef"
+    }
+  ],
+  "nativeLibrariesMatchFinalBuild": true,
+  "terminalGestureAssetMatchesSource": true,
+  "chineseZipExtractedLaunchChecks": "passed",
+  "englishDirectoryLaunchChecks": "passed",
+  "includesPairingCredentials": false
+}

@@ -1,5 +1,7 @@
 # 从源码构建
 
+Windows / Android 远程功能新增 Rust 通信库。准备原有工具后先运行 `./scripts/setup-remote.ps1`，再执行下方构建命令。工具链复用、NDK 校验和验收方法见 [远程连接方案](REMOTE.md)。已在本机复用 Rust 1.100.0；Android 新构建面向 ARM64。
+
 构建环境为 Windows x64。v1.4.1 的便携包已经包含 .NET 桌面运行时，用户无需额外安装；修改源码则需要下列开发工具。
 
 | 工具 | 用途 |
@@ -8,6 +10,8 @@
 | JDK 21，确保 `java`、`javac`、`jar`、`keytool` 在 PATH | Android 编译与状态测试 |
 | Python 3.11 或更新版本 | 下载工具、文档检查、真机脚本 |
 | Git | 获取源码 |
+| Node.js 22 或更新版本 | 终端手势测试与远程验收脚本 |
+| Rust 1.100.0 stable + MSVC C++ 构建工具 | Windows / Android 远程通信库 |
 
 ## 获取依赖
 
@@ -15,6 +19,7 @@
 git clone https://github.com/ZARADEE/code_LINK.git
 cd code_LINK
 python scripts/setup-tools.py
+./scripts/setup-remote.ps1
 ```
 
 脚本从 Google 官方仓库下载 Android Build Tools 35.0.0、API 35 平台和 Platform Tools 37.0.1，从 Maven Central 下载 ZXing 3.5.3。每份输入都校验固定 SHA-256，保存在被 Git 忽略的 `.tools`。Android SDK 的使用适用其[许可条款](https://developer.android.com/studio/terms)。QRCoder 1.6.0 由 NuGet 在 .NET 构建时还原。
@@ -44,6 +49,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android.ps1 -I
 
 ```powershell
 python scripts/check-docs.py
+node scripts/test-terminal-scroll.cjs
 New-Item -ItemType Directory -Force .local/java-tests | Out-Null
 javac -encoding UTF-8 -d .local/java-tests android/app/src/main/java/com/codelink/app/ReminderState.java android/app/src/main/java/com/codelink/app/OutputCache.java android/tests/ReminderStateTest.java android/tests/OutputCacheTest.java
 java -cp .local/java-tests com.codelink.app.ReminderStateTest

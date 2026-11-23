@@ -1,5 +1,14 @@
 # 版本记录
 
+## Unreleased — remote access
+
+- Add Android terminal swipes, a local history mode that preserves reading position, and a back-to-latest control. Synchronize existing Windows Terminal history scrollbars and full-screen mouse-wheel input with a separate visible-viewport snapshot; retain controller authorization for desktop scrolling.
+- Embed iroh 1.5.0 in Windows x64 and Android ARM64; keep the PC as the server, with direct connections and free public relay fallback.
+- Add remote QR pairing, protected persistent endpoint identities, network-change recovery, and an explicit desktop remote-access switch. Retain USB, Bluetooth and LAN.
+- Use a separate 256-bit, 10-minute remote invitation; preserve TLS certificate pinning, device authorization, revocation, and host-only administrative actions.
+- Verify physical PAD input over a phone hotspot while Windows stays on campus networking, and completion notifications after unplugging USB and turning the screen off. Overnight stability remains pending.
+- Reuse an existing Windows Rust/MSVC toolchain without modifying it; add verified Android native inputs and packaged dependency notices. See [remote design and acceptance](docs/REMOTE.md).
+
 ## v1.4.1 ? 2026-11-16
 
 - Complete the existing Windows and Android Bluetooth connection flow: expose Bluetooth in the connection dialog and expand the existing desktop pairing section.

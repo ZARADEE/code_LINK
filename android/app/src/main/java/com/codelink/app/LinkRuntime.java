@@ -29,7 +29,7 @@ public final class LinkRuntime implements LinkConnection.Listener {
    JSONArray items=new JSONArray();JSONArray all=visible();for(int i=0;i<all.length();i++){JSONObject s=all.optJSONObject(i);if(s!=null)items.put(new JSONObject().put("id",s.optString("id")).put("group",groupOf(s)).put("status",s.optString("status")).put("unread",reminders.unread(SessionCatalog.reminderId(s))!=null));}
    value[0]=new JSONObject().put("online",online).put("started",started).put("visibleActivities",listeners.size()).put("selected",state==null?"":state.optString("selected"))
     .put("cachedOutputLength",output.text().length()).put("cachedOutputSha256",LinkConnection.hex(java.security.MessageDigest.getInstance("SHA-256").digest(output.text().getBytes("UTF-8"))))
-    .put("batchUnread",reminders.batchUnread()).put("batchNoticeKey",reminders.batchNoticeKey()).put("terminals",items).toString();
+    .put("batchUnread",reminders.batchUnread()).put("batchNoticeKey",reminders.batchNoticeKey()).put("terminals",items).put("transport",link.mode).put("remote",link.remoteStatus()).toString();
   }catch(Exception ignored){}finally{ready.countDown();}};if(Looper.myLooper()==Looper.getMainLooper())read.run();else main.post(read);
   try{ready.await(3,java.util.concurrent.TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}writer.println("CodeLinkRuntime="+value[0]);
  }

@@ -21,6 +21,10 @@ public sealed class Broker : IDisposable
     private TcpListener? listener;
     private Socket? unixListener;
     private BluetoothServer? bluetooth;
+    private RemoteTransport? remote;
+    private string remoteError="";
+    private string remoteCode="";
+    private readonly object remoteGate=new();
     private long version;
     private CommandCandidate[] commandWindows=[];
     private readonly ConcurrentDictionary<string,WindowActivity> windowActivities=new();
@@ -41,11 +45,12 @@ public sealed class Broker : IDisposable
         LoadSessions();
     }
     public void Changed()=>Interlocked.Increment(ref version);
-    public void RotateCode(){pairCode=RandomNumberGenerator.GetInt32(100000,1000000).ToString();pairExpires=DateTime.UtcNow.AddMinutes(10);Changed();}
+    public void RotateCode(){lock(Storage.Config){pairCode=RandomNumberGenerator.GetInt32(100000,1000000).ToString();remoteCode=Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();pairExpires=DateTime.UtcNow.AddMinutes(10);}Changed();}
     public async Task Run()
     {
         listener=new TcpListener(IPAddress.IPv6Any,Storage.Config.Port);
         listener.Server.DualMode=true;listener.Start();
+        if(Storage.Config.RemoteEnabled)SetRemote(true);
         _=Task.Run(PipeLoop);
         if(OperatingSystem.IsMacOS())_=Task.Run(UnixLoop);
         _=Task.Run(BluetoothLoop);
@@ -65,14 +70,15 @@ public sealed class Broker : IDisposable
         var v4=new TcpListener(IPAddress.Loopback,Storage.Config.Port);v4.Start();
         try{while(!stop.IsCancellationRequested){var c=await v4.AcceptTcpClientAsync(stop.Token);_=Task.Run(()=>HandleTcp(c));}}catch(OperationCanceledException){}finally{v4.Stop();}
     }
-    private async Task HandleTcp(TcpClient client)
+    private async Task HandleTcp(TcpClient client,bool remoteConnection=false,CancellationToken lifetime=default)
     {
         using(client)
         using(var ssl=new SslStream(client.GetStream(),false))
         {
             try{if(!Storage.Config.LanEnabled&&!IPAddress.IsLoopback(((IPEndPoint)client.Client.RemoteEndPoint!).Address))return;
-                client.NoDelay=true;await ssl.AuthenticateAsServerAsync(new SslServerAuthenticationOptions{ServerCertificate=Storage.Certificate,EnabledSslProtocols=System.Security.Authentication.SslProtocols.Tls12|System.Security.Authentication.SslProtocols.Tls13},stop.Token);
-                await Serve(ssl,false,IPAddress.IsLoopback(((IPEndPoint)client.Client.RemoteEndPoint!).Address)?"USB / 本地":"Wi-Fi / 局域网");}
+                using var handshake=CancellationTokenSource.CreateLinkedTokenSource(stop.Token,lifetime);handshake.CancelAfter(TimeSpan.FromSeconds(15));
+                client.NoDelay=true;await ssl.AuthenticateAsServerAsync(new SslServerAuthenticationOptions{ServerCertificate=Storage.Certificate,EnabledSslProtocols=System.Security.Authentication.SslProtocols.Tls12|System.Security.Authentication.SslProtocols.Tls13},handshake.Token);
+                await Serve(ssl,false,remoteConnection?"Remote":IPAddress.IsLoopback(((IPEndPoint)client.Client.RemoteEndPoint!).Address)?"USB / 本地":"Wi-Fi / 局域网",lifetime);}
             catch(Exception e) when(e is IOException or System.Security.Authentication.AuthenticationException or OperationCanceledException or SocketException){}
         }
     }
@@ -96,10 +102,10 @@ public sealed class Broker : IDisposable
         }
         catch(Exception e){BluetoothStatus=e.Message;Changed();}
     }
-    private async Task Serve(Stream stream,bool admin,string transport)
+    private async Task Serve(Stream stream,bool admin,string transport,CancellationToken lifetime=default)
     {
         using var peer=new Peer(stream){Admin=admin,Transport=transport};
-        using var alive=CancellationTokenSource.CreateLinkedTokenSource(stop.Token);
+        using var alive=CancellationTokenSource.CreateLinkedTokenSource(stop.Token,lifetime);
         var connectionId=Guid.NewGuid().ToString("N");
         try
         {
@@ -123,7 +129,13 @@ public sealed class Broker : IDisposable
                     else
                     {
                         if(lastFailure.TryGetValue(peer.Id,out var last)&&DateTime.UtcNow-last<TimeSpan.FromSeconds(3))throw new IOException("请稍后重试配对");
-                        if(DateTime.UtcNow>pairExpires||hello.S("code")!=pairCode){lastFailure[peer.Id]=DateTime.UtcNow;throw new IOException("配对码错误或已过期");}
+                        var offered=System.Text.Encoding.UTF8.GetBytes(hello.S("code"));
+                        var required=System.Text.Encoding.UTF8.GetBytes(transport=="Remote"?remoteCode:pairCode);
+                        if(DateTime.UtcNow>pairExpires||offered.Length!=required.Length||!CryptographicOperations.FixedTimeEquals(offered,required))
+                        {
+                            if(lastFailure.Count>1024)lastFailure.Clear();
+                            lastFailure[peer.Id]=DateTime.UtcNow;throw new IOException("配对码错误或已过期");
+                        }
                         issuedKey=Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
                         Storage.Config.Devices.Add(new(){Id=peer.Id,Name=peer.Name,Key=issuedKey});Storage.Save();
                     }
@@ -154,13 +166,13 @@ public sealed class Broker : IDisposable
                         if(reset&&delta.Length>limit)delta=delta[^limit..];
                         else if(delta.Length>limit)delta=delta[..limit];
                         var consumed=reset?full: lastOutput+delta;
-                        await Wire.Write(stream,new{type="state",version=now,host=Environment.MachineName,bluetooth=BluetoothStatus,lan=Storage.Config.LanEnabled,
-                            sessions=available.Select(s=>s.Snapshot(false)).ToArray(),selected=peer.Watch,output=delta,reset,
+                        await Wire.Write(stream,new{type="state",version=now,host=Environment.MachineName,bluetooth=BluetoothStatus,lan=Storage.Config.LanEnabled,remote=admin?RemoteSnapshot():null,
+                            sessions=available.Select(s=>s.Snapshot(false)).ToArray(),selected=peer.Watch,output=delta,reset,viewport=selected?.Kind=="observer"?selected.ViewportOutput:null,
                             commands=commandWindows.Select(w=>{var activity=windowActivities.GetOrAdd(w.Id,_=>new());lock(activity)return new{key=w.Id,name=w.WindowTitle,processId=w.ProcessId,windowHandle=w.WindowHandle,kind="observer",status=activity.Status,activityCycle=activity.Cycle,sessionId=Sessions.Values.FirstOrDefault(s=>s.Kind=="observer"&&s.ObservedWindowHandle==w.WindowHandle&&s.ObservedProcessId==w.ProcessId)?.Id??""};})
                               .Concat(Sessions.Values.Where(s=>s.Kind!="observer"&&s.Status!="disconnected"&&s.Status!="exited").Select(s=>new{key=s.Id,name=s.Name,processId=0,windowHandle=0L,kind=s.Kind,status=s.Status,activityCycle=0L,sessionId=s.Id})).ToArray(),
                             devices=admin?Storage.Config.Devices.Where(d=>!d.Revoked).Select(d=>new{d.Id,d.Name,online=peers.Values.Any(p=>p.Id==d.Id),transport=peers.Values.FirstOrDefault(p=>p.Id==d.Id)?.Transport??"离线",pairingAttempt=peers.Values.FirstOrDefault(p=>p.Id==d.Id)?.PairingAttempt??""}).ToArray():null,
                             mobileInputs=admin?Sessions.Values.SelectMany(s=>s.PendingInputs()).ToArray():null,
-                            pairing=admin?new{code=pairCode,expires=pairExpires,fingerprint=Storage.Fingerprint,port=Storage.Config.Port}:null},peer.WriteLock,alive.Token);
+                            pairing=admin?new{code=pairCode,remoteCode,expires=pairExpires,fingerprint=Storage.Fingerprint,port=Storage.Config.Port}:null},peer.WriteLock,alive.Token);
                         lastOutput=consumed;lastWatch=peer.Watch;lastGeneration=generation;sent=consumed==full?now:-1;heartbeat=DateTime.UtcNow;
                     }
                     await Task.Delay(transport=="Bluetooth"?350:180,alive.Token);
@@ -250,6 +262,11 @@ public sealed class Broker : IDisposable
             }finally{sessionWriter.Release();}
         }
         if(action=="rotatePairing"){if(!peer.Admin)throw new IOException("仅 PC 可操作");RotateCode();return new{ok=true};}
+        if(action=="remoteAccess")
+        {
+            if(!peer.Admin)throw new IOException("仅 PC 可操作");
+            SetRemote(msg.B("enabled"));return new{ok=string.IsNullOrEmpty(remoteError),remote=RemoteSnapshot(),error=remoteError};
+        }
         if(action=="observe")
         {
             if(!peer.Admin)throw new IOException("仅本机面板可以建立命令行观察");
@@ -266,7 +283,7 @@ public sealed class Broker : IDisposable
             if(!peer.Admin||!Sessions.TryGetValue(msg.S("sessionId"),out var observer)||observer.Kind!="observer")throw new IOException("映射终端不存在");
             if(int.Parse(msg.S("processId"))!=observer.ObservedProcessId||long.Parse(msg.S("windowHandle"))!=observer.ObservedWindowHandle)throw new IOException("终端窗口身份已改变");
             var text=msg.S("text");
-            lock(observer.Gate){var old=observer.Status;if(observer.Output!=text){observer.ReplaceOutput(text);Changed();}observer.Activity.Observe(text);observer.Status=observer.Activity.Status;if(old!=observer.Status)Changed();}
+            lock(observer.Gate){var old=observer.Status;if(observer.Output!=text){observer.ReplaceOutput(text);Changed();}var viewport=msg.S("viewport",text);if(viewport.Length>120000)viewport=viewport[^120000..];if(observer.ViewportOutput!=viewport){observer.ViewportOutput=viewport;Changed();}observer.Activity.Observe(text);observer.Status=observer.Activity.Status;if(old!=observer.Status)Changed();}
             return new{ok=true};
         }
         if(action=="revoke")
@@ -278,7 +295,14 @@ public sealed class Broker : IDisposable
         {
             if(!peer.Admin)throw new IOException("仅 PC 可操作");Storage.Config.LanEnabled=msg.B("lan");Storage.Config.CodexPath=msg.S("codexPath",Storage.Config.CodexPath);Storage.Save();Changed();return new{ok=true,restartRequired=false};
         }
-        var session=Find(peer,msg.S("sessionId"),action is "input" or "approve" or "interrupt" or "keys");
+        var session=Find(peer,msg.S("sessionId"),action is "input" or "approve" or "interrupt" or "keys" or "scroll");
+        if(action=="scroll")
+        {
+            if(session.Kind!="observer")throw new IOException("此终端请在移动端直接滑动查看历史输出。");
+            if(!int.TryParse(msg.S("lines","0"),out var lines)||Math.Abs((long)lines)>36)throw new IOException("滚动距离无效");
+            var latest=msg.B("latest");if(lines==0&&!latest)return new{ok=true};
+            return await SendObserverInput(session,peer,"",true,"scroll",lines,latest);
+        }
         if(action=="attach")
         {
             if(!peer.Admin)throw new IOException("仅本机终端可登记窗口");
@@ -363,10 +387,10 @@ public sealed class Broker : IDisposable
         }
         throw new IOException("未知操作");
     }
-    private async Task<object> SendObserverInput(Session session,Peer peer,string text,bool raw)
+    private async Task<object> SendObserverInput(Session session,Peer peer,string text,bool raw,string operation="input",int lines=0,bool latest=false)
     {
         if(text.Length>2048)throw new IOException("外部终端每次最多输入 2048 个字符");
-        var input=new ObserverInput{Text=text,Raw=raw,DeviceId=peer.Id};
+        var input=new ObserverInput{Text=text,Raw=raw,DeviceId=peer.Id,Operation=operation,Lines=lines,Latest=latest};
         lock(session.Gate){if(session.ObserverInputs.Count>=8)throw new IOException("终端正在处理前面的输入，请稍后");session.ObserverInputs.Add(input);}Changed();
         try
         {
@@ -454,5 +478,28 @@ public sealed class Broker : IDisposable
         catch(Exception e){Storage.Audit(new{eventType="localSocketFailed",error=e.Message});}
         finally{unixListener?.Dispose();if(File.Exists(path))File.Delete(path);}
     }
-    public void Dispose(){stop.Cancel();listener?.Stop();unixListener?.Dispose();bluetooth?.Dispose();foreach(var p in peers.Values)p.Dispose();foreach(var s in Sessions.Values)s.Terminal?.Dispose();engine.Dispose();}
+    private JsonNode RemoteSnapshot()
+    {
+        lock(remoteGate){var value=remote?.Snapshot()??J.Node(new{state=remoteError.Length>0?"error":"stopped",error=remoteError});value["enabled"]=Storage.Config.RemoteEnabled;return value;}
+    }
+    private void SetRemote(bool enabled)
+    {
+        lock(remoteGate)
+        {
+            remoteError="";
+            if(!enabled)
+            {
+                remote?.Dispose();remote=null;
+                foreach(var peer in peers.Values.Where(p=>p.Transport=="Remote"))peer.Dispose();
+                RotateCode();
+            }
+            else if(remote is null)
+            {
+                try{remote=new RemoteTransport(Storage,(client,cancel)=>HandleTcp(client,true,cancel));}
+                catch(Exception error) when(error is DllNotFoundException or BadImageFormatException or EntryPointNotFoundException or IOException or PlatformNotSupportedException or SocketException){remoteError=error.Message;}
+            }
+            Storage.Config.RemoteEnabled=enabled&&remote is not null;Storage.Save();Changed();
+        }
+    }
+    public void Dispose(){stop.Cancel();remote?.Dispose();listener?.Stop();unixListener?.Dispose();bluetooth?.Dispose();foreach(var p in peers.Values)p.Dispose();foreach(var s in Sessions.Values)s.Terminal?.Dispose();engine.Dispose();}
 }

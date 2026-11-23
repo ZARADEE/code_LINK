@@ -1,0 +1,93 @@
+{
+  "date": "2026-11-23",
+  "scope": "Windows x64 host and Android 14 ARM64 PAD",
+  "transport": "iroh 1.5.0 embedded native library, Code Link TLS and device authorization",
+  "serverLocation": "user's Windows computer",
+  "extraMobileVpnRequired": false,
+  "paidServicesConfigured": false,
+  "dshTetherUsage": "architecture reference only; application code and UI not copied",
+  "toolchain": {
+    "rust": "1.100.0",
+    "reusedFrom": "../Campus-Recruitment-Progress-Record/.toolchain",
+    "sharedToolchainModified": false,
+    "androidNdk": "r27c",
+    "androidNdkArchiveVerified": true,
+    "androidRustStdArchiveVerified": true
+  },
+  "nativeProbes": {
+    "windowsPublicRelayOnly": {
+      "passed": true,
+      "roundTrips": 2,
+      "bytesPerRoundTrip": 32768,
+      "payloadHashesMatched": true
+    },
+    "androidToWindowsPublicRelayOnly": {
+      "passed": true,
+      "roundTrips": 2,
+      "bytesPerRoundTrip": 32768,
+      "payloadHashesMatched": true
+    },
+    "adbReverseMappingsDuringProbe": []
+  },
+  "application": {
+    "remotePairing": "passed",
+    "certificateAndDeviceCredentialChecks": "research/remote-security-acceptance.json",
+    "padNetworkSwitchedToPhoneHotspot": true,
+    "computerStayedOnCampusNetwork": true,
+    "networkSwitchReconnectedWithoutPairingAgain": true,
+    "hostRestartReconnectedWithoutPairingAgain": true,
+    "crossNetworkTerminalInput": {
+      "passed": true,
+      "input": "WANPADOK",
+      "actualProcessOutput": "RECEIVED:WANPADOK",
+      "path": "relay"
+    },
+    "usbPhysicallyUnplugged": {
+      "confirmedByUser": true,
+      "adbDeviceListEmpty": true
+    },
+    "screenOffCompletionNotification": {
+      "task": "REMOTE BACKGROUND",
+      "triggeredAt": "2026-11-23T15:16:00+08:00",
+      "hostObservedDeviceOnline": true,
+      "actualPath": "relay",
+      "userConfirmedReceivedNotification": true,
+      "androidUnreadCompletionObservedAfterUsbReconnect": true
+    },
+    "finalOptimizedBuildInput": {
+      "passed": true,
+      "input": "REMOTEFINALPASS",
+      "actualProcessOutput": "RECEIVED:REMOTEFINALPASS",
+      "path": "relay"
+    },
+    "remoteWizard": {
+      "invitation": true,
+      "refresh": true,
+      "disableAndEnable": true,
+      "endpointIdentityPreserved": true
+    }
+  },
+  "pending": [
+    "8-hour or overnight stability run",
+    "extended non-charging Android Doze test",
+    "other carriers and home broadband networks"
+  ],
+  "limitations": [
+    "Free public relays are shared and rate limited, without an uptime guarantee.",
+    "PC must remain awake and the host process running.",
+    "Android force-stop or background restrictions can interrupt realtime notifications.",
+    "Current native packages target Windows x64 and Android ARM64."
+  ],
+  "checks": {
+    "nativeUnitTestsPassed": 3,
+    "existingPairingChecks": "passed",
+    "existingWindowActivityChecksPassed": 17,
+    "chineseWindowsPackage": "passed",
+    "englishWindowsPackage": "passed",
+    "chineseAndEnglishAndroidBuilds": "passed",
+    "android16KbElfAlignment": "passed",
+    "documentationAndTranslations": "passed",
+    "windowsNativeRequiresSeparateVcRuntime": false,
+    "finalWindowsNativeForcedRelayProbe": "passed"
+  }
+}

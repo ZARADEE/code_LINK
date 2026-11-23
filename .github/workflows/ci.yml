@@ -9,7 +9,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -26,8 +26,20 @@ jobs:
         run: python scripts/check-docs.py
       - name: Validate English translations
         run: python scripts/localize-sources.py check
+      - name: Test Android terminal gestures and history
+        run: node scripts/test-terminal-scroll.cjs
       - name: Fetch pinned build tools
         run: python scripts/setup-tools.py
+      - name: Install Rust for remote transport
+        run: rustup toolchain install 1.100.0 --profile minimal --no-self-update
+      - name: Select Rust and prepare Android native tools
+        run: |
+          rustup default 1.100.0
+          ./scripts/setup-remote.ps1
+      - name: Test native transport configuration
+        run: |
+          . ./scripts/remote-env.ps1
+          cargo test --manifest-path native/remote/Cargo.toml --locked --target x86_64-pc-windows-msvc
       - name: Build Windows clients
         run: ./scripts/build-desktop.ps1
       - name: Build English Windows clients

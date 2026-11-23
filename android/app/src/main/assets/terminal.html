@@ -2,26 +2,8 @@
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="xterm.css">
 <style>
-html,body{height:100%;margin:0;background:#192d27;overflow:hidden}
-#terminal{height:100%}.xterm{padding:8px}
+html,body{height:100%;margin:0;background:#192d27;overflow:hidden;overscroll-behavior:none}
+#terminal{height:100%}.xterm{padding:8px;height:100%;box-sizing:border-box}
 #windowText{display:none;height:100%;box-sizing:border-box;margin:0;padding:12px;overflow:auto;white-space:pre;color:#e4ebdd;font:13px/1.3 monospace;tab-size:8}
 </style></head><body><div id="terminal"></div><pre id="windowText" aria-label="终端窗口内容"></pre>
-<script src="xterm.js"></script><script>
-const terminal=new Terminal({cols:120,rows:32,fontSize:12,fontFamily:'monospace',theme:{background:'#192d27',foreground:'#e4ebdd'},scrollback:2000,convertEol:false});
-terminal.open(document.getElementById('terminal'));
-terminal.onData(s=>CodeLink.keys(s));
-const screen=document.getElementById('windowText'),grid=document.getElementById('terminal');
-let screenColumns=80;
-function fitScreen(){screen.style.fontSize=Math.max(9,Math.min(14,(innerWidth-24)/(screenColumns*.62)))+'px'}
-window.appendTerminal=(s,reset)=>{screen.style.display='none';grid.style.display='block';if(reset)terminal.reset();terminal.write(s)};
-window.showWindowText=s=>{
-  const opening=screen.style.display!=='block';
-  const follow=opening||screen.scrollHeight-screen.clientHeight-screen.scrollTop<30;
-  grid.style.display='none';screen.style.display='block';
-  if(screen.textContent===s&&!opening)return;
-  screenColumns=Math.max(40,...s.split('\n').map(l=>Array.from(l.replace(/\s+$/,'')).reduce((n,c)=>n+(c.codePointAt(0)>0x2e7f?2:1),0)));
-  fitScreen();screen.textContent=s||'正在同步终端窗口…';
-  if(follow)screen.scrollTop=screen.scrollHeight;
-};
-window.addEventListener('resize',fitScreen);
-</script></body></html>
+<script src="xterm.js"></script><script src="terminal-scroll.js"></script></body></html>

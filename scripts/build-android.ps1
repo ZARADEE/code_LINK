@@ -1,6 +1,9 @@
-param([switch]$Install,[ValidateSet('zh-CN','en')][string]$Language='zh-CN')
+param([switch]$Install,[ValidateSet('zh-CN','en')][string]$Language='zh-CN',[switch]$SkipNativeBuild)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
+if(-not $SkipNativeBuild){ & (Join-Path $PSScriptRoot 'build-remote.ps1') -Platform Android }
+$native = Join-Path $root '.local/remote-native/android'
+if(-not(Test-Path "$native/lib/arm64-v8a/libcodelink_remote.so")){throw 'Missing Android remote library'}
 $buildTools = Join-Path $root '.tools/android-sdk/build-tools/android-15'
 $platform = Join-Path $root '.tools/android-sdk/platforms/android-35'
 $source = Join-Path $root 'android/app/src/main'
@@ -19,6 +22,7 @@ $aligned = Join-Path $root ".local/CodeLink-aligned-$Language.apk"
 $output = Join-Path $root "dist/CodeLink-Android-$Language.apk"
 $androidJar = Join-Path $platform 'android.jar'
 $zxing = Join-Path $root '.tools/zxing-core.jar'
+$remoteNotices = Join-Path $root 'licenses/remote-third-party.txt'
 $aapt = Join-Path $buildTools 'aapt.exe'
 $javac = (Get-Command javac).Source
 $d8 = Join-Path $buildTools 'd8.bat'
@@ -26,7 +30,7 @@ $jar = (Get-Command jar).Source
 $zipalign = Join-Path $buildTools 'zipalign.exe'
 $apksigner = Join-Path $buildTools 'apksigner.bat'
 
-foreach ($file in @($androidJar, $zxing, $aapt, $d8, $zipalign, $apksigner)) {
+foreach ($file in @($androidJar, $zxing, $aapt, $d8, $zipalign, $apksigner, $remoteNotices)) {
     if (-not (Test-Path -LiteralPath $file)) { throw "Missing Android build input: $file" }
 }
 foreach ($directory in @($generated, $classes, $dex, (Split-Path -Parent $output))) {
@@ -42,6 +46,12 @@ $manifest = Join-Path $source 'AndroidManifest.xml'
 $resources = Join-Path $source 'res'
 $assets = Join-Path $source 'assets'
 Invoke-Native $aapt @('package', '-f', '-m', '-J', $generated, '-M', $manifest, '-S', $resources, '-A', $assets, '-I', $androidJar, '-F', $unsigned)
+$noticeStage = Join-Path $root '.local/remote-notices-apk'
+New-Item -ItemType Directory -Force "$noticeStage/assets/licenses" | Out-Null
+Copy-Item -Force $remoteNotices "$noticeStage/assets/licenses/remote-third-party.txt"
+Push-Location $noticeStage
+try { Invoke-Native $aapt @('add', '-f', $unsigned, 'assets/licenses/remote-third-party.txt') }
+finally { Pop-Location }
 $javaArguments = @('-encoding', 'UTF-8', '-Xlint:-options', '--release', '8', '-classpath', "$androidJar;$zxing", '-d', $classes)
 $javaArguments += Get-ChildItem (Join-Path $source 'java') -Recurse -Filter '*.java' | ForEach-Object FullName
 $javaArguments += Join-Path $generated 'com/codelink/app/R.java'
@@ -51,7 +61,10 @@ Invoke-Native $d8 @('--lib', $androidJar, '--min-api', '28', '--output', $dex, $
 Push-Location $dex
 try { Invoke-Native $aapt @('add', '-f', $unsigned, 'classes.dex') }
 finally { Pop-Location }
-Invoke-Native $zipalign @('-f', '4', $unsigned, $aligned)
+Push-Location $native
+try { Invoke-Native $aapt @('add', '-f', $unsigned, 'lib/arm64-v8a/libcodelink_remote.so') }
+finally { Pop-Location }
+Invoke-Native $zipalign @('-f', '-P', '16', '4', $unsigned, $aligned)
 
 if (-not (Test-Path -LiteralPath $keystore)) {
     $keytool = (Get-Command keytool).Source

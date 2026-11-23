@@ -8,3 +8,4 @@
 *.jpg binary
 *.gif binary
 *.ico binary
+licenses/remote-third-party.txt linguist-generated=true

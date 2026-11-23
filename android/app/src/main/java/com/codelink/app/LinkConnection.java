@@ -23,13 +23,29 @@ public final class LinkConnection {
  private volatile long lastMessageAt;
  private volatile boolean enabled=false;private volatile int generation=0;private volatile Closeable connection;private volatile DataOutputStream output;
  private final Object lock=new Object();
- public String mode="USB",host="127.0.0.1",pin="",code="",btAddress="";public int port=47631;
+ public String mode="USB",host="127.0.0.1",pin="",code="",btAddress="",remotePeer="",remoteRelays="[]";public int port=47631;
  public String deviceId;public volatile String pairingAttempt="";
  public LinkConnection(Context c,Listener l){context=c;prefs=c.getSharedPreferences("connection",0);listener=l;deviceId=prefs.getString("deviceId",UUID.randomUUID().toString());prefs.edit().putString("deviceId",deviceId).apply();load();}
- private void load(){host=prefs.getString("host","127.0.0.1");port=prefs.getInt("port",47631);pin=prefs.getString("pin","");code=prefs.getString("code","");mode=prefs.getString("mode","USB");if(mode.equals("\u84dd\u7259"))mode="Bluetooth";btAddress=prefs.getString("bt","");}
- public String modeLabel(){return mode.equals("Bluetooth")?"蓝牙":mode;}
- public void save(){if(mode.equals("\u84dd\u7259"))mode="Bluetooth";prefs.edit().putString("host",host).putInt("port",port).putString("pin",pin).putString("code",code).putString("mode",mode).putString("bt",btAddress).apply();}
- public void invite(String value)throws Exception{if(!value.startsWith("codelink:"))throw new IOException("请使用电脑生成的 Code Link 连接信息");JSONObject n=new JSONObject(new String(Base64.decode(value.substring(9),Base64.URL_SAFE|Base64.NO_WRAP),"UTF-8"));String newPin=n.getString("pin"),newHost=n.getString("host"),newCode=n.getString("code");int newPort=n.getInt("port");String newMode=n.optString("transport","");if(newMode.isEmpty())newMode=newHost.equals("127.0.0.1")?"USB":"Wi-Fi";if(!newMode.equals("USB")&&!newMode.equals("Wi-Fi")&&!newMode.equals("Bluetooth"))throw new IOException("不支持此连接方式，请更新 Code Link。");if(!newPin.matches("[0-9a-fA-F]{64}")||newHost.isEmpty()||newPort<1||newPort>65535)throw new IOException("配对信息无效，请重新扫描电脑二维码。");if(!newPin.equals(pin)){prefs.edit().remove("key").apply();btAddress="";}host=newHost;port=newPort;pin=newPin;code=newCode;pairingAttempt=n.optString("attempt","");mode=newMode;save();}
+ private void load(){host=prefs.getString("host","127.0.0.1");port=prefs.getInt("port",47631);pin=prefs.getString("pin","");code=prefs.getString("code","");mode=prefs.getString("mode","USB");if(mode.equals("\u84dd\u7259"))mode="Bluetooth";btAddress=prefs.getString("bt","");remotePeer=prefs.getString("remotePeer","");remoteRelays=prefs.getString("remoteRelays","[]");}
+ public String modeLabel(){return mode.equals("Bluetooth")?"蓝牙":mode.equals("Remote")?"远程":mode;}
+ public void save(){if(mode.equals("\u84dd\u7259"))mode="Bluetooth";prefs.edit().putString("host",host).putInt("port",port).putString("pin",pin).putString("code",code).putString("mode",mode).putString("bt",btAddress).putString("remotePeer",remotePeer).putString("remoteRelays",remoteRelays).apply();}
+ public void invite(String value)throws Exception{
+  if(!value.startsWith("codelink:")||value.length()>16384)throw new IOException("请使用电脑生成的 Code Link 连接信息");
+  JSONObject n=new JSONObject(new String(Base64.decode(value.substring(9),Base64.URL_SAFE|Base64.NO_WRAP),"UTF-8"));
+  String newPin=n.getString("pin"),newHost=n.getString("host"),newCode=n.getString("code");int newPort=n.getInt("port");String newMode=n.optString("transport","");
+  if(newMode.isEmpty())newMode=newHost.equals("127.0.0.1")?"USB":"Wi-Fi";
+  if(!newMode.equals("USB")&&!newMode.equals("Wi-Fi")&&!newMode.equals("Bluetooth")&&!newMode.equals("Remote"))throw new IOException("不支持此连接方式，请更新 Code Link。");
+  if(!newPin.matches("[0-9a-fA-F]{64}")||newHost.isEmpty()||newPort<1||newPort>65535)throw new IOException("配对信息无效，请重新扫描电脑二维码。");
+  String nextPeer=remotePeer,nextRelays=remoteRelays;
+  if(newMode.equals("Remote")){
+   nextPeer=n.getString("endpoint");JSONArray relays=n.getJSONArray("relays");
+   if(n.optInt("remoteProtocol")!=1||!nextPeer.matches("[0-9a-f]{64}")||relays.length()>4||!newCode.matches("[0-9a-f]{64}"))throw new IOException("Remote invitation is invalid; update Code Link and scan again");
+   for(int i=0;i<relays.length();i++){URI uri=new URI(relays.getString(i));if(!"https".equals(uri.getScheme())||uri.getHost()==null||uri.getUserInfo()!=null)throw new IOException("Remote relay must use HTTPS");}
+   nextRelays=relays.toString();
+  }
+  if(!newPin.equals(pin)){prefs.edit().remove("key").apply();btAddress="";if(!newMode.equals("Remote")){nextPeer="";nextRelays="[]";}}
+  host=newHost;port=newPort;pin=newPin;code=newCode;remotePeer=nextPeer;remoteRelays=nextRelays;pairingAttempt=n.optString("attempt","");mode=newMode;save();
+ }
  public synchronized void start(){stop();enabled=true;final int g=generation;new Thread(()->loop(g),"CodeLink-connection").start();}
  public synchronized void stop(){enabled=false;generation++;Closeable old=connection;connection=null;output=null;if(old!=null)try{old.close();}catch(Exception ignored){}}
  private synchronized void own(int g,Closeable socket)throws IOException{if(g!=generation||!enabled){socket.close();throw new IOException("连接已切换");}connection=socket;}
@@ -37,7 +53,15 @@ public final class LinkConnection {
  private void loop(int g){int retry=0;while(enabled&&g==generation){Closeable owned=null;try{listener.status(retry==0?"正在连接 "+modeLabel()+"…":"正在重连 "+modeLabel()+"…",false);InputStream input;
    if(mode.equals("Bluetooth")){BluetoothManager manager=(BluetoothManager)context.getSystemService(Context.BLUETOOTH_SERVICE);BluetoothAdapter adapter=manager.getAdapter();if(adapter==null||!adapter.isEnabled())throw new IOException("请开启蓝牙");if(btAddress.isEmpty())throw new IOException("请选择已配对的电脑");BluetoothSocket socket=adapter.getRemoteDevice(btAddress).createRfcommSocketToServiceRecord(UUID.fromString("944d82d8-3d07-4c96-9d86-04a95bf20579"));owned=socket;own(g,socket);adapter.cancelDiscovery();socket.connect();input=socket.getInputStream();ready(g,socket.getOutputStream());}
    else{if(pin.length()!=64)throw new IOException("请先扫描电脑的配对二维码");final String expected=pin.toLowerCase(Locale.ROOT);TrustManager[] trust={new X509TrustManager(){public X509Certificate[] getAcceptedIssuers(){return new X509Certificate[0];}public void checkClientTrusted(X509Certificate[] chain,String auth)throws java.security.cert.CertificateException{throw new java.security.cert.CertificateException("client");}public void checkServerTrusted(X509Certificate[] chain,String auth)throws java.security.cert.CertificateException{try{if(chain.length==0||!hex(MessageDigest.getInstance("SHA-256").digest(chain[0].getEncoded())).equals(expected))throw new java.security.cert.CertificateException("电脑证书与配对信息不符，请重新扫码");}catch(java.security.cert.CertificateException e){throw e;}catch(Exception e){throw new java.security.cert.CertificateException(e);}}}};
-    SSLContext ssl=SSLContext.getInstance("TLS");ssl.init(null,trust,new SecureRandom());Socket raw=new Socket();owned=raw;own(g,raw);raw.connect(new InetSocketAddress(host,port),6000);raw.setTcpNoDelay(true);SSLSocket socket=(SSLSocket)ssl.getSocketFactory().createSocket(raw,host,port,true);owned=socket;own(g,socket);socket.setSoTimeout(25000);socket.startHandshake();input=socket.getInputStream();ready(g,socket.getOutputStream());}
+    SSLContext ssl=SSLContext.getInstance("TLS");ssl.init(null,trust,new SecureRandom());
+    RemoteConnection remote=null;String address=host;int destination=port;Socket raw=new Socket();
+    if(mode.equals("Remote")){
+     if(remotePeer.isEmpty())throw new IOException("请先扫描电脑的配对二维码");
+     remote=new RemoteConnection(context,remoteIdentity(),remotePeer,remoteRelays);owned=remote;own(g,remote);remote.attach(raw);address="127.0.0.1";destination=remote.port();
+    }else{owned=raw;own(g,raw);}
+    raw.connect(new InetSocketAddress(address,destination),6000);raw.setTcpNoDelay(true);
+    SSLSocket socket=(SSLSocket)ssl.getSocketFactory().createSocket(raw,address,destination,true);owned=remote==null?socket:remote.attach(socket);own(g,owned);
+    socket.setSoTimeout(mode.equals("Remote")?45000:25000);socket.startHandshake();socket.setSoTimeout(25000);input=socket.getInputStream();ready(g,socket.getOutputStream());}
    Closeable active=owned;lastMessageAt=SystemClock.elapsedRealtime();
    ScheduledFuture<?> monitor=watchdog.scheduleWithFixedDelay(()->{
     if(mode.equals("Bluetooth")&&enabled&&g==generation&&SystemClock.elapsedRealtime()-lastMessageAt>25000){android.util.Log.w("CodeLinkLink","Bluetooth heartbeat timed out; closing stale socket");try{active.close();}catch(Exception ignored){}}
@@ -52,8 +76,12 @@ public final class LinkConnection {
  public String action(String action,JSONObject fields)throws Exception{JSONObject msg=fields==null?new JSONObject():fields;String id=UUID.randomUUID().toString();msg.put("type","action").put("action",action).put("id",id);send(msg);return id;}
  public void shutdown(){stop();watchdog.shutdownNow();}
  private SecretKey secretKey()throws Exception{KeyStore ks=KeyStore.getInstance("AndroidKeyStore");ks.load(null);if(!ks.containsAlias("CodeLinkDevice")){KeyGenerator generator=KeyGenerator.getInstance("AES","AndroidKeyStore");generator.init(new KeyGenParameterSpec.Builder("CodeLinkDevice",KeyProperties.PURPOSE_ENCRYPT|KeyProperties.PURPOSE_DECRYPT).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).build());return generator.generateKey();}return((KeyStore.SecretKeyEntry)ks.getEntry("CodeLinkDevice",null)).getSecretKey();}
- private void storeKey(String key)throws Exception{Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.ENCRYPT_MODE,secretKey());String value=Base64.encodeToString(cipher.getIV(),Base64.NO_WRAP)+":"+Base64.encodeToString(cipher.doFinal(key.getBytes("UTF-8")),Base64.NO_WRAP);prefs.edit().putString("key",value).apply();}
- private String readKey(){try{String value=prefs.getString("key","");if(value.isEmpty())return "";String[] parts=value.split(":");Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.DECRYPT_MODE,secretKey(),new GCMParameterSpec(128,Base64.decode(parts[0],Base64.NO_WRAP)));return new String(cipher.doFinal(Base64.decode(parts[1],Base64.NO_WRAP)),"UTF-8");}catch(Exception e){return "";}}
+ private void storeKey(String key)throws Exception{storeSecret("key",key);}
+ private String readKey(){return readSecret("key");}
+ private void storeSecret(String name,String key)throws Exception{Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.ENCRYPT_MODE,secretKey());String value=Base64.encodeToString(cipher.getIV(),Base64.NO_WRAP)+":"+Base64.encodeToString(cipher.doFinal(key.getBytes("UTF-8")),Base64.NO_WRAP);prefs.edit().putString(name,value).apply();}
+ private String readSecret(String name){try{String value=prefs.getString(name,"");if(value.isEmpty())return "";String[] parts=value.split(":");Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.DECRYPT_MODE,secretKey(),new GCMParameterSpec(128,Base64.decode(parts[0],Base64.NO_WRAP)));return new String(cipher.doFinal(Base64.decode(parts[1],Base64.NO_WRAP)),"UTF-8");}catch(Exception e){return "";}}
+ private String remoteIdentity()throws Exception{String identity=readSecret("remoteIdentity");if(identity.length()!=64){byte[] bytes=new byte[32];new SecureRandom().nextBytes(bytes);identity=hex(bytes);storeSecret("remoteIdentity",identity);}return identity;}
+ public JSONObject remoteStatus(){Closeable active=connection;return active instanceof RemoteConnection?((RemoteConnection)active).snapshot():new JSONObject();}
  public static String hex(byte[] b){StringBuilder s=new StringBuilder();for(byte n:b)s.append(String.format(Locale.ROOT,"%02x",n&255));return s.toString();}
  private String friendly(Exception e){String msg=e.getMessage();if(msg==null)msg=e.getClass().getSimpleName();if(msg.contains("Software caused connection abort")||msg.contains("Broken pipe"))return"蓝牙链路已中断，正在重连";return msg;}
 }

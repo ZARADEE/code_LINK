@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-23",
+  "model": "PGFM10",
+  "android": "16",
+  "phoneNetwork": "cellular, confirmed by user",
+  "pcNetwork": "campus Wi-Fi",
+  "crossNetworkInput": "PHONE_REMOTE_OK round trip passed",
+  "remotePath": "relay",
+  "usbRole": "ADB debug gestures; TCP reverse removed before acceptance",
+  "swipeEarlier": true,
+  "swipeDoesNotClick": true,
+  "tapBackToBottom": true,
+  "latestShortcutClicksSameButton": true,
+  "localModeDoesNotClickPC": true,
+  "tapPoint": {
+    "row": 24,
+    "column": 24,
+    "point": [
+      457,
+      1792
+    ]
+  },
+  "passed": true,
+  "actualCodexSwipe": true,
+  "actualCodexBackToBottomTap": true,
+  "actualCodexLatestShortcut": true,
+  "wideDesktopViewportFitsPhone": true
+}

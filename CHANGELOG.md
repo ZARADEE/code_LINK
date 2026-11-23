@@ -2,6 +2,7 @@
 
 ## Unreleased — remote access
 
+- Forward Android taps to matching Windows Terminal text cells, with control and stale-content checks. Recognize the full-screen `New activity · ↓ Back to bottom · esc` prompt from the latest-output shortcut, and validate swipes and clicks on an Android 16 phone over cellular data.
 - Add Android terminal swipes, a local history mode that preserves reading position, and a back-to-latest control. Synchronize existing Windows Terminal history scrollbars and full-screen mouse-wheel input with a separate visible-viewport snapshot; retain controller authorization for desktop scrolling.
 - Embed iroh 1.5.0 in Windows x64 and Android ARM64; keep the PC as the server, with direct connections and free public relay fallback.
 - Add remote QR pairing, protected persistent endpoint identities, network-change recovery, and an explicit desktop remote-access switch. Retain USB, Bluetooth and LAN.

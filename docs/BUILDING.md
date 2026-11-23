@@ -71,6 +71,8 @@ Android 布局验收脚本为 `scripts/test-adaptive-layout.py`，需要 Pillow�
 
 `scripts/test-pad-*.py`、`scripts/test-b-group-mark.py` 和 `scripts/resume-pad-background.py` 是维护者的验收脚本，包含测试机的端口、路径或界面坐标。使用前按自己的环境调整，连接测试平板，并新建专用终端，避免向工作中的命令行写入测试输入。
 
+手机滑动与点击验收使用 `scripts/test-phone-terminal.py`，需要 Pillow、USB 调试和已完成远程配对的手机。设置 `CODELINK_TEST_SERIAL` 为 ADB 序列号、`CODELINK_TEST_DEVICE_ID` 为 Code Link 设备 ID；先在独立 Windows Terminal 窗口运行 `cmd /c python scripts/scroll-alt-fixture.py --click`，再执行该验收脚本。手机切到移动数据，电脑保留原网络；脚本移除业务端口的 ADB 反向映射，USB 只用于测试手势。结束后运行 `node scripts/scroll-acceptance.cjs cleanup-all`，并关闭测试终端。
+
 - [当前实现和兼容边界](implementation.zh-CN.md)
 - [开发与验收记录](development-status.md)
 - [初始技术方案](technical-proposal.zh-CN.md)，保留设计过程；实际行为以当前实现文档为准

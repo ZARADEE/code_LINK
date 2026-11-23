@@ -10,16 +10,26 @@ class Terminal {
  scrollToLine(line){this.buffer.active.viewportY=Math.max(0,Math.min(line,this.buffer.active.baseY));}
  scrollToBottom(){this.scrollToLine(this.buffer.active.baseY);}
 }
-const sent=[],keys=[],window={addEventListener(){}};
-const context=vm.createContext({Terminal,window,document:{getElementById:id=>elements.get(id)},innerWidth:600,innerHeight:400,CodeLink:{keys:s=>keys.push(s),scroll:(...args)=>sent.push(args)}});
+const sent=[],keys=[],clicks=[],window={addEventListener(){}};let caret=null;
+const context=vm.createContext({Terminal,window,document:{getElementById:id=>elements.get(id),caretRangeFromPoint:()=>caret},innerWidth:600,innerHeight:400,CodeLink:{keys:s=>keys.push(s),scroll:(...args)=>sent.push(args),pointer:(...args)=>clicks.push(args)}});
 vm.runInContext(fs.readFileSync('android/app/src/main/assets/terminal-scroll.js','utf8'),context);
 function swipe(element,from,to,x=100){const events=elements.get(element).events;events.touchstart({touches:[{clientX:x,clientY:from}]});events.touchmove({touches:[{clientX:x,clientY:to}],preventDefault(){},stopImmediatePropagation(){}});events.touchend();}
 window.configureTerminal('pc-window',true,true);window.showWindowText('full history','visible bottom');
 assert.equal(elements.get('windowText').textContent,'visible bottom');
+context.innerWidth=330;window.showWindowText('x'.repeat(180),'x'.repeat(180));
+assert.ok(parseFloat(elements.get('windowText').style.fontSize)*180*.62<=306.01,'wide desktop viewport must fit a narrow phone');
+context.innerWidth=600;window.showWindowText('full history','visible bottom');
 swipe('windowText',100,320);assert.deepEqual(sent.pop(),['pc-window',-10,false]);
 swipe('windowText',320,100);assert.deepEqual(sent.pop(),['pc-window',10,false]);
 assert.deepEqual(keys,[],'swipes must never inject terminal keys');
+assert.equal(clicks.length,0,'a swipe must never click');
+const textNode={};elements.get('windowText').firstChild=textNode;
+window.showWindowText('中文 [ Back to bottom ]','中文 [ Back to bottom ]');caret={startContainer:textNode,startOffset:7};
+function tap(){const e=elements.get('windowText').events;e.touchstart({touches:[{clientX:100,clientY:100}]});e.touchend({changedTouches:[{clientX:100,clientY:100}],preventDefault(){}});}
+tap();assert.deepEqual(clicks.pop(),['pc-window',0,9,'中文 [ Back to bottom ]']);
+window.showWindowText('full history','visible bottom');
 window.configureTerminal('pc-window',true,false);assert.equal(elements.get('windowText').textContent,'full history');
+tap();assert.equal(clicks.length,0,'local browsing must never send clicks');
 elements.get('windowText').scrollTop=500;swipe('windowText',100,220);assert.equal(elements.get('windowText').scrollTop,380);
 window.showWindowText('full history plus fresh output','new viewport');assert.equal(elements.get('windowText').scrollTop,380,'new output must not snap local reading to bottom');
 assert.equal(sent.length,0,'local browsing must not control the desktop');

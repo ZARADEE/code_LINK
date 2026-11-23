@@ -81,7 +81,7 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
   attention=text("",13,0xffa52c35);attention.setContentDescription("confirm-reminder");attention.setPadding(dp(10),dp(8),dp(10),dp(8));attention.setBackground(bg(0xffffe4e3,8));attention.setOnClickListener(v->acknowledge(selected));attention.setVisibility(View.GONE);detailPane.addView(attention,new LinearLayout.LayoutParams(-1,-2));
   outputFrame=new FrameLayout(this);outputFrame.setBackground(bg(DARK,10));detailPane.addView(outputFrame,new LinearLayout.LayoutParams(-1,0,1));
   outputScroll=new ScrollView(this);outputScroll.setFillViewport(true);output=new TextView(this);output.setTextColor(0xffe4ebdd);output.setTextSize(14);output.setTypeface(Typeface.MONOSPACE);output.setTextIsSelectable(true);output.setPadding(dp(12),dp(12),dp(12),dp(12));output.setContentDescription("session-output");outputScroll.addView(output,new ScrollView.LayoutParams(-1,-2));outputFrame.addView(outputScroll,new FrameLayout.LayoutParams(-1,-1));
-  terminal=new WebView(this);terminal.setBackgroundColor(DARK);terminal.getSettings().setJavaScriptEnabled(true);terminal.getSettings().setAllowFileAccess(false);terminal.getSettings().setAllowContentAccess(false);terminal.addJavascriptInterface(new TerminalBridge(),"CodeLink");
+  terminal=new WebView(this);terminal.setBackgroundColor(DARK);terminal.getSettings().setJavaScriptEnabled(true);terminal.getSettings().setMinimumFontSize(1);terminal.getSettings().setMinimumLogicalFontSize(1);terminal.getSettings().setAllowFileAccess(false);terminal.getSettings().setAllowContentAccess(false);terminal.addJavascriptInterface(new TerminalBridge(),"CodeLink");
   terminal.setWebViewClient(new WebViewClient(){public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){return true;}public void onPageFinished(WebView view,String url){terminalReady=true;configureTerminalScroll();if(currentKind.equals("terminal"))terminal.evaluateJavascript("appendTerminal("+JSONObject.quote(fullText)+",true)",null);else if(currentKind.equals("observer"))renderWindowText();}});
   terminal.loadUrl("file:///android_asset/terminal.html");terminal.setVisibility(View.GONE);outputFrame.addView(terminal,new FrameLayout.LayoutParams(-1,-1));
   terminal.setContentDescription("terminal-output-view");
@@ -199,9 +199,16 @@ public final class MainActivity extends Activity implements LinkConnection.Liste
   if(result==null||!result.optBoolean("ok")){clearScroll();banner.setText(result==null?"电脑滚动未及时响应，请重试或切换本地查看。":UiMessages.server(result.optString("error")));}
   else{banner.setText("已滚动电脑窗口 · 下滑查看前文，上滑查看后文");handler.post(flushScroll);}return true;
  }
+ private void requestPointer(String sessionId,int row,int column,String expectedLine){
+  if(!observing||!connected||!controller||!desktopScroll||!currentKind.equals("observer")||!selected.equals(sessionId))return;
+  if(!scrollRequest.isEmpty()||pendingScrollLines!=0||pendingScrollLatest){banner.setText("请等滚动停止后再点击终端内容。");return;}
+  final long epoch=scrollEpoch;
+  io.execute(()->{try{if(epoch==scrollEpoch)link.action("pointer",new JSONObject().put("sessionId",sessionId).put("row",row).put("column",column).put("expectedLine",expectedLine));}catch(Exception error){handler.post(()->banner.setText(error.getMessage()));}});
+ }
  public final class TerminalBridge{
   @JavascriptInterface public void keys(String value){if(controller&&connected)try{action("input",fields().put("text",value).put("raw",true));}catch(Exception ignored){}}
   @JavascriptInterface public void scroll(String sessionId,int lines,boolean latest){handler.post(()->requestScroll(sessionId,lines,latest));}
+  @JavascriptInterface public void pointer(String sessionId,int row,int column,String expectedLine){handler.post(()->requestPointer(sessionId,row,column,expectedLine));}
  }
  private void addRequest(JSONObject request){try{request.put("_sessionId",selected);}catch(Exception ignored){}LinearLayout card=new LinearLayout(this);card.setOrientation(1);card.setPadding(dp(12),dp(10),dp(12),dp(10));card.setBackground(bg(0xfffff2ca,8));TextView heading=text(UiMessages.server(request.optString("summary")),16,INK);card.addView(heading);JSONObject params=request.optJSONObject("parameters");String details=params==null?"":params.optString("command",params.optString("reason",params.toString()));TextView detail=text(details,12,INK);detail.setMaxLines(2);card.addView(detail);LinearLayout row=new LinearLayout(this);card.addView(row);row.addView(button("查看并处理",()->showRequest(request)));approvals.addView(card);}
  private void showRequest(JSONObject request){if(!controller){toast("请先在电脑映射此命令行");return;}String method=request.optString("method");JSONObject params=request.optJSONObject("parameters");if(method.contains("requestUserInput")){answerQuestions(request);return;}if(method.contains("elicitation")){answerForm(request);return;}

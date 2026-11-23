@@ -8,7 +8,20 @@ let gesture=null,fraction=0,renderVersion=0,windowFull='',windowVisible='';
 function bottom(){return observer?screen.scrollHeight-screen.clientHeight-screen.scrollTop<3:terminal.buffer.active.viewportY>=terminal.buffer.active.baseY}
 function fitScreen(){
   const width=(innerWidth-24)/(screenColumns*.62),height=syncDesktop?(screen.clientHeight-24)/(screenRows*1.3):14;
-  screen.style.fontSize=Math.max(syncDesktop?6:9,Math.min(14,width,height))+'px';
+  screen.style.fontSize=Math.max(syncDesktop?1:9,Math.min(14,width,height))+'px';
+}
+function cellWidth(text){
+  return Array.from(text).reduce((n,c)=>n+(/[\p{Mark}\u200d\ufe0f]/u.test(c)?0:c.codePointAt(0)>0x2e7f?2:1),0);
+}
+function tapWindow(x,y){
+  if(!observer||!syncDesktop)return;
+  const range=document.caretRangeFromPoint(x,y);
+  if(!range||range.startContainer!==screen.firstChild)return;
+  const value=screen.textContent,offset=range.startOffset,before=value.slice(0,offset);
+  const row=before.split('\n').length-1,line=value.split('\n')[row].replace(/\r$/,'');
+  const start=before.lastIndexOf('\n')+1,column=cellWidth(value.slice(start,offset));
+  if(!line.trim()||column>=cellWidth(line.replace(/\r$/,'')))return;
+  CodeLink.pointer(session,row,column,line);
 }
 window.configureTerminal=(id,isObserver,desktop)=>{
   if(session!==id||observer!==isObserver){following=true;gesture=null;fraction=0;renderVersion++;windowFull='';windowVisible='';screen.textContent='';screen.scrollTop=0;terminal.reset();}
@@ -55,7 +68,7 @@ function scrollPixels(delta){
 for(const element of [grid,screen]){
   element.addEventListener('touchstart',event=>{
     if(event.touches.length!==1){gesture=null;return;}
-    const touch=event.touches[0];gesture={x:touch.clientX,y:touch.clientY,last:touch.clientY,vertical:false,horizontal:false};fraction=0;
+    const touch=event.touches[0];gesture={x:touch.clientX,y:touch.clientY,last:touch.clientY,at:Date.now(),vertical:false,horizontal:false};fraction=0;
   },{capture:true,passive:true});
   element.addEventListener('touchmove',event=>{
     if(!gesture||event.touches.length!==1){gesture=null;return;}
@@ -65,7 +78,13 @@ for(const element of [grid,screen]){
     event.preventDefault();event.stopImmediatePropagation();
     scrollPixels(gesture.last-touch.clientY);gesture.last=touch.clientY;
   },{capture:true,passive:false});
-  element.addEventListener('touchend',()=>{gesture=null;},{capture:true,passive:true});
+  element.addEventListener('touchend',event=>{
+    const completed=gesture;gesture=null;
+    if(completed&&!completed.vertical&&!completed.horizontal&&Date.now()-completed.at<450&&element===screen){
+      const touch=event.changedTouches&&event.changedTouches[0];
+      if(touch&&Math.hypot(touch.clientX-completed.x,touch.clientY-completed.y)<8){event.preventDefault();tapWindow(touch.clientX,touch.clientY);}
+    }
+  },{capture:true,passive:false});
   element.addEventListener('touchcancel',()=>{gesture=null;fraction=0;},{capture:true,passive:true});
   element.addEventListener('wheel',event=>{
     if(event.ctrlKey||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;

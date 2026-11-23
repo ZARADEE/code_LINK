@@ -76,8 +76,11 @@ internal static class TransportChecks
             Require(!(await snapshotClient.Action("scroll",new{sessionId=observedId,lines=-3})).B("ok"),"Unmapped scrolling was accepted");
             await admin.Action("map",new{sessionId=observedId,deviceId="validation-pad",enabled=true,control=false});
             Require(!(await snapshotClient.Action("scroll",new{sessionId=observedId,lines=-3})).B("ok"),"Read-only device scrolled the desktop");
+            Require(!(await snapshotClient.Action("pointer",new{sessionId=observedId,row=0,column=2,expectedLine="VISIBLE_ROWS"})).B("ok"),"Read-only device clicked the desktop");
             await admin.Action("map",new{sessionId=observedId,deviceId="validation-pad",enabled=true,control=true});
             Require(!(await snapshotClient.Action("scroll",new{sessionId=observedId,lines=int.MinValue})).B("ok"),"Invalid scroll distance was accepted");
+            Require(!(await snapshotClient.Action("pointer",new{sessionId=observedId,row=-1,column=2,expectedLine="VISIBLE_ROWS"})).B("ok"),"Invalid click position was accepted");
+            Require(!(await snapshotClient.Action("pointer",new{sessionId=observedId,row=0,column=2,expectedLine="OLD_SCREEN"})).B("ok"),"Stale screen click was accepted");
             var scroll=snapshotClient.Action("scroll",new{sessionId=observedId,lines=-3});
             await Wait(()=>admin.CurrentState?["mobileInputs"]?.AsArray().Any(i=>i.S("sessionId")==observedId&&i.S("operation")=="scroll")==true);
             var pending=admin.CurrentState!["mobileInputs"]!.AsArray().First(i=>i.S("sessionId")==observedId)!;
@@ -89,13 +92,23 @@ internal static class TransportChecks
             Require(denied,"Queued scroll retained permission after control was revoked");
             await admin.Action("observerInputResult",new{sessionId=observedId,requestId=pending.S("id"),error="Control revoked"});
             Require(!(await scroll).B("ok"),"Revoked scroll reported success");
+            await admin.Action("map",new{sessionId=observedId,deviceId="validation-pad",enabled=true,control=true});
+            var click=snapshotClient.Action("pointer",new{sessionId=observedId,row=0,column=2,expectedLine="VISIBLE_ROWS"});
+            await Wait(()=>admin.CurrentState?["mobileInputs"]?.AsArray().Any(i=>i.S("operation")=="pointer")==true);
+            var clickInput=admin.CurrentState!["mobileInputs"]!.AsArray().First(i=>i.S("operation")=="pointer")!;
+            Require(clickInput.S("row")=="0"&&clickInput.S("column")=="2"&&clickInput.S("text")=="","Click must carry coordinates without arbitrary input text");
+            await admin.Action("takeControl",new{sessionId=observedId});denied=false;
+            try{await admin.Action("claimObserverInput",new{sessionId=observedId,requestId=clickInput.S("id")});}catch(IOException){denied=true;}
+            Require(denied,"Queued click retained permission after control was revoked");
+            await admin.Action("observerInputResult",new{sessionId=observedId,requestId=clickInput.S("id"),error="Control revoked"});
+            Require(!(await click).B("ok"),"Revoked click reported success");
         }
         await admin.Action("delete",new{sessionId=observedId});
         var config=JsonNode.Parse(File.ReadAllText(Path.Combine(directory,"host.json")))!;
         Require(config.S("CertificatePassword").StartsWith("dpapi:")&&config["Devices"]![0]!.S("Key").StartsWith("dpapi:"),"Pairing secrets were stored unprotected");
         using var cert=new HostStorage(directory).Certificate;
         Require(cert.Thumbprint==storage.Certificate.Thumbprint,"Encrypted credentials did not reload");
-        var report=new{passed=true,invalidPairingRejected=true,wrongPinRejected,unmappedInputRejected=true,duplicateInputExecutedOnce=true,pcInputWhileMapped=true,reconnectRestoresMapping=true,unmapRevokesInput=true,credentialsProtectedAndReloadable=true,completeExternalSnapshot=true,separateDesktopViewport=true,scrollRequiresControl=true,queuedScrollRevocationChecked=true,invalidScrollRejected=true};
+        var report=new{passed=true,invalidPairingRejected=true,wrongPinRejected,unmappedInputRejected=true,duplicateInputExecutedOnce=true,pcInputWhileMapped=true,reconnectRestoresMapping=true,unmapRevokesInput=true,credentialsProtectedAndReloadable=true,completeExternalSnapshot=true,separateDesktopViewport=true,scrollRequiresControl=true,queuedScrollRevocationChecked=true,invalidScrollRejected=true,clickRequiresControl=true,staleClickRejected=true,invalidClickRejected=true,queuedClickRevocationChecked=true};
         File.WriteAllText("research/transport-acceptance.json",J.Stringify(report));Console.WriteLine(J.Stringify(report));
         } finally { if(!host.HasExited)host.Kill(true);storage.Certificate.Dispose(); }
     }

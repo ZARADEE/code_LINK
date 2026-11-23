@@ -14,7 +14,7 @@
 
 Keep your build, tests or Codex task running on the PC. Use the tablet to read output, send a command, respond to an approval, and get an alert when a task or a whole batch finishes. USB and Bluetooth connect locally without an account or relay server.
 
-**New in current source builds: remote access and swipe browsing.** Keep the server on your Windows x64 PC and connect from Android ARM64 over the internet. iroh tries a direct connection and falls back to a free public relay; no rented server or mobile VPN is required. Swipe through terminal history, scroll the PC window, or browse locally on the tablet. Cross-network input, scrolling and unplugged, screen-off completion alerts have passed physical-device checks. Overnight stability remains to be tested. The download links below still point to stable v1.4.1; [build and try the remote preview](docs/REMOTE.md).
+**New in current source builds: remote access, swipes and terminal clicks.** Keep the server on your Windows x64 PC and connect from Android ARM64 over the internet. iroh tries a direct connection and falls back to a free public relay; no rented server or mobile VPN is required. Swipe through terminal history, tap a terminal's Back to bottom control, or browse locally on your phone or tablet. Cross-network input, scrolling, phone clicks and unplugged, screen-off completion alerts have passed physical-device checks. Overnight stability remains to be tested. The download links below still point to stable v1.4.1; [build and try the remote preview](docs/REMOTE.md).
 
 ## Who is this for?
 
@@ -87,7 +87,7 @@ Existing Windows Terminal mappings follow the **active tab of that window**. Use
 
 External windows synchronize readable text and spacing. Full colors and graphical cursor effects are not reproduced. Output caching is limited to approximately 120,000 characters.
 
-Remote scrolling currently supports a single Windows Terminal pane. Ordinary history uses its scrollbar; full-screen programs receive mouse-wheel events and must support scrolling themselves. Keep those windows restored for full-screen scrolling. Local browsing leaves the PC viewport alone and preserves your reading position as new output arrives. [Behavior and tested scope](docs/REMOTE.md#移动端查看与滚动).
+Remote scrolling and taps support a single Windows Terminal pane. Ordinary history uses its scrollbar; full-screen programs must support mouse interaction and have a restored window. Tap a visible **Back to bottom** prompt, or use Code Link's **Back to latest** shortcut when that prompt is present. Swipes do not send clicks. Local browsing leaves the PC viewport alone and preserves your reading position as new output arrives. [Behavior and tested scope](docs/REMOTE.md#移动端查看与滚动).
 
 ## A/B completion reminders
 

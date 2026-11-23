@@ -372,5 +372,14 @@
   "该终端未提供可操作的滚动条。请切换为本地查看，或使用 Windows Terminal 单窗口。": "This terminal exposes no controllable scrollbar. Browse locally or use a single Windows Terminal pane.",
   "该窗口没有可定位的历史滚动条。全屏程序请继续上滑查看后文。": "This window has no addressable history scrollbar. In full-screen programs, keep swiping up for later content.",
   "请先在电脑上还原该终端窗口，再同步滚动。": "Restore this terminal window on the PC before scrolling it remotely.",
-  "无法向该终端窗口发送滚轮操作。": "Could not send a wheel event to this terminal window."
+  "无法向该终端窗口发送滚轮操作。": "Could not send a wheel event to this terminal window.",
+  "此会话不支持窗口点击。": "This session does not support window clicks.",
+  "点击位置无效。": "Invalid click position.",
+  "点击内容无效。": "Invalid click content.",
+  "终端画面已变化，请等待更新后重新点击。": "The terminal content changed. Wait for the update, then tap again.",
+  "点击目前支持 Windows Terminal 单窗格。": "Clicks currently require a single Windows Terminal pane.",
+  "该终端程序尚未启用鼠标交互。": "This terminal program has not enabled mouse interaction.",
+  "终端尺寸已变化，请等待更新后重新点击。": "The terminal size changed. Wait for the update, then tap again.",
+  "终端点击未完整送达。": "The terminal click was not fully delivered.",
+  "请等滚动停止后再点击终端内容。": "Wait for scrolling to stop before tapping terminal content."
 }

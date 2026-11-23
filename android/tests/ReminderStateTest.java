@@ -46,7 +46,16 @@ public final class ReminderStateTest {
   ReminderState shortcut=new ReminderState();tick(shortcut,i("x","B","running","1"),i("y","B","running","1"));tick(shortcut,i("x","B","completed","1"),i("y","B","completed","1"));
   shortcut.acknowledgeBatch();check(!shortcut.batchUnread()&&shortcut.unread("x")==null&&shortcut.unread("y")==null,"Summary shortcut clears all completion dots together");
   ReminderState pending=new ReminderState();tick(pending,i("x","B","approval","1"));pending.acknowledgeBatch();check(pending.unread("x").kind.equals("approval")&&!pending.batchUnread(),"Batch acknowledgement never acknowledges pending authorization");
-  tick(pending,i("x","B","completed","1"));pending.acknowledgeBatch();check(pending.unread("x").kind.equals("approval")&&!pending.batchUnread(),"Clearing completion aggregate preserves other unread notices");
+  tick(pending,i("x","B","completed","1"));pending.acknowledgeBatch();check(pending.unread("x")==null&&!pending.batchUnread(),"Completed work cannot retain an obsolete approval notice");
+  ReminderState resolved=new ReminderState();tick(resolved,new ReminderState.Item("pc","A","approval","turn","request-1"));
+  check(resolved.unread("pc")!=null,"Pending PC authorization is unread");
+  tick(resolved,i("pc","A","unknown","turn"));check(resolved.unread("pc")!=null,"An unreadable screen does not prove authorization was handled");
+  check(tick(resolved,new ReminderState.Item("pc","A","approval","turn","request-1")).isEmpty(),"Screen recovery does not repeat the same request");
+  ReminderState reopened=new ReminderState();reopened.restore(resolved.save());resolved=reopened;
+  tick(resolved,i("pc","A","running","turn"));check(resolved.unread("pc")==null,"Desktop approval clears the persisted reminder on reconnect");
+  check(tick(resolved,new ReminderState.Item("pc","A","approval","turn","request-2")).size()==1,"A later authorization still alerts");
+  tick(resolved,i("pc","A","input","turn"));check(resolved.unread("pc").kind.equals("input"),"A follow-up question replaces authorization");
+  tick(resolved,i("pc","A","running","turn"));check(resolved.unread("pc")==null,"Answering on the PC clears the question reminder");
   ReminderState moved=new ReminderState();tick(moved,i("x","B","running","1"),i("y","B","running","1"));tick(moved,i("x","B","completed","1"),i("y","B","completed","1"));moved.acknowledge("x");
   tick(moved,i("x","B","completed","1"),i("y","A","completed","1"));check(!moved.batchUnread()&&moved.unread("y")==null,"Moving the last unread member out of B clears the B dot");
   System.out.println("ReminderState behavioral checks passed");

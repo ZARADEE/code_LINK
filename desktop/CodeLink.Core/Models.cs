@@ -92,6 +92,9 @@ public sealed class ObserverInput
     public string Operation {get;init;}="input";
     public int Lines {get;init;}
     public bool Latest {get;init;}
+    public int Row {get;init;}
+    public int Column {get;init;}
+    public string ExpectedLine {get;init;}="";
     public string DeviceId {get;init;}="";
     public bool Claimed {get;set;}
     public DateTime Expires {get;init;}=DateTime.UtcNow.AddSeconds(15);
@@ -122,7 +125,7 @@ public sealed class Session
     public object Gate { get; } = new();
     public void Append(string text) { lock(Gate) { Output += text; if(Output.Length>120000)Output=Output[^100000..]; OutputRevision++; } }
     public void ReplaceOutput(string text) { lock(Gate) { Output=text.Length>120000?text[^120000..]:text;OutputRevision++; } }
-    public object[] PendingInputs(){lock(Gate)return ObserverInputs.Where(input=>!input.Claimed&&input.Expires>DateTime.UtcNow).Select(input=>(object)new{sessionId=Id,processId=ObservedProcessId,windowHandle=ObservedWindowHandle,input.Id,input.Text,input.Raw,input.Operation,input.Lines,input.Latest}).ToArray();}
+    public object[] PendingInputs(){lock(Gate)return ObserverInputs.Where(input=>!input.Claimed&&input.Expires>DateTime.UtcNow).Select(input=>(object)new{sessionId=Id,processId=ObservedProcessId,windowHandle=ObservedWindowHandle,input.Id,input.Text,input.Raw,input.Operation,input.Lines,input.Latest,input.Row,input.Column,input.ExpectedLine}).ToArray();}
     public object Snapshot(bool includeOutput) { lock(Gate) return new { Id, Name, Kind, Cwd, Status, ThreadId, TurnId, ActivityCycle=Activity.Cycle, ActivityRevision=Activity.Revision, StatusSource=Kind=="observer"?Activity.Source:"protocol", FrontendPid, ObservedProcessId, ObservedWindowHandle, ProcessId=Terminal?.ProcessId??0, Controller, Devices = Devices.ToArray(), Queued=InputQueue.Count, OutputRevision, Output=includeOutput?Output:"", approvals=Approvals.Select(a=>new {a.Id,a.Method,a.Summary,a.Parameters,a.Resolving}).ToArray() }; }
 }
 

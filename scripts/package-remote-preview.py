@@ -24,7 +24,7 @@ for language,dirname in [('zh-CN','desktop-remote-final'),('en','desktop-remote-
         archive.writestr('runtime.json',json.dumps({'instance':'main','dataDirectory':'state'}))
         archive.writestr('LANGUAGE.txt',language)
         archive.write(ROOT/'docs/REMOTE.md','docs/REMOTE.md')
-        for name in ('remote-acceptance.json','remote-security-acceptance.json','scroll-acceptance.json'):
+        for name in ('remote-acceptance.json','remote-security-acceptance.json','scroll-acceptance.json','phone-terminal-acceptance.json','phone-ui-acceptance.json'):
             archive.write(ROOT/'research'/name,'research/'+name)
         archive.writestr('REMOTE-README.txt','Run CodeLink.exe, enable remote access in the pairing window, and scan its remote QR code with the matching Android APK. See docs/REMOTE.md for tested scope and limitations.\n')
     apk=out/('CodeLink-Android-remote-'+language+'.apk')

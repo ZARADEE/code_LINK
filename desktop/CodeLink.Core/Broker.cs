@@ -295,7 +295,16 @@ public sealed class Broker : IDisposable
         {
             if(!peer.Admin)throw new IOException("仅 PC 可操作");Storage.Config.LanEnabled=msg.B("lan");Storage.Config.CodexPath=msg.S("codexPath",Storage.Config.CodexPath);Storage.Save();Changed();return new{ok=true,restartRequired=false};
         }
-        var session=Find(peer,msg.S("sessionId"),action is "input" or "approve" or "interrupt" or "keys" or "scroll");
+        var session=Find(peer,msg.S("sessionId"),action is "input" or "approve" or "interrupt" or "keys" or "scroll" or "pointer");
+        if(action=="pointer")
+        {
+            if(session.Kind!="observer")throw new IOException("此会话不支持窗口点击。");
+            if(!int.TryParse(msg.S("row"),out var row)||!int.TryParse(msg.S("column"),out var column)||row<0||row>=500||column<0||column>=1000)throw new IOException("点击位置无效。");
+            var expected=msg.S("expectedLine");
+            if(expected.Length==0||expected.Length>4096||expected.Contains('\n')||expected.Contains('\r'))throw new IOException("点击内容无效。");
+            lock(session.Gate){var rows=session.ViewportOutput.Split('\n');if(row>=rows.Length||rows[row].TrimEnd('\r')!=expected)throw new IOException("终端画面已变化，请等待更新后重新点击。");}
+            return await SendObserverInput(session,peer,"",true,"pointer",row:row,column:column,expectedLine:expected);
+        }
         if(action=="scroll")
         {
             if(session.Kind!="observer")throw new IOException("此终端请在移动端直接滑动查看历史输出。");
@@ -387,10 +396,10 @@ public sealed class Broker : IDisposable
         }
         throw new IOException("未知操作");
     }
-    private async Task<object> SendObserverInput(Session session,Peer peer,string text,bool raw,string operation="input",int lines=0,bool latest=false)
+    private async Task<object> SendObserverInput(Session session,Peer peer,string text,bool raw,string operation="input",int lines=0,bool latest=false,int row=0,int column=0,string expectedLine="")
     {
         if(text.Length>2048)throw new IOException("外部终端每次最多输入 2048 个字符");
-        var input=new ObserverInput{Text=text,Raw=raw,DeviceId=peer.Id,Operation=operation,Lines=lines,Latest=latest};
+        var input=new ObserverInput{Text=text,Raw=raw,DeviceId=peer.Id,Operation=operation,Lines=lines,Latest=latest,Row=row,Column=column,ExpectedLine=expectedLine};
         lock(session.Gate){if(session.ObserverInputs.Count>=8)throw new IOException("终端正在处理前面的输入，请稍后");session.ObserverInputs.Add(input);}Changed();
         try
         {

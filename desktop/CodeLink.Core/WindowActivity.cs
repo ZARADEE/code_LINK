@@ -37,9 +37,6 @@ public sealed class WindowActivity
         var lines=text.Replace("\r","").Split('\n').Select(l=>l.Trim()).Where(l=>l.Length>0).ToArray();
         var tail=string.Join("\n",lines.TakeLast(32));
         bool Match(string pattern)=>Regex.IsMatch(tail,pattern,RegexOptions.IgnoreCase|RegexOptions.Multiline);
-        if(Match(@"^(?:Would you like to (?:run the following command|make the following edits)|Do you want to (?:run this command|allow))\??$")
-           &&Match(@"^(?:[›❯>]\s*)?1\.\s*Yes")&&Match(@"(?:esc to cancel|escape to cancel|No,? and tell Codex)"))return "approval";
-        if(Match(@"^.*\[Y,N\]\?$")||Match(@"^.*\[y/N\]\s*$"))return "input";
         var busy=-1;var done=-1;var interrupted=-1;
         for(var i=0;i<lines.Length;i++)
         {
@@ -47,6 +44,12 @@ public sealed class WindowActivity
             if(Regex.IsMatch(lines[i],@"^[─━\s]*[•●]?\s*Worked for \d",RegexOptions.IgnoreCase))done=i;
             if(Regex.IsMatch(lines[i],@"^[•●]?\s*Conversation interrupted",RegexOptions.IgnoreCase))interrupted=i;
         }
+        // Old prompts can remain in terminal history after the PC resolves them.
+        // Only a prompt after the newest activity marker is still pending.
+        tail=string.Join("\n",lines.Skip(Math.Max(lines.Length-32,Math.Max(busy,Math.Max(done,interrupted))+1)));
+        if(Match(@"^(?:Would you like to (?:run the following command|make the following edits)|Do you want to (?:run this command|allow))\??$")
+           &&Match(@"^(?:[›❯>]\s*)?1\.\s*Yes")&&Match(@"(?:esc to cancel|escape to cancel|No,? and tell Codex)"))return "approval";
+        if(Match(@"^.*\[Y,N\]\?$")||Match(@"^.*\[y/N\]\s*$"))return "input";
         if(busy>Math.Max(done,interrupted))return "running";
         if(interrupted>=0&&interrupted>done)return "interrupted";
         // A prompt and footer distinguish the idle TUI from quoted log text.

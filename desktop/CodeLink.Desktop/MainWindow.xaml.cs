@@ -138,6 +138,12 @@ public partial class MainWindow:Window
             var error="";
             try
             {
+                var pid=int.Parse(input.S("processId"));var handle=long.Parse(input.S("windowHandle"));
+                if(input.S("operation")=="scroll"&&input.B("latest"))
+                {
+                    var target=await Task.Run(()=>WindowPointer.BackToBottom(pid,handle));
+                    if(target is not null)foreach(var field in target)input[field.Key]=field.Value?.DeepClone();
+                }
                 if(input.S("operation")=="scroll")
                 {
                     await Task.Run(()=>WindowScroll.Apply(int.Parse(input.S("processId")),long.Parse(input.S("windowHandle")),int.Parse(input.S("lines","0")),input.B("latest")));
@@ -145,12 +151,14 @@ public partial class MainWindow:Window
                 }
                 else
                 {
+                if(input.S("operation")=="pointer")await Task.Run(()=>WindowPointer.Validate(pid,handle,int.Parse(input.S("row")),int.Parse(input.S("column")),input.S("expectedLine")));
                 var start=new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory,"CodeLink.ConsoleBridge.exe")){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true,StandardInputEncoding=new UTF8Encoding(false),StandardOutputEncoding=Encoding.UTF8};
                 using var process=Process.Start(start)??throw new IOException("无法启动终端输入连接器");
                 await process.StandardInput.WriteAsync(input.ToJsonString());process.StandardInput.Close();
                 var output=process.StandardOutput.ReadToEndAsync();
                 try{await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(10));}catch{process.Kill();throw;}
                 var result=JsonNode.Parse(await output);if(!result.B("ok"))throw new IOException(result.S("error","终端未确认输入"));
+                if(input.S("operation")=="pointer")await RefreshSelectedExternalOutput();
                 }
             }
             catch(Exception e){error=e.Message;}

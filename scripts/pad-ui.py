@@ -1,11 +1,12 @@
 """Limited real-device UI smoke helpers for the Code Link application."""
 from pathlib import Path
-import subprocess, xml.etree.ElementTree as ET, re, sys, time
+import subprocess, xml.etree.ElementTree as ET, re, sys, time, os
 root=Path(__file__).resolve().parent.parent
 exe=str(root/'.tools/platform-tools/adb.exe')
-port=next((port for port in ('5038','5037') if subprocess.run([exe,'-P',port,'-s','HA20KTKJ','get-state'],capture_output=True).stdout.strip()==b'device'),None)
-if port is None:raise RuntimeError('The test Pad is not connected through ADB')
-adb=[exe,'-P',port,'-s','HA20KTKJ']
+serial=os.environ.get('CODELINK_TEST_SERIAL','HA20KTKJ')
+port=next((port for port in ('5037','5038') if subprocess.run([exe,'-P',port,'-s',serial,'get-state'],capture_output=True).stdout.strip()==b'device'),None)
+if port is None:raise RuntimeError('The selected Android test device is not connected through ADB: '+serial)
+adb=[exe,'-P',port,'-s',serial]
 def call(*args):
     return subprocess.run(adb+list(args),check=True,capture_output=True,timeout=20).stdout.decode('utf-8',errors='replace')
 def tree():

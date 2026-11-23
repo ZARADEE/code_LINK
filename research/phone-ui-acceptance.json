@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-23",
+  "model": "PGFM10",
+  "remotePath": "relay",
+  "landscapeFullscreen": true,
+  "largerTerminalViewport": true,
+  "fullscreenInputToggle": true,
+  "topLeftBackRestoresLayout": true,
+  "systemBackExitsFullscreen": true,
+  "selectedSessionPreserved": true,
+  "pcApprovalClearsReminder": true,
+  "pcApprovalClearsBanner": true,
+  "pcApprovalCancelsSystemNotification": true,
+  "passed": true
+}

@@ -3,23 +3,23 @@
   "artifacts": [
     {
       "file": "CodeLink-Windows-remote-zh-CN.zip",
-      "bytes": 84501027,
-      "sha256": "0ae5833b1287bd8ce4b6aa38bb1b7fba5b162ca4abb6f30e4df84ee07e6a7cc5"
+      "bytes": 84505955,
+      "sha256": "9c6443c8c63290f41c60329d8af6ec80683a59d3d6b680d98efc9dab1cb865ab"
     },
     {
       "file": "CodeLink-Android-remote-zh-CN.apk",
-      "bytes": 5858323,
-      "sha256": "85e77bf8c58aa3bb87e2a80859c452d5cb001b63372f6221ca198ff2f56ed2ef"
+      "bytes": 5862419,
+      "sha256": "0ceb2b61be085d1a8a56cfc3dfbf97cbb87edacc9e37e3e3af87bb543e9d0fee"
     },
     {
       "file": "CodeLink-Windows-remote-en.zip",
-      "bytes": 84503920,
-      "sha256": "7958aa997abe08ad31687aca52079ecff3f8b9febb99b67717d7607ff898aabb"
+      "bytes": 84508868,
+      "sha256": "25c5b2498a7a94de601856c63e184f5f0de7f449442eb5a5a43b88e76b8aca50"
     },
     {
       "file": "CodeLink-Android-remote-en.apk",
-      "bytes": 5862419,
-      "sha256": "ee156ae62a98eb4c58d371ed755520da63574a925bb95c67d0ccb28624c9b6ef"
+      "bytes": 5866515,
+      "sha256": "86162a9921983b7b7d32ba6776b7cb3ef1431b409d0296ba2e3a51499b6c105f"
     }
   ],
   "nativeLibrariesMatchFinalBuild": true,

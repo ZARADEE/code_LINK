@@ -28,7 +28,7 @@ try
     if(candidates.Count!=1)throw new IOException(candidates.Count==0?"未找到该窗口的控制台输入通道；请保持目标标签页选中":"多个终端使用相同标题，请先为目标终端设置不同标题");
     var candidate=candidates.Single();Native.FreeConsole();
     if(!Native.AttachConsole((uint)candidate.Value.Pid)||Native.GetConsoleWindow().ToInt64()!=candidate.Key||Normalize(Native.WindowTitle(window))!=Normalize(Native.ConsoleTitle()))throw new IOException("终端标签页已变化，输入未发送");
-    var handle=Native.CreateFileW("CONIN$",0x40000000,3,IntPtr.Zero,3,0,IntPtr.Zero);
+    var handle=Native.CreateFileW("CONIN$",0xc0000000,3,IntPtr.Zero,3,0,IntPtr.Zero);
     if(handle==new IntPtr(-1))throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
     try
     {
@@ -37,6 +37,34 @@ try
         {
             records.Add(new(){Type=1,Down=1,Repeat=1,VirtualKey=key,Character=character,Modifiers=modifiers});
             records.Add(new(){Type=1,Down=0,Repeat=1,VirtualKey=key,Character=character,Modifiers=modifiers});
+        }
+        if(message.S("operation")=="pointer")
+        {
+            var row=int.Parse(message.S("row"));var column=int.Parse(message.S("column"));
+            if(!Native.GetConsoleMode(handle,out var mode)||(mode&2)!=0||(mode&0x10)==0)throw new IOException("该终端程序尚未启用鼠标交互。");
+            var screen=Native.CreateFileW("CONOUT$",0x80000000,3,IntPtr.Zero,3,0,IntPtr.Zero);
+            try
+            {
+                if(!Native.GetConsoleScreenBufferInfo(screen,out var info)||row<0||column<0||row>info.Bottom-info.Top||column>info.Right-info.Left)throw new IOException("终端尺寸已变化，请等待更新后重新点击。");
+                var line=new StringBuilder(info.Right-info.Left+1);
+                if(!Native.ReadConsoleOutputCharacterW(screen,line,(uint)line.Capacity,new Native.Coord{X=info.Left,Y=(short)(info.Top+row)},out _))throw new IOException("终端画面已变化，请等待更新后重新点击。");
+                // The UIA and console APIs represent trailing padding differently.
+                if(line.ToString().TrimEnd()!=message.S("expectedLine").TrimEnd())throw new IOException("终端画面已变化，请等待更新后重新点击。");
+                if((mode&0x200)!=0)
+                {
+                    // VT readers consume SGR reports. Win32 readers consume mouse records.
+                    var report=$"\u001b[<0;{column+1};{row+1}M\u001b[<0;{column+1};{row+1}m";
+                    foreach(var character in report)Key(character,0);
+                }
+                else
+                {
+                    records.Add(new(){Type=2,MouseX=(short)(info.Left+column),MouseY=(short)(info.Top+row),Buttons=1});
+                    records.Add(new(){Type=2,MouseX=(short)(info.Left+column),MouseY=(short)(info.Top+row),Buttons=0});
+                }
+                if(!Native.WriteConsoleInputW(handle,records.ToArray(),(uint)records.Count,out var sent)||sent!=records.Count)throw new IOException("终端点击未完整送达。");
+                output.WriteLine(J.Stringify(new{ok=true,processId=candidate.Value.Pid}));return;
+            }
+            finally{Native.CloseHandle(screen);}
         }
         for(var i=0;i<text.Length;i++)
         {
@@ -67,7 +95,11 @@ static class Native
         [FieldOffset(0)]public ushort Type;[FieldOffset(4)]public int Down;[FieldOffset(8)]public ushort Repeat;
         [FieldOffset(10)]public ushort VirtualKey;[FieldOffset(12)]public ushort Scan;
         [FieldOffset(14)]public char Character;[FieldOffset(16)]public uint Modifiers;
+        [FieldOffset(4)]public short MouseX;[FieldOffset(6)]public short MouseY;[FieldOffset(8)]public uint Buttons;
+        [FieldOffset(12)]public uint MouseModifiers;[FieldOffset(16)]public uint MouseFlags;
     }
+    [StructLayout(LayoutKind.Sequential)]public struct Coord{public short X,Y;}
+    [StructLayout(LayoutKind.Sequential)]public struct ScreenInfo{public Coord Size,Cursor;public ushort Attributes;public short Left,Top,Right,Bottom;public Coord Maximum;}
     public static string ConsoleTitle(){var buffer=new StringBuilder(4096);GetConsoleTitleW(buffer,buffer.Capacity);return buffer.ToString();}
     public static string WindowTitle(IntPtr window){var buffer=new StringBuilder(4096);GetWindowTextW(window,buffer,buffer.Capacity);return buffer.ToString();}
     [DllImport("kernel32.dll")]public static extern bool FreeConsole();
@@ -79,4 +111,7 @@ static class Native
     [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]public static extern IntPtr CreateFileW(string file,uint access,uint share,IntPtr security,uint creation,uint flags,IntPtr template);
     [DllImport("kernel32.dll",CharSet=CharSet.Unicode,SetLastError=true)]public static extern bool WriteConsoleInputW(IntPtr input,Record[] records,uint count,out uint written);
     [DllImport("kernel32.dll")]public static extern bool CloseHandle(IntPtr handle);
+    [DllImport("kernel32.dll")]public static extern bool GetConsoleMode(IntPtr handle,out uint mode);
+    [DllImport("kernel32.dll")]public static extern bool GetConsoleScreenBufferInfo(IntPtr handle,out ScreenInfo info);
+    [DllImport("kernel32.dll",CharSet=CharSet.Unicode)]public static extern bool ReadConsoleOutputCharacterW(IntPtr handle,StringBuilder text,uint length,Coord position,out uint read);
 }

@@ -31,6 +31,9 @@ public final class ReminderState {
    if(item.group.equals("B")&&active){batch.add(item.id);batchUnread.clear();}
    if(item.group.equals("B")){Notice old=unread.get(item.id);if(old!=null&&old.kind.equals("completed"))unread.remove(item.id);}
    String request=item.requests.isEmpty()?(item.status.equals("approval")||item.status.equals("input")?item.status+":"+item.turn:""):item.requests;
+   boolean uncertain=item.status.equals("unknown")||item.status.equals("disconnected");
+   Notice oldRequest=unread.get(item.id);
+   if(request.isEmpty()&&!uncertain&&oldRequest!=null&&(oldRequest.kind.equals("approval")||oldRequest.kind.equals("input")))unread.remove(item.id);
    if(!request.isEmpty()&&!request.equals(prior.request)){
     prior.sequence++;
     String kind=item.status.equals("input")?"input":"approval";
@@ -50,7 +53,7 @@ public final class ReminderState {
    if((item.status.equals("failed")||item.status.equals("interrupted"))&&!item.status.equals(prior.status)){
     Notice note=new Notice(item.id,item.status,item.id+":"+item.status+":"+item.turn+":"+prior.sequence);unread.put(item.id,note);events.add(note);
    }
-   prior.status=item.status;prior.turn=item.turn;prior.request=request;
+   prior.status=item.status;prior.turn=item.turn;if(!uncertain||!request.isEmpty())prior.request=request;
   }
   // Explicitly removed/moved windows leave the batch. Removal itself never
   // generates a false all-complete notification.

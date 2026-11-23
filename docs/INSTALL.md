@@ -1,51 +1,60 @@
-# 安装 Code Link / Install Code Link
+# 安装与升级 Code Link 2.0
 
-macOS / iOS 用户请看 [Apple 安装指南](APPLE.md)。下列 USB 与 APK 步骤适用于 Windows + Android。
-
-电脑继续运行任务，在 Android 查看终端、发送输入并接收完成提醒。支持 USB 或蓝牙；下面先介绍 USB，蓝牙步骤见本页下一节。
+Windows 是任务服务器，Android 手机或平板用于查看和操作。Windows 包面向 x64，Android APK 面向 ARM64、Android 9 及以上系统。macOS / iOS 使用 LAN，见 [Apple 指南](APPLE.md)。
 
 ## 下载和运行
 
-仅从 [ZARADEE/code_LINK Releases](https://github.com/ZARADEE/code_LINK/releases/latest) 下载 Windows ZIP、Android APK 和 `SHA256SUMS.txt`。
+从 [v2.0.0 Release](https://github.com/ZARADEE/code_LINK/releases/tag/v2.0.0) 下载 Windows ZIP、Android APK 与 `SHA256SUMS.txt`。
 
-1. Windows x64 完整解压 ZIP，运行 `CodeLink.exe`。v1.4.1 已包含 .NET 桌面运行时，无需额外安装；请保留 EXE 旁的全部文件。
-2. Android 9 或以上安装 `CodeLink-Android-v1.4.1-zh-CN.apk`，允许该安装来源，打开 App 并允许通知。
-3. 平板开启开发者选项和 USB 调试，接上支持数据传输的线，解锁并允许电脑的调试授权。
-4. 电脑点击 **连接设备 → USB 一键连接**。平板显示已连接后，点击列表里的终端；也可在电脑选中终端和设备，再点 **映射到移动端**。
-5. 运行一条测试任务，检查输出和输入。需要完成提醒时，在 **更多 → 后台与通知** 中允许横幅和后台运行。
+1. 完整解压 `CodeLink-Windows-v2.0.0-zh-CN.zip`，运行 `CodeLink.exe`。包内已有 .NET 10 桌面运行时。
+2. 安装 `CodeLink-Android-v2.0.0-zh-CN.apk`，按系统提示允许安装来源和通知。
+3. 按下面的远程、USB 或蓝牙步骤连接。手机选择一个终端；也可在电脑选择终端和在线设备，点“映射到移动端”。
+4. 在测试终端发送 `echo hello` 检查输入与输出。需要提醒时，打开“更多 → 后台与通知”，允许横幅和后台运行。
 
-文件名后缀 `zh-CN` 表示简体中文，`en` 表示英文。两种 Android 包使用相同应用 ID 与发布证书，可直接覆盖切换语言并保留配对、分组；它们不能并排安装。Windows 切换语言前先处理正在运行的任务并退出应用和主机，替换应用文件时保留 `state`。英文操作说明见 [English installation](INSTALL.en.md)。
+`zh-CN` 为简体中文，`en` 为英文。[英文安装说明](INSTALL.en.md)。
 
-手机窄屏在列表与终端详情间切换，点击“返回列表”切换任务。可用窗口至少 600dp 宽、480dp 高时使用平板双栏，分屏时随窗口调整；旋转保留各终端草稿。Android APK 使用开发签名，Windows 程序尚无商业代码签名。更换 Android 签名需要卸载旧包，卸载会清除本地配对与分组。下载页会保留本次 APK 的证书指纹。
+## 互联网远程
+
+1. Windows 打开“连接设备”，点击“开启远程连接”，等待入口就绪。
+2. Android 选择“连接电脑 → 扫描二维码”，扫描**远程二维码**，或粘贴远程配对信息。
+3. 首次邀请 10 分钟内有效；过期后在电脑刷新。配对完成后会保存设备凭据，不用每次扫码。
+4. 手机可使用移动数据、热点或其他 Wi-Fi，电脑保持开机、不睡眠，Code Link 持续运行。
+
+远程模式不要求 USB 调试、手机 VPN、端口转发或租服务器。两端尝试直连，失败时使用免费公共中继。配对失败先确认扫码的是远程入口、邀请未过期且电脑在线。[原理、边界与验证](REMOTE.md)
+
+## USB 连接
+
+1. 开启 Android 开发者选项和 USB 调试，连接数据线，解锁并允许这台电脑。
+2. Windows 打开“连接设备 → USB 一键连接”，等待本次应用认证完成。
+3. 找不到设备时检查数据线和端口，在应用目录运行 `tools\adb.exe -P 5037 devices -l`；`unauthorized` 表示需在 Android 确认。必要时检查 5038 端口。
+
+USB 模式拔线会断开；要跨网使用，请切换到远程入口。
 
 ## 蓝牙连接
 
-1. 在两端系统蓝牙设置中配对电脑和 Android，打开两端 Code Link。
-2. 已有应用配对时，在 Android 点 **更多 → 蓝牙连接**，选择电脑；原有 USB 配对也可直接复用。
-3. 首次应用配对时，Windows 点 **连接设备 → 蓝牙连接**，Android 点 **连接电脑 → 蓝牙**，扫码或粘贴 Windows 的配对信息。允许“附近的设备”权限后，选择已配对的电脑。
-4. 等待“蓝牙已连接”，选择测试终端，发送 `echo hello` 并检查输出。
+1. 在系统蓝牙设置中配对电脑与 Android，打开两端 Code Link。
+2. 首次应用配对时，Windows 选择“连接设备 → 蓝牙连接”；Android 选择“连接电脑 → 蓝牙”，扫码或粘贴邀请，允许“附近的设备”，选择电脑。
+3. 已配对设备可通过“更多 → 蓝牙连接”重连，原有 USB 应用配对可以复用。
 
-蓝牙无需先接 USB，也无需 USB 调试、Wi-Fi 或 PAN。没有已配对的电脑时可从选择窗口打开系统蓝牙设置，返回后继续。权限被拒绝时按提示打开应用权限；配对码过期则在 Windows 刷新并重新扫码。
+无需先接 USB、USB 调试、Wi-Fi 或 PAN。权限被拒绝时按提示进入应用设置；没有已配对电脑时先进入系统设置配对，再返回刷新。
 
-## 核对下载文件
+## 阅读、全屏与提醒
 
-在下载目录运行 PowerShell，将输出与同一 Release 的 `SHA256SUMS.txt` 比较。
+手机在列表与详情之间切换，宽屏平板可并排显示。终端区域下滑看前文，上滑看后文；“同步电脑”需要控制权，“本地查看”只翻阅已有缓存。
+
+右上角“全屏”进入横屏，左上角返回或系统返回键恢复布局与草稿。“回到最新”可触发终端里的 Back to bottom。电脑处理授权并恢复运行后，手机自动撤回对应待处理提示；完成通知继续按 A/B 规则确认。
+
+## 从 1.x 升级或切换语言
+
+Android 官方中文和英文 APK 共用应用身份与原有签名，可直接覆盖安装并保留配对、分组，不要先卸载。2.0 的 Android `versionCode` 为 8。源码和 CI 测试包可能使用不同密钥，签名不一致时不能覆盖官方包。
+
+Windows 先保存任务状态并退出 Code Link 与其主机，再替换应用文件，保留原来的 `state` 目录。重新启动后可能需要重新映射已有终端。2.0 远程配对使用专用邀请，已有 USB 或蓝牙配对不会自动开启远程入口。
+
+## 核对下载
 
 ```powershell
-Get-FileHash .\CodeLink-Windows-v1.4.1-zh-CN.zip -Algorithm SHA256
-Get-FileHash .\CodeLink-Android-v1.4.1-zh-CN.apk -Algorithm SHA256
+Get-FileHash .\CodeLink-Windows-v2.0.0-zh-CN.zip -Algorithm SHA256
+Get-FileHash .\CodeLink-Android-v2.0.0-zh-CN.apk -Algorithm SHA256
 ```
 
-配对会允许操作所选终端，只配对自己的设备。发布包首次运行会在解压目录生成 `state`，升级前保留自己的状态目录，不要分享它。
-
-完整的[中文使用说明](https://github.com/ZARADEE/code_LINK/blob/main/README.zh-CN.md)包含蓝牙、通知与故障排查；也可阅读 [English guide](https://github.com/ZARADEE/code_LINK/blob/main/README.md)。
-
-## English quick start
-
-1. Download the Windows ZIP and Android APK from the official release above. Compare `Get-FileHash -Algorithm SHA256` with `SHA256SUMS.txt`.
-2. Extract the full Windows ZIP and run `CodeLink.exe`; the runtime is included in v1.4.1. Install the APK on Android 9+.
-3. For USB, enable Android USB debugging, connect a data cable, unlock the device, and authorize your computer. For Bluetooth, follow the [Bluetooth instructions](INSTALL.en.md#bluetooth); a USB connection is not required.
-4. Open both apps. On Windows choose **连接设备 → USB 一键连接** (Connect device → USB quick connect), then select a terminal on Android.
-5. Allow notifications and background operation in **更多 → 后台与通知**. Keep the Windows tray app running.
-
-Windows and Android have Chinese (`zh-CN`) and English (`en`) packages. See the [English installation guide](INSTALL.en.md) for English button names and language switching. Preserve the extracted app's `state` directory when upgrading. Source builds may use a different Android signing key, so they cannot overwrite the published APK without the matching key.
+与同一 Release 的 `SHA256SUMS.txt` 比较。APK 继续使用原有开发签名，Windows 程序未作商业代码签名；发布页列出 Android 证书指纹。`state` 含本机配对数据，升级时保留，不要公开分享。

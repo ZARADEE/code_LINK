@@ -1,48 +1,60 @@
-# Install Code Link in English
+# Install and upgrade Code Link 2.0
 
-Download from [Code Link Releases](https://github.com/ZARADEE/code_LINK/releases/latest). Choose files ending in `-en`; `-zh-CN` means Simplified Chinese.
+Windows hosts the task; your Android phone or tablet views and controls it. The Windows package targets x64; the Android APK requires ARM64 and Android 9 or newer. macOS / iOS use LAN; see the [Apple guide](APPLE.md).
 
-## Windows and Android
+## Download and run
 
-1. Download `CodeLink-Windows-v1.4.1-en.zip` and `CodeLink-Android-v1.4.1-en.apk`.
-2. The Windows runtime is included. Extract the entire ZIP and open `CodeLink.exe`.
-3. Install the APK on Android 9 or newer and allow notifications. Phone windows use a list/detail flow with a Back to list button. Tablets use two panes when at least 600dp of width and 480dp of height are available; split-screen adapts to the remaining window.
-4. Enable USB debugging on Android, connect a data cable, unlock the device and authorize your computer.
-5. In the Windows panel, choose **Pair device → Connect over USB**. Select a terminal on Android, or select a terminal and device in Windows and choose **Share with device**.
-6. Send a short command and check the output. Use **More → Background & alerts** on Android to allow completion banners and background activity. Keep the Windows tray application running.
+Get the Windows ZIP, Android APK and `SHA256SUMS.txt` from the [v2.0.0 release](https://github.com/ZARADEE/code_LINK/releases/tag/v2.0.0).
 
-Group A alerts after each task completes. Group B alerts when all tasks in the current batch finish successfully. Approvals, failures and interruptions are handled separately. An idle terminal is not automatically treated as a finished task.
+1. Extract all of `CodeLink-Windows-v2.0.0-en.zip` and run `CodeLink.exe`. The .NET 10 Desktop Runtime is included.
+2. Install `CodeLink-Android-v2.0.0-en.apk`, allowing the installation source and notifications when prompted.
+3. Connect using one of the methods below. Select a terminal on Android, or select a terminal and online device in Windows and choose Share with device.
+4. Send `echo hello` to a test terminal. For alerts, open More → Background & alerts and allow banners and background operation.
+
+The `en` suffix identifies English; `zh-CN` identifies Simplified Chinese. [中文说明](INSTALL.md).
+
+## Internet remote access
+
+1. In Windows, open Pair device, enable remote access and wait for the endpoint to be ready.
+2. On Android, choose Connect → Scan QR and scan the **remote invitation**, or paste its pairing details.
+3. The first invitation lasts 10 minutes; refresh it if expired. Paired devices save credentials for future connections.
+4. Use cellular data, a hotspot or another Wi-Fi network. Keep the PC online, awake and running Code Link.
+
+No USB debugging, mobile VPN, port forwarding or rented server is required. iroh tries direct access and falls back to free public relays. If pairing fails, check that you used the remote invitation, it has not expired and the PC is online. [Design and tested scope](REMOTE.md).
+
+## USB
+
+1. Enable Android Developer options and USB debugging. Attach a data cable, unlock the device and authorize the computer.
+2. In Windows, choose Pair device → Connect over USB and wait for application authentication to finish.
+3. If the device is absent, check the data cable and port. Run `tools\adb.exe -P 5037 devices -l` from the app directory; `unauthorized` means Android needs your confirmation. Check port 5038 if necessary.
+
+Unplugging disconnects USB mode. Pair through the remote entry for internet use.
 
 ## Bluetooth
 
-1. Pair Windows and Android in their system Bluetooth settings and keep both Code Link apps open.
-2. If already paired in Code Link, choose **More → Bluetooth** on Android and select the PC. Existing USB app pairing can be reused.
-3. For first-time app pairing, choose **Pair device → Bluetooth** in Windows to expand the existing pairing section. On Android choose **Connect → Bluetooth**, scan or paste the invitation, allow **Nearby devices**, and select the paired PC.
-4. Wait for **Bluetooth connected**, select a test terminal, send `echo hello` and check its output.
+1. Pair the devices in system Bluetooth settings and open both Code Link apps.
+2. For initial app trust, choose Pair device → Bluetooth on Windows, then Connect → Bluetooth on Android. Scan or paste the invitation, allow Nearby devices and choose the PC.
+3. Paired devices can reconnect through More → Bluetooth; existing USB application trust can be reused.
 
-Bluetooth requires no prior USB connection, USB debugging, Wi-Fi or PAN. The device picker links to system Bluetooth settings; return after pairing to refresh. Permission denial offers app settings, and an expired invitation can be refreshed in the Windows pairing window.
+Bluetooth needs no earlier USB connection, USB debugging, Wi-Fi or PAN. Permission denial links to app settings. If the PC is not paired, use system settings first and return to refresh.
 
-## Switch languages or upgrade
+## Reading and alerts
 
-The Chinese and English APKs use the same app identity and release signing certificate. Install the other language over the existing app to keep pairing and group settings; do not uninstall first. They are language variants of one application and cannot be installed side by side.
+Phones use list/detail navigation; larger tablets can show both panes. Swipe down for earlier output and up for later output. PC scrolling requires control permission; local browsing reads cached output.
 
-For Windows, finish or record active work, close Code Link and its host, then replace the application files while preserving your `state` directory. Use one language consistently for the desktop panel and bundled host. The ZIP contains a `LANGUAGE.txt` marker.
+Full screen opens a landscape terminal. Top-left Back or system Back restores the layout and draft. Back to latest can activate the terminal's Back to bottom control. Handling an authorization on the PC clears its mobile attention reminder when resumed state arrives; completion alerts retain their A/B acknowledgement rules.
 
-The language applies to Code Link's interface and messages. Terminal output, filenames, session names, external tool prompts and operating-system dialogs retain their original language.
+## Upgrade from 1.x or switch languages
 
-## Verify the download
+Official English and Chinese APKs share the existing signing certificate and application identity. Install over the old app to keep pairing and groups; do not uninstall first. Android 2.0 uses `versionCode` 8. Source and CI APKs may have a different key and cannot replace an official APK unless signatures match.
 
-Compare these results with `SHA256SUMS.txt` from the same release:
+On Windows, save task state and exit Code Link and its host before replacing application files. Keep your `state` directory. Existing terminal windows may need remapping after restart. Remote pairing uses a dedicated invitation; existing USB/Bluetooth trust does not automatically enable the remote endpoint.
+
+## Verify downloads
 
 ```powershell
-Get-FileHash .\CodeLink-Windows-v1.4.1-en.zip -Algorithm SHA256
-Get-FileHash .\CodeLink-Android-v1.4.1-en.apk -Algorithm SHA256
+Get-FileHash .\CodeLink-Windows-v2.0.0-en.zip -Algorithm SHA256
+Get-FileHash .\CodeLink-Android-v2.0.0-en.apk -Algorithm SHA256
 ```
 
-The APK uses a development signing certificate. Windows executables do not have a commercial code-signing certificate. Source builds and CI test APKs may use a different Android signing key, so they cannot replace the published APK without a matching key.
-
-## macOS and iOS
-
-Apple packages also end in `-en`. Mac apps include the runtime and are available for Apple silicon and Intel. They are ad-hoc signed and not notarized. iOS provides a simulator app, an unsigned device archive and a source project for personal signing; there is no directly installable signed IPA or TestFlight release. Follow the [Apple guide](https://github.com/ZARADEE/code_LINK/blob/main/docs/APPLE.md).
-
-For Bluetooth, pairing, notifications and troubleshooting, read the [English usage guide](https://github.com/ZARADEE/code_LINK/blob/main/README.md).
+Compare with `SHA256SUMS.txt` from the same release. Android retains its development signing certificate, whose fingerprint is listed on the release page. Windows executables are not commercially code-signed. Preserve private pairing data in `state` when upgrading; do not share it.

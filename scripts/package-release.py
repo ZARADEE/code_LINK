@@ -35,15 +35,19 @@ def main():
 
 def package_language(version, language, desktop, apk, output):
     required = ['CodeLink.exe', 'clink.exe', 'CodeLink.Host.exe', 'CodeLink.ConsoleBridge.exe',
-                'CodeLink.Core.dll', 'coreclr.dll', 'hostfxr.dll', 'hostpolicy.dll', 'PresentationFramework.dll',
+                'CodeLink.Core.dll', 'codelink_remote.dll', 'coreclr.dll', 'hostfxr.dll', 'hostpolicy.dll', 'PresentationFramework.dll',
                 'assets/icon.png', 'assets/app.ico', 'assets/startup.gif',
                 'tools/adb.exe', 'tools/AdbWinApi.dll', 'tools/AdbWinUsbApi.dll',
-                'tools/ADB-NOTICE.txt', 'LICENSE', 'THIRD_PARTY_NOTICES.md']
+                'tools/ADB-NOTICE.txt', 'LICENSE', 'THIRD_PARTY_NOTICES.md',
+                'licenses/remote-APACHE-2.0.txt', 'licenses/remote-third-party.txt']
     missing = [name for name in required if not (desktop / name).is_file()]
     if missing or not apk.is_file():
         raise SystemExit('Build both clients first. Missing: ' + ', '.join(missing + ([] if apk.is_file() else [str(apk)])))
     if (desktop / 'build-language.txt').read_text(encoding='utf-8-sig').strip() != language:
         raise SystemExit(f'Build language does not match {language}: {desktop}')
+    with zipfile.ZipFile(apk) as android:
+        if 'lib/arm64-v8a/libcodelink_remote.so' not in android.namelist():
+            raise SystemExit(f'Android remote library is missing: {apk}')
     build_files = json.loads((desktop / 'build-files.json').read_text(encoding='utf-8-sig'))
     for name in required:
         if name not in build_files:
@@ -70,7 +74,11 @@ def package_language(version, language, desktop, apk, output):
         # Always generate clean defaults; never copy a developer's runtime or pairing state.
         zipped.writestr('runtime.json', json.dumps({'instance': 'main', 'dataDirectory': 'state'}) + '\n')
         guide = 'docs/INSTALL.en.md' if language == 'en' else 'docs/INSTALL.md'
-        zipped.write(ROOT / guide, 'START-HERE.md')
+        # This guide lives at the ZIP root, without the repository's docs tree.
+        guide_text = (ROOT / guide).read_text(encoding='utf-8')
+        guide_text = re.sub(r'\]\((?![a-z]+:|#)([^)]+\.md(?:#[^)]*)?)\)',
+                            r'](https://github.com/ZARADEE/code_LINK/blob/v' + version + r'/docs/\1)', guide_text)
+        zipped.writestr('START-HERE.md', guide_text)
         zipped.writestr('LANGUAGE.txt', language + '\n')
         zipped.write(ROOT / 'assets/README.md', 'ARTWORK-NOTICE.md')
     packaged_apk = output / f'CodeLink-Android-v{version}-{language}.apk'

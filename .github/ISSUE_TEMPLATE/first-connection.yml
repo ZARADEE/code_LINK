@@ -14,25 +14,32 @@ body:
       options:
         - Downloaded packages / 已下载
         - Opened both apps / 两端已打开
-        - USB debugging authorized / USB 调试已授权
-        - Tablet connected / 平板已连接
+        - Pairing invitation imported or USB authorized / 已导入配对邀请或授权 USB
+        - Phone or tablet connected / 手机或平板已连接
         - Terminal output visible / 已看到终端输出
         - Input round trip succeeded / 输入与输出试通
         - Background completion alert received / 已收到后台完成提醒
+    validations:
+      required: true
+  - type: dropdown
+    id: transport
+    attributes:
+      label: Connection / 连接方式
+      options: [Remote / 互联网远程, USB, Bluetooth / 蓝牙, LAN / 局域网]
     validations:
       required: true
   - type: input
     id: setup
     attributes:
       label: Devices and versions / 设备与版本
-      placeholder: Windows 11, Lenovo tablet, Android 14, Code Link v1.4.1 en, USB
+      placeholder: Windows 11, Android 16 phone, Code Link v2.0.0 en, Remote (mobile data)
     validations:
       required: true
   - type: textarea
     id: goal
     attributes:
       label: Your intended workflow / 想解决的具体问题
-      description: What do you run, and when would you use the tablet? / 平时跑什么任务，何时会用到平板？
+      description: What do you run, and when would you use the phone or tablet? / 平时跑什么任务，何时会用到手机或平板？
     validations:
       required: true
   - type: textarea

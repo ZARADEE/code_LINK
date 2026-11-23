@@ -68,6 +68,12 @@ def main():
     canonical = "https://zaradee.github.io/code_LINK/"
     manifest = ET.parse(ROOT / "android/app/src/main/AndroidManifest.xml").getroot()
     version = manifest.get("{http://schemas.android.com/apk/res/android}versionName")
+    desktop = ET.parse(ROOT / "desktop/Directory.Build.props").getroot()
+    if desktop.findtext("PropertyGroup/Version") != version:
+        ERRORS.append("desktop/Directory.Build.props: version differs from Android")
+    apple = (ROOT / "apple/project.yml").read_text(encoding="utf-8")
+    if not re.search(r'''MARKETING_VERSION:\s*["']?''' + re.escape(version) + r'''["']?\s*$''', apple, re.M):
+        ERRORS.append("apple/project.yml: version differs from Android")
     page_urls = {"index.html": canonical, "en.html": canonical + "en.html",
                  "windows-android-terminal.html": canonical + "windows-android-terminal.html",
                  "windows-android-terminal.en.html": canonical + "windows-android-terminal.en.html"}
